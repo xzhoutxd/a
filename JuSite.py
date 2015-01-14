@@ -34,7 +34,6 @@ class JhsSite():
         self.cities     = {}
         self.categories = {}
 
-
         # 页面
         self.site_page  = None
         # 商品团页面
@@ -100,55 +99,52 @@ class JhsSite():
             if m:
                 #result = json.loads(m.group(1))
                 result = json.loads(page)
-                if result.has_key("code") and int(result["code"]) == 200 and result.has_key("itemList") and result["itemList"] != []:
-                    item_list = result["itemList"]
+                if result.has_key('code') and int(result['code']) == 200 and result.has_key('itemList') and result['itemList'] != []:
+                    item_list = result['itemList']
                     for item in item_list:
                         i_url, i_price, i_jhsprice, i_discount, i_favor, i_salenum = '', '', '', '', '', ''
                         i_title, i_subtitle, i_jhstitle, i_img = '', '', '', ''
 
-                        if item.has_key("baseinfo"):
-                            item_baseino = item["baseinfo"]
+                        if item.has_key('baseinfo'):
+                            item_baseino = item['baseinfo']
                             # item pic
-                            if item_baseino.has_key("picUrl") and item_baseino["picUrl"] != '':
-                                i_img = item_baseino["picUrl"]
+                            if item_baseino.has_key('picUrl') and item_baseino['picUrl'] != '':
+                                i_img = item_baseino['picUrl']
                             # item url
-                            if item_baseino.has_key("itemUrl") and item_baseino["itemUrl"] != '':
-                                i_url = item_baseino["itemUrl"]
-
-
+                            if item_baseino.has_key('itemUrl') and item_baseino['itemUrl'] != '':
+                                i_url = item_baseino['itemUrl']
 
                         # item jhs title
-                        if item.has_key("merit") and item["merit"].has_key("up") and item["merit"]["up"] != []:
-                            i_jhstitle = ' '.join(item["merit"]["up"])
+                        if item.has_key('merit') and item['merit'].has_key('up') and item['merit']['up'] != []:
+                            i_jhstitle = ' '.join(item['merit']['up'])
 
-
-                        if item.has_key("name"):
-                            item_name = item["name"]
+                        if item.has_key('name'):
+                            item_name = item['name']
                             # item title, subtitle
-                            if item_name.has_key("title") and item_name["title"] != '':
-                                i_title = item_name["title"]
-                            if item_name.has_key("shortName") and item_name["shortName"] != '':
-                                i_subtitle = item_name["shortName"]
+                            if item_name.has_key('title') and item_name['title'] != '':
+                                i_title = item_name['title']
+                            if item_name.has_key('shortName') and item_name['shortName'] != '':
+                                i_subtitle = item_name['shortName']
 
                         # item price
-                        if item.has_key("price") and item["price"].has_key("origPrice") and item["price"]["origPrice"] != '':
-                            i_price = item["price"]["origPrice"]
+                        if item.has_key('price') and item['price'].has_key('origPrice') and item['price']['origPrice'] != '':
+                            i_price = item['price']['origPrice']
 
                         # item jhs price
-                        if item.has_key("price") and item["price"].has_key("actPrice") and item["price"]["actPrice"] != '':
-                            i_jhsprice = item["price"]["actPrice"]
+                        if item.has_key('price') and item['price'].has_key('actPrice') and item['price']['actPrice'] != '':
+                            i_jhsprice = item['price']['actPrice']
 
                         # item discount
-                        if item.has_key("price") and item["price"].has_key("discount") and item["price"]["discount"] != '':
-                            i_discount = item["price"]["discount"]
+                        if item.has_key('price') and item['price'].has_key('discount') and item['price']['discount'] != '':
+                            i_discount = item['price']['discount']
 
                         # item favor
-                        #if item.has_key() and item[""] != '':
-                        #    i_favor = item[""]
+                        #if item.has_key('') and item[''] != '':
+                        #    i_favor = item['']
 
                         # item sale num
-                        if item.has_key("remind") and item["remind"].has_key("soldCount") and item["remind"]["soldCount"] != '':
-                            i_salenum = item["remind"]["soldCount"]
+                        if item.has_key('remind') and item['remind'].has_key('soldCount') and item['remind']['soldCount'] != '':
+                            i_salenum = item['remind']['soldCount']
 
                         print '# item:', i_url, i_price, i_jhsprice, i_discount, i_salenum, i_favor, i_title, i_subtitle, i_jhstitle, i_img
                 else:
@@ -165,7 +161,6 @@ class JhsSite():
             p = re.compile(r'<div id="floor\d+" class="l-floor J_Floor placeholder ju-wrapper" (.+?)>.+?</div>', flags=re.S)
             for brand_floor in p.finditer(brand_floors):
                 brand_floor_info = brand_floor.group(1)
-                print brand_floor_info
                 f_name, f_catid, f_activitySignId = '', '', ''
                 m = re.search(r'data-floorName="(.+?)"\s+', brand_floor_info, flags=re.S)
                 if m:
@@ -192,8 +187,11 @@ class JhsSite():
                     result = json.loads(b_page)
                     print b_url
                     self.brandItems(result)
-                    if result.has_key("totalPage") and int(result["totalPage"]) > i:
-                        for page_i in range(i+1, int(result["totalPage"])+1):
+                    #if int(f_catid) == 261000:
+                    #    self.brandItems(result)
+
+                    if result.has_key('totalPage') and int(result['totalPage']) > i:
+                        for page_i in range(i+1, int(result['totalPage'])+1):
                             ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
                             b_url = b_url.replace('&page=\d+&','&page=%d&'%page_i)
                             b_url = b_url.replace('&_ksTS=\d+_\d+','&_ksTS=%s'%ts)
@@ -207,13 +205,64 @@ class JhsSite():
     # 品牌团品牌
     def brandItems(self, page):
         print page
-        if page.has_key("brandList") and page["brandList"] != []:
-            for brand in page["brandList"]: 
-                b_id, b_url, b_logopic_url, b_name, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon, b_sign  = '', '', '', '', '', '', '', '', '', '', '', ''
-                #判断是否是拼团、俪人购、普通品牌团
-                b_sign = ''
+        if page.has_key('brandList') and page['brandList'] != []:
+            for brand in page['brandList']: 
+                b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon  = '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''
+                # 1:普通品牌团,2:拼团,3:俪人购
+                # 判断拼团、俪人购、普通品牌团
+                b_sign = 1
+                
+                # 其他拼团Ids
+                other_brandList = []
 
-                print '# brand:'
+                if brand.has_key('baseInfo'):
+                    b_baseInfo = brand['baseInfo']
+                    if b_baseInfo.has_key('activityId') and b_baseInfo['activityId']:
+                        b_id = b_baseInfo['activityId']
+                    if b_baseInfo.has_key('activityUrl') and b_baseInfo['activityUrl']:
+                        b_url = b_baseInfo['activityUrl']
+                        if b_url.find('ladygo.tmall.com') != -1:
+                            b_sign = 3
+                    if b_baseInfo.has_key('ostime') and b_baseInfo['ostime']:
+                        b_starttime = b_baseInfo['ostime']
+                    if b_baseInfo.has_key('oetime') and b_baseInfo['oetime']:
+                        b_endtime = b_baseInfo['oetime']
+                    if b_baseInfo.has_key('activityStatus') and b_baseInfo['activityStatus']:
+                        b_status = b_baseInfo['activityStatus']
+                    if b_baseInfo.has_key('sellerId') and b_baseInfo['sellerId']:
+                        b_sellerId = b_baseInfo['sellerId']
+                    if b_baseInfo.has_key('otherActivityIdList') and b_baseInfo['otherActivityIdList']:
+                        other_brandList = b_baseInfo['otherActivityIdList']
+                if brand.has_key('materials'):
+                    b_materials = brand['materials']
+                    if b_materials.has_key('brandLogoUrl') and b_materials['brandLogoUrl']:
+                        b_logopic_url = b_materials['brandLogoUrl']
+                    if b_materials.has_key('logoText') and b_materials['logoText']:
+                        b_name = b_materials['logoText']
+                    if b_materials.has_key('brandDesc') and b_materials['brandDesc']:
+                        b_desc = b_materials['brandDesc']
+                    if b_materials.has_key('newBrandEnterImgUrl') and b_materials['newBrandEnterImgUrl']:
+                        b_enterpic_url = b_materials['newBrandEnterImgUrl']
+                    elif b_materials.has_key('brandEnterImgUrl') and b_materials['brandEnterImgUrl']:
+                        b_enterpic_url = b_materials['brandEnterImgUrl']
+                if brand.has_key('remind'):
+                    b_remind = brand['remind']
+                    if b_remind.has_key('soldCount') and b_remind['soldCount']:
+                        b_soldCount = b_remind['soldCount']
+                    if b_remind.has_key('remindNum') and b_remind['remindNum']:
+                        b_remindNum = b_remind['remindNum']
+                if brand.has_key('price'):
+                    b_price = brand['price']
+                    if b_price.has_key('discount') and b_price['discount']:
+                        b_discount = b_price['discount']
+                    if b_price.has_key('hasCoupon'):
+                        if b_price['hasCoupon']:
+                          b_hasCoupon = 1
+                        else:
+                          b_hasCoupon = 0
+
+                print 'b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon, b_sign, other_brandList'
+                print '# brand:', b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon, b_sign, other_brandList
                 
     # 品牌团商品
     def brandItemsByPage(self, page):
