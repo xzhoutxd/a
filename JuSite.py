@@ -34,11 +34,16 @@ class JhsSite():
         self.cities     = {}
         self.categories = {}
 
-        # 获取每页JSON数据
-        self.datapage_url = 'http://ju.taobao.com/json/tg/ajaxGetHomeItemsV2.json?type=0&stype=soldCount&callback=homelist' # 按照销量排行
 
         # 页面
         self.site_page  = None
+        # 商品团页面
+        #self.today_page_url = 'http://ju.taobao.com/json/tg/ajaxGetHomeItemsV2.json?type=0&stype=soldCount&callback=homelist' # 按照销量排行
+        self.today_page_url = 'http://ju.taobao.com/json/tg/ajaxGetHomeItemsV2.json?type=0&stype=soldCount' # 按照销量排行
+        # 品牌团页面
+        self.brand_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=0'
+        #self.brand_floor_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=0'
+        #http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?page=1&psize=60&btypes=1%2C2&showType=1&frontCatIds=262000&_ksTS=1421213914984_706&callback=brandList_10
 
     # 商品团频道
     def todayChannel(self):
@@ -81,8 +86,8 @@ class JhsSite():
         if m:
             page_num = int(m.group(1))
             for i in range(1, page_num+1):
-                date_str = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                s_url = self.datapage_url + '&_ksTS=%s'%date_str + '&page=%d' %i
+                ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+                s_url = self.today_page_url + '&_ksTS=%s'%ts + '&page=%d' %i
                 print '# today items:', i, s_url
 
                 s_page = self.crawler.getData(s_url, self.today_url)
@@ -90,9 +95,11 @@ class JhsSite():
 
     def todayItemsByPage(self, page):
         try:
-            m = re.search(r'homelist\((.+?)\)$', page, flags=re.S)
+            #m = re.search(r'homelist\((.+?)\)$', page, flags=re.S)
+            m = re.search(r'\"itemList\":\[.+?\]', page, flags=re.S)
             if m:
-                result = json.loads(m.group(1))
+                #result = json.loads(m.group(1))
+                result = json.loads(page)
                 if result.has_key("code") and int(result["code"]) == 200 and result.has_key("itemList") and result["itemList"] != []:
                     item_list = result["itemList"]
                     for item in item_list:
@@ -151,9 +158,67 @@ class JhsSite():
 
     # 品牌团列表
     def brandList(self, page):
-        m = re.search(r'<div class="slide-logos" data-spm="a">(.+?)</div>', page, flags=re.S)
+        #print page
+        m = re.search(r'<div class="tb-module ju-brand-floor">(.+?)</div>\s*</div>\s*</div>\s*<div class="J_Module skin-default"', page, flags=re.S)
         if m:
-            pass
+            brand_floors = m.group(1)
+            p = re.compile(r'<div id="floor\d+" class="l-floor J_Floor placeholder ju-wrapper" (.+?)>.+?</div>', flags=re.S)
+            for brand_floor in p.finditer(brand_floors):
+                brand_floor_info = brand_floor.group(1)
+                print brand_floor_info
+                f_name, f_catid, f_activitySignId = '', '', ''
+                m = re.search(r'data-floorName="(.+?)"\s+', brand_floor_info, flags=re.S)
+                if m:
+                    f_name = m.group(1)
+
+                m = re.search(r'data-catid=\'(.+?)\'\s+', brand_floor_info, flags=re.S)
+                if m:
+                    f_catid = m.group(1)
+
+                m = re.search(r'data-activitySignId=\"(.+?)\"$', brand_floor_info, flags=re.S)
+                if m:
+                    f_activitySignId = m.group(1)
+                print '# brand floor:', f_name, f_catid, f_activitySignId
+
+                i = 1
+                ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+                if f_activitySignId != '':
+                    b_url = self.brand_page_url + '&page=%d'%i + '&activitySignId=%s'%f_activitySignId.replace(',','%2C') + '&stype=ids' + '&_ksTS=%s'%ts
+                    b_page = self.crawler.getData(b_url, self.brand_url)
+                else:
+                    b_url = self.brand_page_url + '&page=%d'%i + '&frontCatIds=%s'%f_catid + '&_ksTS=%s'%ts
+                    b_page = self.crawler.getData(b_url, self.brand_url)
+                try:
+                    result = json.loads(b_page)
+                    print b_url
+                    self.brandItems(result)
+                    if result.has_key("totalPage") and int(result["totalPage"]) > i:
+                        for page_i in range(i+1, int(result["totalPage"])+1):
+                            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+                            b_url = b_url.replace('&page=\d+&','&page=%d&'%page_i)
+                            b_url = b_url.replace('&_ksTS=\d+_\d+','&_ksTS=%s'%ts)
+                            b_page = self.crawler.getData(b_url, self.brand_url)
+                            result = json.loads(b_page)
+                            print b_url
+                            self.brandItems(result)
+                except StandardError as err:
+                    print '# err:',err
+
+    # 品牌团品牌
+    def brandItems(self, page):
+        print page
+        if page.has_key("brandList") and page["brandList"] != []:
+            for brand in page["brandList"]: 
+                b_id, b_url, b_logopic_url, b_name, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon, b_sign  = '', '', '', '', '', '', '', '', '', '', '', ''
+                #判断是否是拼团、俪人购、普通品牌团
+                b_sign = ''
+
+                print '# brand:'
+                
+    # 品牌团商品
+    def brandItemsByPage(self, page):
+        pass
+ 
 
     # 生活汇类目
     def lifeCategory(self, page):
@@ -181,7 +246,8 @@ class JhsSite():
 
 if __name__ == '__main__':
     j = JhsSite()
-    j.todayChannel()
+    j.brandChannel()
+#    j.todayChannel()
 #     j.lifeChannel()
 #    j.lifeCity()
 
