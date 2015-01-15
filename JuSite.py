@@ -186,27 +186,36 @@ class JhsSite():
                 try:
                     result = json.loads(b_page)
                     print b_url
-                    self.brandItems(result)
+                    self.brandItems(result, f_name, f_catid)
                     #if int(f_catid) == 261000:
-                    #    self.brandItems(result)
+                    #    self.brandItems(result, f_name, f_catid)
 
+                    #if int(f_catid) == 261000 and result.has_key('totalPage') and int(result['totalPage']) > i:
                     if result.has_key('totalPage') and int(result['totalPage']) > i:
                         for page_i in range(i+1, int(result['totalPage'])+1):
                             ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                            b_url = b_url.replace('&page=\d+&','&page=%d&'%page_i)
-                            b_url = b_url.replace('&_ksTS=\d+_\d+','&_ksTS=%s'%ts)
+                            #b_url = b_url.replace('&page=\d+&','&page=%d&'%page_i)
+                            #b_url = b_url.replace('&_ksTS=\d+_\d+','&_ksTS=%s'%ts)
+                            b_url = re.sub('&page=\d+&', '&page=%d&'%page_i, b_url)
+                            b_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, b_url)
                             b_page = self.crawler.getData(b_url, self.brand_url)
                             result = json.loads(b_page)
                             print b_url
-                            self.brandItems(result)
+                            self.brandItems(result, f_name, f_catid)
                 except StandardError as err:
                     print '# err:',err
 
     # 品牌团品牌
-    def brandItems(self, page):
+    def brandItems(self, page, floorName, floorCatId):
         print page
         if page.has_key('brandList') and page['brandList'] != []:
-            for brand in page['brandList']: 
+            b_position_start = 0
+            if page.has_key('currentPage') and int(page['currentPage']) > 1:
+                b_position_start = (int(page['currentPage']) - 1) * 60
+            #for brand in page['brandList']: 
+            for i in range(0,len(page['brandList'])):
+                brand = page['brandList'][i]
+                # 基本信息
                 b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon  = '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''
                 # 1:普通品牌团,2:拼团,3:俪人购
                 # 判断拼团、俪人购、普通品牌团
@@ -214,6 +223,15 @@ class JhsSite():
                 
                 # 其他拼团Ids
                 other_brandList = []
+
+                # 品牌活动所属楼层
+                b_floorName = floorName
+                if not floorCatId:
+                    b_floorCatId = 0
+                else:
+                    b_floorCatId = int(floorCatId)
+                # 品牌活动所在位置
+                b_position = b_position_start + i + 1
 
                 if brand.has_key('baseInfo'):
                     b_baseInfo = brand['baseInfo']
@@ -233,6 +251,7 @@ class JhsSite():
                         b_sellerId = b_baseInfo['sellerId']
                     if b_baseInfo.has_key('otherActivityIdList') and b_baseInfo['otherActivityIdList']:
                         other_brandList = b_baseInfo['otherActivityIdList']
+                        b_sign = 2
                 if brand.has_key('materials'):
                     b_materials = brand['materials']
                     if b_materials.has_key('brandLogoUrl') and b_materials['brandLogoUrl']:
@@ -261,11 +280,15 @@ class JhsSite():
                         else:
                           b_hasCoupon = 0
 
-                print 'b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon, b_sign, other_brandList'
-                print '# brand:', b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon, b_sign, other_brandList
+                print 'b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon, b_sign, other_brandList,b_position,b_floorName,b_floorCatId'
+                print '# brand:', b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon, b_sign, other_brandList, b_position, b_floorName, b_floorCatId
                 
     # 品牌团商品
     def brandItemsByPage(self, page):
+        pass
+
+    # 聚划算商品页
+    def itemByPage(self, page):
         pass
  
 
@@ -295,7 +318,9 @@ class JhsSite():
 
 if __name__ == '__main__':
     j = JhsSite()
+    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     j.brandChannel()
+    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 #    j.todayChannel()
 #     j.lifeChannel()
 #    j.lifeCity()
