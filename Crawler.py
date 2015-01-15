@@ -5,6 +5,8 @@ import socket
 import Config
 import requests
 import DnsCache
+import warnings
+warnings.filterwarnings("ignore")
 
 class Crawler:
     '''A class to crawl web pages'''

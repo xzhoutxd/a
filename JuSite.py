@@ -5,8 +5,45 @@ import re
 import random
 import json
 import time
+import threading
 import Common
 from TBCrawler import TBCrawler
+
+coupon_get_num = 0
+
+class BrandPageThread(threading.Thread):
+    '''Brand page'''
+    def __init__(self, bPage_list):
+        threading.Thread.__init__(self)
+        self.bPage_list = bPage_list
+        # 抓取设置
+        self.crawler = TBCrawler()
+        self.brand_url  = 'http://ju.taobao.com/tg/brand.htm'         # 品牌团
+
+    # 品牌团商品
+    def run(self):
+        global coupon_get_num
+        print '# brandPage start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        for brandpage in self.bPage_list:
+            bItems_page = self.crawler.getData(brandpage[0], self.brand_url)
+
+            page = bItems_page
+            a = brandpage[1]
+            b = brandpage[2]
+            # 优惠券
+            coupon_list = []
+            p = re.compile(r'<div class=".+?">\s*<div class="c-price">\s*<i>.+?</i><em>(.+?)</em></div>\s*<div class="c-desc">\s*<span class="c-title"><em>(.+?)</em>(.+?)</span>\s*<span class="c-require">(.+?)</span>\s*</div>', flags=re.S)
+            for coupon in p.finditer(page):
+                coupon_list.append(''.join(coupon.groups()))
+            if coupon_list != []:
+                coupon_get_num += 1
+                print '# coupons%d (%d):%s'%(a,int(b),' '.join(coupon_list))
+            #else:
+            #    if a==1:
+            #        print '# coupons%d (%d)'%(a,int(b))
+        print '# coupon_get_num:',coupon_get_num
+        print '# brandPage end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        
 
 class JhsSite():
     '''A class of Juhuasuan Site'''
@@ -41,7 +78,13 @@ class JhsSite():
         self.today_page_url = 'http://ju.taobao.com/json/tg/ajaxGetHomeItemsV2.json?type=0&stype=soldCount' # 按照销量排行
         # 品牌团页面
         self.brand_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=0'
+        self.brand_find = 0
+        self.brand_get = 0
+        self.brand_coupon_find = 0
+        self.brand_coupon_get = 0
+        self.bPage_list = []
         #self.brand_floor_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=0'
+        # 即将上架
         #http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?page=1&psize=60&btypes=1%2C2&showType=1&frontCatIds=262000&_ksTS=1421213914984_706&callback=brandList_10
 
     # 商品团频道
@@ -155,6 +198,7 @@ class JhsSite():
     # 品牌团列表
     def brandList(self, page):
         #print page
+        bResult_list = []
         m = re.search(r'<div class="tb-module ju-brand-floor">(.+?)</div>\s*</div>\s*</div>\s*<div class="J_Module skin-default"', page, flags=re.S)
         if m:
             brand_floors = m.group(1)
@@ -186,37 +230,48 @@ class JhsSite():
                 try:
                     result = json.loads(b_page)
                     print b_url
-                    self.brandItems(result, f_name, f_catid)
+                    #bResult_list.append([result,f_name,f_catid])
+                    # 只取女装
+                    if int(f_catid) == 261000:
+                        bResult_list.append([result,f_name,f_catid])
+                    #self.brandItems(result, f_name, f_catid)
                     #if int(f_catid) == 261000:
                     #    self.brandItems(result, f_name, f_catid)
 
-                    #if int(f_catid) == 261000 and result.has_key('totalPage') and int(result['totalPage']) > i:
-                    if result.has_key('totalPage') and int(result['totalPage']) > i:
+                    if int(f_catid) == 261000 and result.has_key('totalPage') and int(result['totalPage']) > i:
+                    #if result.has_key('totalPage') and int(result['totalPage']) > i:
                         for page_i in range(i+1, int(result['totalPage'])+1):
                             ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                            #b_url = b_url.replace('&page=\d+&','&page=%d&'%page_i)
-                            #b_url = b_url.replace('&_ksTS=\d+_\d+','&_ksTS=%s'%ts)
                             b_url = re.sub('&page=\d+&', '&page=%d&'%page_i, b_url)
                             b_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, b_url)
                             b_page = self.crawler.getData(b_url, self.brand_url)
                             result = json.loads(b_page)
                             print b_url
-                            self.brandItems(result, f_name, f_catid)
+                            bResult_list.append([result,f_name,f_catid])
+                            #self.brandItems(result, f_name, f_catid)
                 except StandardError as err:
                     print '# err:',err
+        print '# brandItems start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        for bResult in bResult_list:
+            self.brandItems(bResult[0], bResult[1], bResult[2])
+        print '# brandItems end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+
+        #for brandpage in self.bPage_list:
+        #    bItems_page = self.crawler.getData(brandpage[0], self.brand_url)
+        #    self.brandItemsByPage(bItems_page, brandpage[1], brandpage[2])
 
     # 品牌团品牌
     def brandItems(self, page, floorName, floorCatId):
-        print page
+        #print page
+        bPage_list = []
         if page.has_key('brandList') and page['brandList'] != []:
+            self.brand_find += len(page['brandList'])
             b_position_start = 0
             if page.has_key('currentPage') and int(page['currentPage']) > 1:
                 b_position_start = (int(page['currentPage']) - 1) * 60
             #for brand in page['brandList']: 
             for i in range(0,len(page['brandList'])):
                 brand = page['brandList'][i]
-                # 基本信息
-                b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon  = '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''
                 # 1:普通品牌团,2:拼团,3:俪人购
                 # 判断拼团、俪人购、普通品牌团
                 b_sign = 1
@@ -233,6 +288,9 @@ class JhsSite():
                 # 品牌活动所在位置
                 b_position = b_position_start + i + 1
 
+                # 基本信息
+                b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon  = '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''
+                # b_id, b_url, b_sign,  b_starttime, b_endtime, b_status, b_sellerId, other_brandList
                 if brand.has_key('baseInfo'):
                     b_baseInfo = brand['baseInfo']
                     if b_baseInfo.has_key('activityId') and b_baseInfo['activityId']:
@@ -252,6 +310,7 @@ class JhsSite():
                     if b_baseInfo.has_key('otherActivityIdList') and b_baseInfo['otherActivityIdList']:
                         other_brandList = b_baseInfo['otherActivityIdList']
                         b_sign = 2
+                # b_logopic_url, b_name, b_desc, b_enterpic_url
                 if brand.has_key('materials'):
                     b_materials = brand['materials']
                     if b_materials.has_key('brandLogoUrl') and b_materials['brandLogoUrl']:
@@ -264,12 +323,14 @@ class JhsSite():
                         b_enterpic_url = b_materials['newBrandEnterImgUrl']
                     elif b_materials.has_key('brandEnterImgUrl') and b_materials['brandEnterImgUrl']:
                         b_enterpic_url = b_materials['brandEnterImgUrl']
+                # b_soldCount, b_remindNum
                 if brand.has_key('remind'):
                     b_remind = brand['remind']
                     if b_remind.has_key('soldCount') and b_remind['soldCount']:
                         b_soldCount = b_remind['soldCount']
                     if b_remind.has_key('remindNum') and b_remind['remindNum']:
                         b_remindNum = b_remind['remindNum']
+                # b_discount, b_hasCoupon
                 if brand.has_key('price'):
                     b_price = brand['price']
                     if b_price.has_key('discount') and b_price['discount']:
@@ -277,20 +338,139 @@ class JhsSite():
                     if b_price.has_key('hasCoupon'):
                         if b_price['hasCoupon']:
                           b_hasCoupon = 1
+                          self.brand_coupon_find += 1
                         else:
                           b_hasCoupon = 0
 
                 print 'b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon, b_sign, other_brandList,b_position,b_floorName,b_floorCatId'
                 print '# brand:', b_id, b_url, b_logopic_url, b_name, b_desc, b_enterpic_url, b_starttime, b_endtime, b_status, b_sellerId, b_sellerName, b_shopId, b_shopName, b_soldCount, b_remindNum, b_discount, b_hasCoupon, b_sign, other_brandList, b_position, b_floorName, b_floorCatId
-                
+                self.brand_get += 1
+
+                bPage_list.append([b_url, b_hasCoupon, b_id])
+                # 只取第一个活动
+                if b_position == 1:
+                  bItems_page = self.crawler.getData(b_url, self.brand_url)
+                  self.brandItemsByPage(bItems_page, b_hasCoupon, b_id, b_url)
+
+        # 多线程
+        #page_threading = BrandPageThread(bPage_list)
+        #page_threading.start()
+        # 单线程
+        #print '# brandPage start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        #for brandpage in bPage_list:
+        #    bItems_page = self.crawler.getData(brandpage[0], self.brand_url)
+        #    self.brandItemsByPage(bItems_page, brandpage[1], brandpage[2])
+        #print '# brandPage end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+              
     # 品牌团商品
-    def brandItemsByPage(self, page):
-        pass
+    def brandItemsByPage(self, page, a, b, refer):
+        #<div class="col col3 J_coupons"><div class="c-price"><i>&yen;</i><em>100</em></div><div class="c-desc"><span class="c-title"><em>元</em>店铺优惠劵</span><span class="c-require">满599元使用</span></div>
+        # 优惠券
+        coupon_list = []
+        p = re.compile(r'<div class=".+?">\s*<div class="c-price">\s*<i>.+?</i><em>(.+?)</em></div>\s*<div class="c-desc">\s*<span class="c-title"><em>(.+?)</em>(.+?)</span>\s*<span class="c-require">(.+?)</span>\s*</div>', flags=re.S)
+        for coupon in p.finditer(page):
+            coupon_list.append(''.join(coupon.groups()))
+        if coupon_list != []:
+            self.brand_coupon_get += 1
+            print '# coupons%d (%d):%s'%(a,int(b),' '.join(coupon_list))
+
+        # floor1
+        p = re.compile(r'<li class="item-big-v2">(.+?)</a>\s+</li>', flags=re.S)
+        self.itemByBrandPage(page, b, p)
+
+        # other floor
+        p = re.compile(r'<div class="l-floor J_Floor J_ItemList" .+? data-url="(.+?)">', flags=re.S)
+        for floor_url in p.finditer(page):
+            #print floor_url.group(1)
+            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+            f_url = floor_url.group(1) + '&_ksTS=%s'%ts
+            print f_url
+            f_page = self.crawler.getData(f_url, refer)
+            #print f_page
+            m = re.search(r'^\((.*?)\)$', f_page, flags=re.S)
+            if m:
+                f_html = m.group(1)
+                print f_html
+                result = json.loads(f_html)
+                p = re.compile(r'<li class="item-small-v3">(.+?)</a>\s+</li>', flags=re.S)
+                if result.has_key("html"):
+                    print result["html"]
+                    self.itemByBrandPage(result["html"], b, p)
+
+        #<div class="l-floor J_Floor J_ItemList" id="floor2" data-spm="floor2" data-url="http://ju.taobao.com//json/brand/ajaxGetBrandFloor.htm?actSignId=4769459&floorIndex=2">
+
+    # 品牌团页面商品
+    def itemByBrandPage(self, page, b, first_p):
+        # 商品信息
+        #p = re.compile(r'<li class="item-big-v2">(.+?)</a>\s+</li>', flags=re.S)
+        i = 0
+        for ju_item in first_p.finditer(page):
+            i += 1
+            ju_item_html = ju_item.group(1)
+            #print ju_item_html
+            
+            # 基本信息
+            #i_juId, i_id, i_actId, i_position, i_sellerId, i_sellerName, i_shopId, i_shopName, i_ju_url, i_juPic_url, i_juName, i_juDesc, i_treeId, i_oriPrice, i_actPrice, i_discount, i_prepare, i_remindNum, i_soldCount, i_stock, i_collectCount = 
+            #i_juId, i_id, i_position, i_ju_url, i_juPic_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_soldCount = '', '', '', '', '', '', '', '', '', ''
+            # i_sellerName, i_shopId, i_shopName, i_treeId, i_discount, i_prepare, i_remindNum, i_stock, i_collectCount
+
+            # i_actId
+            i_actId = b
+
+            # i_position
+            i_position = i
+
+            i_juId, i_id, i_position, i_ju_url, i_juPic_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_soldCount = '', '', '', '', '', '', '', '', '', ''
+            # i_ju_url, i_juId, i_id
+            m = re.search(r'<a .+? href="(.+?)" .+?>.+?', ju_item_html, flags=re.S)
+            if m:
+                i_ju_url = m.group(1)
+                if i_ju_url:
+                    #ids_list = i_ju_url.split('?')[1].split('&amp;')
+                    ids_list = i_ju_url.split('&')
+                    for ids in ids_list:
+                        if ids.find('item_id=') != -1:
+                            i_id = ids.split('=')[1]
+                        elif ids.find('id=') != -1:
+                            i_juId = ids.split('=')[1]
+
+            # i_juPic_url
+            m = re.search(r'<img class="item-pic" data-ks-lazyload="(.+?)"/>', ju_item_html, flags=re.S)
+            if m:
+                i_juPic_url = m.group(1)
+
+            # i_juName
+            m = re.search(r'<h3 class="shortname" title="(.+?)">.+?</h3>', ju_item_html, flags=re.S)
+            if m:
+                i_juName = m.group(1)
+
+            # i_juDesc
+            m = re.search(r'<h4 class="longname">(.+?)</h4>', ju_item_html, flags=re.S)
+            if m:
+                i_juDesc = m.group(1).strip()
+
+            # i_soldCount
+            m = re.search(r'<div class="soldcount">\s+<em>(.+?)</em>', ju_item_html, flags=re.S)
+            if m:
+                i_soldCount = m.group(1).strip()
+
+            # i_actPrice
+            m = re.search(r'<span class="actPrice">.+?<em>(.+?)</em>\s+</span>', ju_item_html, flags=re.S)
+            if m:
+                i_actPrice = m.group(1).strip()
+
+            # i_oriPrice
+            m = re.search(r'<del class="oriPrice">(.+?)</del>', ju_item_html, flags=re.S)
+            if m:
+                i_oriPrice = m.group(1).split(';')[1].strip()
+            
+            print 'i_actId, i_position, i_juId, i_id, i_position, i_ju_url, i_juPic_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_soldCount'
+            print '# brandItem:', i_actId, i_position, i_juId, i_id, i_position, i_ju_url, i_juPic_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_soldCount
+            # i_sellerName, i_shopId, i_shopName, i_treeId, i_discount, i_prepare, i_remindNum, i_stock, i_collectCount
 
     # 聚划算商品页
     def itemByPage(self, page):
         pass
- 
 
     # 生活汇类目
     def lifeCategory(self, page):
@@ -320,6 +500,9 @@ if __name__ == '__main__':
     j = JhsSite()
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     j.brandChannel()
+    print '# Get Result: brand_find brand_get'
+    print '# ', j.brand_find, j.brand_get
+
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 #    j.todayChannel()
 #     j.lifeChannel()
