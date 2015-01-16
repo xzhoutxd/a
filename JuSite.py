@@ -230,16 +230,16 @@ class JhsSite():
                 try:
                     result = json.loads(b_page)
                     print b_url
-                    #bResult_list.append([result,f_name,f_catid])
+                    bResult_list.append([result,f_name,f_catid])
                     # 只取女装
-                    if int(f_catid) == 261000:
-                        bResult_list.append([result,f_name,f_catid])
+                    #if int(f_catid) == 261000:
+                    #    bResult_list.append([result,f_name,f_catid])
                     #self.activityItems(result, f_name, f_catid)
                     #if int(f_catid) == 261000:
                     #    self.activityItems(result, f_name, f_catid)
 
-                    if f_catid != '' and int(f_catid) == 261000 and result.has_key('totalPage') and int(result['totalPage']) > i:
-                    #if result.has_key('totalPage') and int(result['totalPage']) > i:
+                    #if f_catid != '' and int(f_catid) == 261000 and result.has_key('totalPage') and int(result['totalPage']) > i:
+                    if result.has_key('totalPage') and int(result['totalPage']) > i:
                         for page_i in range(i+1, int(result['totalPage'])+1):
                             ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
                             b_url = re.sub('&page=\d+&', '&page=%d&'%page_i, b_url)
@@ -247,7 +247,7 @@ class JhsSite():
                             b_page = self.crawler.getData(b_url, self.brand_url)
                             result = json.loads(b_page)
                             print b_url
-                            #bResult_list.append([result, f_name, f_catid])
+                            bResult_list.append([result, f_name, f_catid])
                             #self.activityItems(result, f_name, f_catid)
                 except StandardError as err:
                     print '# err:',err
@@ -348,19 +348,19 @@ class JhsSite():
 
                 bPage_list.append([b_url, b_id, b_sign])
                 # 只测试第一个活动
-                if b_position == 1:
-                    bItems_page = self.crawler.getData(b_url, self.brand_url)
-                    self.activityItemsByPage(bItems_page, b_id, b_url)
+                #if b_position == 1:
+                #    bItems_page = self.crawler.getData(b_url, self.brand_url)
+                #    self.activityItemsByPage(bItems_page, b_id, b_url)
 
         # 多线程
         #page_threading = BrandPageThread(bPage_list)
         #page_threading.start()
         # 单线程
         #print '# activityPage start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        #for activitypage in bPage_list:
-        #    if activitypage[2] != 3:
-        #        bItems_page = self.crawler.getData(activitypage[0], self.brand_url)
-        #        self.activityItemsByPage(bItems_page, activitypage[1], activitypage[0])
+        for activitypage in bPage_list:
+            if activitypage[2] != 3:
+                bItems_page = self.crawler.getData(activitypage[0], self.brand_url)
+                self.activityItemsByPage(bItems_page, activitypage[1], activitypage[0])
         #print '# activityPage end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
               
     # 品牌团商品
@@ -502,9 +502,10 @@ class JhsSite():
             print 'i_actId, i_position, i_juId, i_id, i_ju_url, i_juPic_url, i_juName, i_juDesc, i_oriPrice, i_actPrice'
             print '# activityItem%d:'%i_position, i_actId, i_position, i_juId, i_id, i_ju_url, i_juPic_url, i_juName, i_juDesc, i_oriPrice, i_actPrice
 
-            # 只测第一个商品
-            if i_position == 1:
-                self.itemByPage(i_ju_url, refer)
+            ## 只测第一个商品
+            #if i_position == 1:
+                #self.itemByPage(i_ju_url, refer)
+            self.itemByPage(i_ju_url, refer)
                 
         return i
 
@@ -512,23 +513,85 @@ class JhsSite():
     def itemByPage(self, url, refer):
         # i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_sellerName, i_shopId, i_shopName, i_treeId, i_discount, i_prepare, i_remindNum, i_soldCount, i_stock, i_collectCount
         # 聚划算商品页信息
-        # i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_sellerName, i_remindNum, i_soldCount, i_stock, i_collectCount, i_shopType
-        i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_sellerName, i_remindNum, i_soldCount, i_stock, i_collectCount, i_shopType = '', '', '', '', '', '', '', '', '', '', '', '', ''
+        # i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_discount, i_sellerId, i_sellerName, i_remindNum, i_soldCount, i_stock, i_shopType
+        i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_discount, i_sellerId, i_sellerName, i_remindNum, i_soldCount, i_stock, i_shopType = '', '', '', '', '', '', '', '', '', '', '', '', '', ''
         page = self.crawler.getData(url, refer)
         m = re.search(r'<div id="content" class="detail">(.+?)</div> <!-- /content -->', page, flags=re.S)
         if m:
             i_page = m.group(1)
-            print i_page
+            # i_id, i_juId, i_shopType
             m = re.search(r'JU_DETAIL_DYNAMIC = {(.+?)};', i_page, flags=re.S)
             if m:
                 m = re.search(r'"item_id": "(.+?)",.+?"id": "(.+?)",.+?"shopType": (.+?)\s+', i_page, flags=re.S)
                 if m:
                     i_id, i_juId, i_shopType = m.group(1), m.group(2), m.group(3)
-            print '# Item:', i_id, i_juId, i_shopType
+
+            # i_url
+            m = re.search(r'<div class="normal-pic.+?<a href="(.+?)".+?>', i_page, flags=re.S)
+            if m:
+                i_url = m.group(1)
+
+            # i_sellerId, i_sellerName
+            m = re.search(r'<div class="con inf-seller">\s+<a href=".+?user_number_id=(.+?)".+?>(.+?)</a>\s+</div>', i_page, flags=re.S)
+            if m:
+                i_sellerId, i_sellerName = m.group(1), m.group(2)
+
+            # i_juName
+            m = re.search(r'<h2 class="name">(.+?)</h2>', i_page, flags=re.S)
+            if m:
+                i_juName = m.group(1).strip()
+
+            # i_juDesc
+            m = re.search(r'<div class="description">(.+?)</div>', i_page, flags=re.S)
+            if m:
+                i_juDesc = m.group(1).strip()
+
+            # i_oriPrice
+            m = re.search(r'<del class="originPrice">(.+?)</del>', i_page, flags=re.S)
+            if m:
+                i_oriPrice = m.group(1).strip()
+                if i_oriPrice.find(';') != -1:
+                    i_oriPrice = i_oriPrice.split(';')[1]
+
+            # i_actPrice
+            m = re.search(r'<span class="currentPrice.+?>.+?</small>(.+?)</span>', i_page, flags=re.S)
+            if m:
+                i_actPrice = m.group(1).strip()
+
+            # i_discount
+            m = re.search(r'data-polldiscount="(.+?)"', i_page, flags=re.S)
+            if m:
+                i_discount = m.group(1)
+
+            # i_remindNum, i_soldCount, i_stock
+            i_getdata_url = ''
+            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+            m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"apiItemDynamicInfo": "(.+?)",.+?};', i_page, flags=re.S)
+            if m:
+                i_getdata_url = m.group(1) + '?item_id=%s'%i_id + '&id=%s'%i_juId + '&_ksTS=%s'%ts
+            else:
+                i_getdata_url = 'http://dskip.ju.taobao.com/detail/json/item_dynamic.htm' + '?item_id=%s'%i_id + '&id=%s'%i_juId + '&_ksTS=%s'%ts
+
+            if i_getdata_url:
+                data_json = self.crawler.getData(i_getdata_url, url)
+                result = json.loads(data_json)
+                if result.has_key('data'):
+                    result_data = result['data']
+                    if result_data.has_key('soldCount'):
+                        i_soldCount = result_data['soldCount']
+                    else:
+                        if result_data.has_key('remindNum') and result_data['remindNum']:
+                            i_remindNum = result_data['remindNum']
+
+                    if result_data.has_key('stock'):
+                        i_stock = result_data['stock']
+          
+            print 'i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_discount, i_sellerId, i_sellerName, i_remindNum, i_soldCount, i_stock, i_shopType'
+            print '# Item:', i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_discount, i_sellerId, i_sellerName, i_remindNum, i_soldCount, i_stock, i_shopType 
                 
 
         # 商品详情页信息
-        # i_shopId, i_shopName, i_treeId, i_discount, i_prepare, i_collectCount, i_brand
+        # i_shopId, i_shopName, i_treeId, i_prepare, i_collectCount, i_brand
 
     # 生活汇类目
     def lifeCategory(self, page):
