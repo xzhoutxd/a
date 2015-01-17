@@ -1,5 +1,8 @@
 #-*- coding:utf-8 -*-
 #!/usr/local/bin/python
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 import re
 import random
@@ -8,6 +11,10 @@ import time
 import threading
 import Common
 from TBCrawler import TBCrawler
+from TBItem import TBItem
+from TMItem import TMItem
+from parserTBItem import PTBItem
+from parserTMItem import PTMItem
 
 coupon_get_num = 0
 
@@ -348,19 +355,19 @@ class JhsSite():
 
                 bPage_list.append([b_url, b_id, b_sign])
                 # 只测试第一个活动
-                #if b_position == 1:
-                #    bItems_page = self.crawler.getData(b_url, self.brand_url)
-                #    self.activityItemsByPage(bItems_page, b_id, b_url)
+                if b_position == 1:
+                    bItems_page = self.crawler.getData(b_url, self.brand_url)
+                    self.activityItemsByPage(bItems_page, b_id, b_url)
 
         # 多线程
         #page_threading = BrandPageThread(bPage_list)
         #page_threading.start()
         # 单线程
         #print '# activityPage start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        for activitypage in bPage_list:
-            if activitypage[2] != 3:
-                bItems_page = self.crawler.getData(activitypage[0], self.brand_url)
-                self.activityItemsByPage(bItems_page, activitypage[1], activitypage[0])
+        #for activitypage in bPage_list:
+        #    if activitypage[2] != 3:
+        #        bItems_page = self.crawler.getData(activitypage[0], self.brand_url)
+        #        self.activityItemsByPage(bItems_page, activitypage[1], activitypage[0])
         #print '# activityPage end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
               
     # 品牌团商品
@@ -503,15 +510,15 @@ class JhsSite():
             print '# activityItem%d:'%i_position, i_actId, i_position, i_juId, i_id, i_ju_url, i_juPic_url, i_juName, i_juDesc, i_oriPrice, i_actPrice
 
             ## 只测第一个商品
-            #if i_position == 1:
-                #self.itemByPage(i_ju_url, refer)
-            self.itemByPage(i_ju_url, refer)
+            if i_position == 1:
+                self.itemByPage(i_ju_url, refer)
+            #self.itemByPage(i_ju_url, refer)
                 
         return i
 
     # 聚划算商品页
     def itemByPage(self, url, refer):
-        # i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_sellerName, i_shopId, i_shopName, i_treeId, i_discount, i_prepare, i_remindNum, i_soldCount, i_stock, i_collectCount
+        # i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_sellerName, i_shopId, i_shopName, i_treeId, i_discount, i_prepare, i_remindNum, i_soldCount, i_stock, i_favorites
         # 聚划算商品页信息
         # i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_discount, i_sellerId, i_sellerName, i_remindNum, i_soldCount, i_stock, i_shopType
         i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_discount, i_sellerId, i_sellerName, i_remindNum, i_soldCount, i_stock, i_shopType = '', '', '', '', '', '', '', '', '', '', '', '', '', ''
@@ -591,7 +598,26 @@ class JhsSite():
                 
 
         # 商品详情页信息
-        # i_shopId, i_shopName, i_treeId, i_prepare, i_collectCount, i_brand
+        # i_shopId, i_shopName, i_treeId, i_prepare, i_favorites, i_brand
+        i_shopId, i_shopName, i_treeId, i_prepare, i_favorites, i_brand = '', '', '', '', '', ''
+        result = None
+        if int(i_shopType) == 1:
+            T = TMItem()
+            T.antPage(i_url)
+            PT = PTMItem()
+            PT.antPage(T)
+            result = PT.outItemCrawl()
+            
+        elif int(i_shopType) == 2:
+            T = TBItem()
+            T.antPage(i_url)
+            PT = PTBItem()
+            result = PT.outItemCrawl()
+        print result
+        if result:
+            i_shopId, i_shopName, i_treeId, i_prepare, i_favorites, i_brand = result
+        print 'i_shopId, i_shopName, i_treeId, i_prepare, i_favorites, i_brand'
+        print '# ItemshopInfo:', i_shopId, i_shopName, i_treeId, i_prepare, i_favorites, i_brand
 
     # 生活汇类目
     def lifeCategory(self, page):

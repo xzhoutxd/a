@@ -15,7 +15,7 @@ def createPath(p):
     if not os.path.exists(p): os.makedirs(p)
 
 ######################## 抓取设置  ########################
-
+tmall_home = 'http://www.tmall.com'
 # 抓取对象类型
 TMALL_TYPE  = '1'
 TAOBAO_TYPE = '2'
