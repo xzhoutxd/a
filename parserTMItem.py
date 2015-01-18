@@ -578,7 +578,7 @@ class PTMItem(Item):
     # 解析商品网页
     #def antPage(self, _time, _sid, _id, _pages):
     def antPage(self, crawl_obj):
-        if crawl_obj.itemPages != {}:
+        if crawl_obj.item_pages != {}:
             self.itemPage(crawl_obj.crawling_time, crawl_obj.shop_id, crawl_obj.item_id, crawl_obj.item_pages)
 
             val  = (crawl_obj.crawling_time,crawl_obj.shop_id,crawl_obj.item_name,'',crawl_obj.deal_deadLine,0.0)

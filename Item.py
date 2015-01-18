@@ -4,12 +4,10 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-#import base.Common as Common
-import Common
-#import base.Config as Config
-#import Config
+import base.Common as Common
+import base.Config as Config
 #from db.RedisAccess import RedisAccess
-from TBCrawler import TBCrawler
+from base.TBCrawler import TBCrawler
 
 class Item():
     '''A class of item'''

@@ -16,6 +16,9 @@ def createPath(p):
 
 ######################## 抓取设置  ########################
 tmall_home = 'http://www.tmall.com'
+# 聚划算
+ju_home = 'http://ju.taobao.com' # 聚划算首页
+ju_brand_home = 'http://ju.taobao.com/tg/brand.htm' # 品牌团
 # 抓取对象类型
 TMALL_TYPE  = '1'
 TAOBAO_TYPE = '2'

@@ -356,8 +356,9 @@ class JhsSite():
                 bPage_list.append([b_url, b_id, b_sign])
                 # 只测试第一个活动
                 #if b_position == 1:
-                #    bItems_page = self.crawler.getData(b_url, self.brand_url)
-                #    self.activityItemsByPage(bItems_page, b_id, b_url)
+                if int(b_id) == 4675031:
+                    bItems_page = self.crawler.getData(b_url, self.brand_url)
+                    self.activityItemsByPage(bItems_page, b_id, b_url)
 
         # 多线程
         #page_threading = BrandPageThread(bPage_list)
@@ -510,9 +511,9 @@ class JhsSite():
             print '# activityItem%d:'%i_position, i_actId, i_position, i_juId, i_id, i_ju_url, i_juPic_url, i_juName, i_juDesc, i_oriPrice, i_actPrice
 
             ## 只测第一个商品
-            #if i_position == 1:
-            #    self.itemByPage(i_ju_url, refer)
-            self.itemByPage(i_ju_url, refer)
+            if i_position == 1:
+                self.itemByPage(i_ju_url, refer)
+            #self.itemByPage(i_ju_url, refer)
                 
         return i
 
@@ -595,23 +596,26 @@ class JhsSite():
           
         # 其他优惠信息
         i_promotion = []
-        m = re.search(r'src="(http://dskip.ju.taobao.com/promotion/json/get_shop_promotion.do?.+?)"', page)
-        if m:
-            promot_url = m.group(1)
-            promot_page = self.crawler.getData(promot_url, url)
-            m = re.search(r'jsonp\d+\((.+?)\)$', promot_page, flags=re.S)
-            if m:
-                json_str = m.group(1)
-                result = json.loads(json_str)
-                if result.has_key('success') and result.has_key('model') and result['model'] != []:
-                    for model in result['model']:
-                        title = ''
-                        if model.has_key('title'):
-                            title = model['title']
-                        if model.has_key('promLevels') and model['promLevels'] != []:
-                            for level in model['promLevels']:
-                                if level.has_key('title'):
-                                    i_promotion.append('%s:%s'%(title,level['title']))
+        #m = re.search(r'src="(http://dskip.ju.taobao.com/promotion/json/get_shop_promotion.do?.+?)"', page)
+        #if m:
+        #    promot_url = m.group(1)
+        ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+        promot_url = 'http://dskip.ju.taobao.com/promotion/json/get_shop_promotion.do?ju_id=%d&_ksTS=%s'%(int(i_juId), ts)
+        promot_page = self.crawler.getData(promot_url, url)
+        #m = re.search(r'jsonp\d+\((.+?)\)$', promot_page, flags=re.S)
+        #if m:
+        #    json_str = m.group(1)
+        #    result = json.loads(json_str)
+        result = json.loads(promot_page)
+        if result.has_key('success') and result.has_key('model') and result['model'] != []:
+            for model in result['model']:
+                title = ''
+                if model.has_key('title'):
+                    title = model['title']
+                if model.has_key('promLevels') and model['promLevels'] != []:
+                    for level in model['promLevels']:
+                        if level.has_key('title'):
+                            i_promotion.append('%s:%s'%(title,level['title']))
         print 'i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_discount, i_sellerId, i_sellerName, i_remindNum, i_soldCount, i_stock, i_shopType, i_promotion'
         print '# Item:', i_id, i_juId, i_url, i_juName, i_juDesc, i_oriPrice, i_actPrice, i_discount, i_sellerId, i_sellerName, i_remindNum, i_soldCount, i_stock, i_shopType, i_promotion
 
