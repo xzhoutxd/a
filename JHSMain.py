@@ -229,6 +229,7 @@ class JHSMain():
                     # 只测第一个
                     #if int(b_position_start+i) == 1:
                     print '#####A activity begin#####'
+                    b = None
                     b = JHSBActItem()
                     b.antPage(activity, page[2], page[1], (b_position_start+i+1))
                     act_list.append([b.brandact_id, b.brandact_name, b.brandact_url])
@@ -314,6 +315,7 @@ class JHSMain():
             i += 1
             # 只测第一个
             #if position+i == 1:
+            item = None
             item = JHSItem()
             item.antPage(page, actId, actName, actUrl, position+i)
             time.sleep(1)
