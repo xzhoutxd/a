@@ -623,23 +623,24 @@ class PTBItem(Item):
         #self.itemPage(_time, _sid, _id, _pages)
         #self.itemCrawl()
     def antPage(self, crawl_obj):
-        self.itemPage(crawl_obj.crawling_time, crawl_obj.shop_id, crawl_obj.item_id, crawl_obj.item_pages)
+        if crawl_obj.item_pages != {}:
+            self.itemPage(crawl_obj.crawling_time, crawl_obj.shop_id, crawl_obj.item_id, crawl_obj.item_pages)
 
-        val = (crawl_obj.crawling_time, crawl_obj.shop_id, crawl_obj.item_name, '', crawl_obj.deal_deadLine, 0.0)
-        self.itemCrawl(val)
-        self.itemConfig()
-        #self.itemPicture()
-        #self.itemPromises()
-        self.itemFavorites()
-        self.itemStock()
-        #self.itemSku()
+            val = (crawl_obj.crawling_time, crawl_obj.shop_id, crawl_obj.item_name, '', crawl_obj.deal_deadLine, 0.0)
+            self.itemCrawl(val)
+            self.itemConfig()
+            #self.itemPicture()
+            #self.itemPromises()
+            self.itemFavorites()
+            self.itemStock()
+            #self.itemSku()
 
-        #self.dealSkuPercent()
-        #self.rateTagPercent()
-        #self.rateCumPercent()
-        
-        self.itemStatus()
-        #self.outItemCrawl()
+            #self.dealSkuPercent()
+            #self.rateTagPercent()
+            #self.rateCumPercent()
+            
+            self.itemStatus()
+            #self.outItemCrawl()
 
     # 评价标签序列化
     def tag_s(self):

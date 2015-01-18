@@ -577,23 +577,24 @@ class PTMItem(Item):
 
     # 解析商品网页
     #def antPage(self, _time, _sid, _id, _pages):
-    def antPage(self, obj):
-        self.itemPage(obj.crawling_time, obj.shop_id, obj.item_id, obj.item_pages)
+    def antPage(self, crawl_obj):
+        if crawl_obj.itemPages != {}:
+            self.itemPage(crawl_obj.crawling_time, crawl_obj.shop_id, crawl_obj.item_id, crawl_obj.item_pages)
 
-        val  = (obj.crawling_time,obj.shop_id,obj.item_name,'',obj.deal_deadLine,0.0)
-        self.itemCrawl(val)
-        self.itemConfig()
-        #self.itemPicture()
-        #self.itemPromises()
-        self.itemFavorites()
-        self.itemStock()
-        #self.itemSku()
+            val  = (crawl_obj.crawling_time,crawl_obj.shop_id,crawl_obj.item_name,'',crawl_obj.deal_deadLine,0.0)
+            self.itemCrawl(val)
+            self.itemConfig()
+            #self.itemPicture()
+            #self.itemPromises()
+            self.itemFavorites()
+            self.itemStock()
+            #self.itemSku()
 
-        #self.dealSkuPercent()
-        #self.rateTagPercent()
-        
-        self.itemStatus()
-        #self.outItemCrawl()
+            #self.dealSkuPercent()
+            #self.rateTagPercent()
+            
+            self.itemStatus()
+            #self.outItemCrawl()
 
     # 评价标签序列化
     def tag_s(self):
