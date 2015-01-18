@@ -32,7 +32,9 @@ class TBItem(Item):
         # 商品详情页
         page = self.crawler.getData(url, refers)
         #if not page or page == '': raise Common.InvalidPageException("Invalid Item Found")
-        if not page or page == '': print "Invalid Item Found"
+        if not page or page == '': 
+            print "url(%s):Invalid Item Found"%url
+            return ''
 
         # 没有找到相应的商品信息 - 淘宝
         m = re.search(r'<div class="error-notice-hd">很抱歉，您查看的宝贝不存在，可能已下架或者被转移。</div>', page, flags=re.S)
@@ -224,12 +226,13 @@ class TBItem(Item):
     # 解析商品内容
     def antPage(self, url):
         self.itemPage(url)
-        self.itemConfig()
-        self.itemFavorites()
-        #self.rateTagPercent()
-        
-        #self.crawler.useCookie(True)
-        #self.dealSkuPercent()
+        if self.item_page and self.item_page != '':
+            self.itemConfig()
+            self.itemFavorites()
+            #self.rateTagPercent()
+            
+            #self.crawler.useCookie(True)
+            #self.dealSkuPercent()
 
 # if __name__ == '__main__':
 #     items = [41201797787]

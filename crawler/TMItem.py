@@ -5,8 +5,10 @@ import sys
 sys.path.append('../')
 
 import re
-import base.Common as Common
-import base.Config as Config
+#import base.Common as Common
+import Common
+#import base.Config as Config
+import Config
 from Item import Item
 
 class TMItem(Item):
@@ -19,8 +21,8 @@ class TMItem(Item):
         self.shop_type = Config.TMALL_TYPE
 
         # 抓取设置
-        self.deal_pageSize = Config.tmall_dealPageSize
-        self.deal_maxPages = Config.tmall_dealMaxPages
+        #self.deal_pageSize = Config.tmall_dealPageSize
+        #self.deal_maxPages = Config.tmall_dealMaxPages
 
     # 商品页面
     def itemPage(self, url):
@@ -29,13 +31,17 @@ class TMItem(Item):
 
         # 商品详情页
         page = self.crawler.getData(url, Config.tmall_home)
-        if not page or page == '': raise Common.InvalidPageException("Invalid Item Found")
+        #if not page or page == '': raise Common.InvalidPageException("Invalid Item Found")
+        if not page or page == '': 
+            print "url(%s):Invalid Item Found"%url
+            return ''
 
         # 没有找到相应的商品信息 - 天猫
         m = re.search(r'<div class="errorDetail">\s+?<h2>很抱歉，您查看的商品找不到了！</h2>', page, flags=re.S)
         if m:
             self.item_page   = None
-            raise Common.NoItemException("# itemPage : No tm item found")
+            #raise Common.NoItemException("# itemPage : No tm item found")
+            print "# itemPage : No tm item found"
 
         # 匹配shop_id, item_id
         #<div id="LineZing" pagetype="2" shopid="73217422" tmplid="" itemid="40348828982"></div>
@@ -45,10 +51,12 @@ class TMItem(Item):
             self.shop_id, self.item_id = m.group(1), m.group(2)
         else:
             print '# itemPage: Invalid item page, url=%s' %url
-            raise Common.InvalidPageException("# itemPage %s : Invalid shop/item id found" %self.item_url)
+            #raise Common.InvalidPageException("# itemPage %s : Invalid shop/item id found" %self.item_url)
+            print "# itemPage %s : Invalid shop/item id found" %self.item_url
 
         # 保存商品页
-        self.item_pages.append(('%s-item-home' %self.shop_type, self.item_url, self.item_page))
+        #self.item_pages.append(('%s-item-home' %self.shop_type, self.item_url, self.item_page))
+        self.item_pages['item-home'] = (self.item_url, self.item_page)
 
     # item configuration
     def itemConfig(self):
@@ -63,20 +71,24 @@ class TMItem(Item):
         # SPU ID
         m = re.search(r'"spuId":"(\d+)"', page)
         if m: self.item_spuId = m.group(1)
-        else: raise Common.InvalidPageException("# itemPage : Invalid item spu id found")
+        #else: raise Common.InvalidPageException("# itemPage : Invalid item spu id found")
+        else: print "# itemPage : Invalid item spu id found"
 
         # 掌柜ID
         m = re.search(r'"sellerId":(\d+)', page)
         if m: self.item_sellerId = m.group(1)
-        else: raise Common.InvalidPageException("# itemPage : Invalid item seller id found")
+        #else: raise Common.InvalidPageException("# itemPage : Invalid item seller id found")
+        else: print "# itemPage : Invalid item seller id found"
 
         # 移动web页
         wap_url  = 'http://detail.m.tmall.com/item.htm?id=%s' % (self.item_id)
         wap_page = self.crawler.getData(wap_url, self.item_url, terminal='1')
         if not wap_page or wap_page == '':
-            raise Common.InvalidPageException("# itemConfig : Invalid item wap page found")
+            #raise Common.InvalidPageException("# itemConfig : Invalid item wap page found")
+            print "# itemConfig : Invalid item wap page found"
 
-        self.item_pages.append(('%s-item-wap' %self.shop_type, wap_url, wap_page))
+        #self.item_pages.append(('%s-item-wap' %self.shop_type, wap_url, wap_page))
+        self.item_pages['item-wap'] = (wap_url, wap_page)
 
         # 商品月成交
         m = re.search(r'"sellCount":(\d+)', wap_page)
@@ -88,7 +100,8 @@ class TMItem(Item):
         if not ratenum_page or ratenum_page == '': return
 
         # 保存评价记录数页
-        self.item_pages.append(('%s-item-ratenum' %self.shop_type, r_url, ratenum_page))
+        #self.item_pages.append(('%s-item-ratenum' %self.shop_type, r_url, ratenum_page))
+        self.item_pages['item-ratenum'] = (r_url, ratenum_page)
 
     # 商品收藏数
     def itemFavorites(self):
@@ -99,8 +112,10 @@ class TMItem(Item):
             data = self.crawler.getData(url, self.item_url)
 
             if data and data != '':
-                self.item_pages.append(('%s-item-favorite' %self.shop_type, url, data))
+                #self.item_pages.append(('%s-item-favorite' %self.shop_type, url, data))
+                self.item_pages['item-favorite'] = (url, data)
 
+    """
     # 成交记录SKU占比
     def dealSkuPercent(self):
         m = re.search(r'"recordExtUrl":"(\S+?)"', self.item_page)
@@ -108,7 +123,8 @@ class TMItem(Item):
             deal_sku_url  = m.group(1) + '&callback=' + Common.jsonCallback()
             data = self.crawler.getData(deal_sku_url, self.item_url)
             if not data or len(data) == 0: return
-            self.item_pages.append(('%s-item-dealsku' %self.shop_type, deal_sku_url, data))
+            #self.item_pages.append(('%s-item-dealsku' %self.shop_type, deal_sku_url, data))
+            self.item_pages['item-dealsku'] = (deal_sku_url, data)
 
     # 评价标签
     def rateTagPercent(self):
@@ -118,7 +134,8 @@ class TMItem(Item):
 
         # 保存评价标签页
         if not page or page == '': return
-        self.item_pages.append(('%s-item-ratetag' %self.shop_type, rate_tagUrl, page))
+        #self.item_pages.append(('%s-item-ratetag' %self.shop_type, rate_tagUrl, page))
+        self.item_pages['item-ratetag'] = (rate_tagUrl, page)
 
     # 成交记录
     def aDealRecord(self, data):
@@ -185,17 +202,20 @@ class TMItem(Item):
                 d_content += (d_header + data)
 
         # 保存成交页全部页
-        self.item_pages.append(('item.deal', self.deal_url, d_content))
+        #self.item_pages.append(('item.deal', self.deal_url, d_content))
+        self.item_pages['item.deal'] = (self.deal_url, d_content)
+    """
 
     # 解析商品详细内容
     def antPage(self, url):
         self.itemPage(url)
-        self.itemConfig()
-        self.itemFavorites()
-        self.rateTagPercent()
+        if self.item_page and self.item_page != '':
+            self.itemConfig()
+            self.itemFavorites()
+            #self.rateTagPercent()
         
-        self.crawler.useCookie(True)
-        self.dealSkuPercent()
+            #self.crawler.useCookie(True)
+            #self.dealSkuPercent()
 
 # if __name__ == '__main__':
 #     items = [41966174962]

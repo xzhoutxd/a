@@ -32,7 +32,9 @@ class TMItem(Item):
         # 商品详情页
         page = self.crawler.getData(url, Config.tmall_home)
         #if not page or page == '': raise Common.InvalidPageException("Invalid Item Found")
-        if not page or page == '': print "Invalid Item Found"
+        if not page or page == '': 
+            print "url(%s):Invalid Item Found"%url
+            return ''
 
         # 没有找到相应的商品信息 - 天猫
         m = re.search(r'<div class="errorDetail">\s+?<h2>很抱歉，您查看的商品找不到了！</h2>', page, flags=re.S)
@@ -207,12 +209,13 @@ class TMItem(Item):
     # 解析商品详细内容
     def antPage(self, url):
         self.itemPage(url)
-        self.itemConfig()
-        self.itemFavorites()
-        #self.rateTagPercent()
+        if self.item_page and self.item_page != '':
+            self.itemConfig()
+            self.itemFavorites()
+            #self.rateTagPercent()
         
-        #self.crawler.useCookie(True)
-        #self.dealSkuPercent()
+            #self.crawler.useCookie(True)
+            #self.dealSkuPercent()
 
 # if __name__ == '__main__':
 #     items = [41966174962]

@@ -5,8 +5,10 @@ import sys
 sys.path.append('../')
 
 import re
-import base.Common as Common
-import base.Config as Config
+#import base.Common as Common
+import Common
+#import base.Config as Config
+import Config
 from Item import Item
 
 class TBItem(Item):
@@ -19,8 +21,8 @@ class TBItem(Item):
         self.shop_type = Config.TAOBAO_TYPE
         
         # 抓取设置
-        self.deal_pageSize   = Config.taobao_dealPageSize
-        self.deal_maxPages   = Config.taobao_dealMaxPages        
+        #self.deal_pageSize   = Config.taobao_dealPageSize
+        #self.deal_maxPages   = Config.taobao_dealMaxPages        
 
     # 商品页面
     def itemPage(self, url, refers=''):
@@ -29,13 +31,17 @@ class TBItem(Item):
 
         # 商品详情页
         page = self.crawler.getData(url, refers)
-        if not page or page == '': raise Common.InvalidPageException("Invalid Item Found")
+        #if not page or page == '': raise Common.InvalidPageException("Invalid Item Found")
+        if not page or page == '': 
+            print "url(%s):Invalid Item Found"%url
+            return ''
 
         # 没有找到相应的商品信息 - 淘宝
         m = re.search(r'<div class="error-notice-hd">很抱歉，您查看的宝贝不存在，可能已下架或者被转移。</div>', page, flags=re.S)
         if m:
             self.item_page = None
-            raise Common.NoItemException("# itemPage : No tb item found")
+            #raise Common.NoItemException("# itemPage : No tb item found")
+            print "# itemPage : No tb item found"
 
         # 匹配shop_id, item_id
         #<div id="LineZing" pagetype="2" shopid="73217422" tmplid="" itemid="40348828982"></div>
@@ -45,10 +51,11 @@ class TBItem(Item):
             self.shop_id, self.item_id = m.group(1), m.group(2)
         else:
             print '# itemPage: Invalid item page, url=%s' %url
-            raise Common.InvalidPageException("# itemPage %s : Invalid shop/item id found" %self.item_url)
+            #raise Common.InvalidPageException("# itemPage %s : Invalid shop/item id found" %self.item_url)
 
         # 保存商品页
-        self.item_pages.append(('%s-item-home' %self.shop_type, self.item_url, self.item_page))
+        #self.item_pages.append(('%s-item-home' %self.shop_type, self.item_url, self.item_page))
+        self.item_pages['item-home'] = (self.item_url, self.item_page)
 
     def itemConfig(self):
         page = self.item_page
@@ -70,10 +77,12 @@ class TBItem(Item):
 
             detail_page = self.crawler.getData(wholeSib_url, self.item_url)
             if not detail_page or detail_page == '':
-                raise Common.InvalidPageException("# itemConfig : Invalid item detail page found")
+                #raise Common.InvalidPageException("# itemConfig : Invalid item detail page found")
+                print "# itemConfig : Invalid item detail page found"
 
             # 保存商品详情接口页
-            self.item_pages.append(('%s-item-detail' %self.shop_type, wholeSib_url, detail_page))
+            #self.item_pages.append(('%s-item-detail' %self.shop_type, wholeSib_url, detail_page))
+            self.item_pages['item-detail'] = (wholeSib_url, detail_page)
 
         # 成交数量页
         m = re.search(r'"apiItemInfo":"(.+?stm=\d+&id=\d+&sid=\d+&.+?)"', page)
@@ -81,7 +90,8 @@ class TBItem(Item):
             dealnum_url = m.group(1) + '&callback=' + Common.jsonCallback()
             data = self.crawler.getData(dealnum_url, self.item_url)
             if data and data != '':
-                self.item_pages.append(('%s-item-dealnum' %self.shop_type, dealnum_url, data))
+                #self.item_pages.append(('%s-item-dealnum' %self.shop_type, dealnum_url, data))
+                self.item_pages['item-dealnum'] = (dealnum_url, data)
 
                 r = re.search(r'quanity:\s*(\d+)\s*,', data, flags = re.S)
                 if r: self.item_sellCount = r.group(1)
@@ -93,7 +103,8 @@ class TBItem(Item):
             data = self.crawler.getData(r_url, self.item_url)
 
             if data and data != '':
-                self.item_pages.append(('%s-item-ratenum' %self.shop_type, r_url, data))
+                #self.item_pages.append(('%s-item-ratenum' %self.shop_type, r_url, data))
+                self.item_pages['item-ratenum'] = (r_url, data)
 
         # 商品移动web页
         wap_url = 'http://hws.m.taobao.com/cache/wdetail/5.0/?id=%s' %(self.item_id)
@@ -101,7 +112,8 @@ class TBItem(Item):
         wap_page = self.crawler.getData(wap_url, wap_refers, terminal='2')
 
         if not wap_page or wap_page == '': return
-        self.item_pages.append(('%s-item-wap' %self.shop_type, wap_url, wap_page))
+        #self.item_pages.append(('%s-item-wap' %self.shop_type, wap_url, wap_page))
+        self.item_pages['item-wap'] = (wap_url, wap_page)
 
     # 商品收藏数
     def itemFavorites(self):
@@ -112,8 +124,10 @@ class TBItem(Item):
             data = self.crawler.getData(url, self.item_url)
 
             if not data or data == '': return
-            self.item_pages.append(('%s-item-favorite' %self.shop_type, url, data))
+            #self.item_pages.append(('%s-item-favorite' %self.shop_type, url, data))
+            self.item_pages['item-favorite'] = (url, data)
 
+    """
     # 成交记录SKU占比
     def dealSkuPercent(self):
         m = re.search(r'priceCutUrl:"\S+?(id=\d+&rootCatId=\d+)"', self.item_page)
@@ -123,7 +137,8 @@ class TBItem(Item):
             data = self.crawler.getData(deal_sku_url, self.item_url)
             if not data or len(data) == 0: return
             # 保存成交记录SKU占比页
-            self.item_pages.append(('%s-item-dealsku' %self.shop_type, deal_sku_url, data))
+            #self.item_pages.append(('%s-item-dealsku' %self.shop_type, deal_sku_url, data))
+            self.item_pages['item-dealsku'] = (deal_sku_url, data)
 
     def rateTagPercent(self):
         page = self.item_page
@@ -133,7 +148,8 @@ class TBItem(Item):
             data = self.crawler.getData(rate_tagUrl, self.item_url)
             if not data or data == '': return
             # 保存评价标签页
-            self.item_pages.append(('%s-item-ratetag' %self.shop_type, rate_tagUrl, data))
+            #self.item_pages.append(('%s-item-ratetag' %self.shop_type, rate_tagUrl, data))
+            self.item_pages['item-ratetag'] = (rate_tagUrl, data)
 
     def aDealRecord(self, data):
         # To check deal page
@@ -203,17 +219,20 @@ class TBItem(Item):
                 d_content += (d_header + data)
 
         # 保存成交页全部页
-        self.item_pages.append(('item.deal', self.deal_url, d_content))
+        #self.item_pages.append(('item.deal', self.deal_url, d_content))
+        self.item_pages['item.deal'] = (self.deal_url, d_content)
+    """
 
     # 解析商品内容
     def antPage(self, url):
         self.itemPage(url)
-        self.itemConfig()
-        self.itemFavorites()
-        self.rateTagPercent()
-        
-        self.crawler.useCookie(True)
-        self.dealSkuPercent()
+        if self.item_page and self.item_page != '':
+            self.itemConfig()
+            self.itemFavorites()
+            #self.rateTagPercent()
+            
+            #self.crawler.useCookie(True)
+            #self.dealSkuPercent()
 
 # if __name__ == '__main__':
 #     items = [41201797787]

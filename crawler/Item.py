@@ -4,9 +4,11 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-import base.Common as Common
-import base.Config as Config
-from db.RedisAccess import RedisAccess
+#import base.Common as Common
+import Common
+#import base.Config as Config
+#import Config
+#from db.RedisAccess import RedisAccess
 from TBCrawler import TBCrawler
 
 class Item():
@@ -29,7 +31,7 @@ class Item():
         self.rate_maxPages   = 100
 
         # redis access
-        self.redisAccess     = RedisAccess()
+        #self.redisAccess     = RedisAccess()
 
         # 初始化实例变量
         self.initItem()
@@ -53,7 +55,8 @@ class Item():
         self.item_urls       = []   # 商品链接列表
 
         # item html pages
-        self.item_pages      = []   # 商品网页列表
+        #self.item_pages      = []   # 商品网页列表
+        self.item_pages      = {}   # 商品网页列表
 
         # 成交记录
         self.deal_url        = ''
@@ -61,6 +64,7 @@ class Item():
         self.deal_deadLine   = 0.0  # 上次抓取的成交记录最晚时间
         self.deal_deadLine2  = 0.0  # 本次抓取的成交记录最早时间
 
+    """
     def itemCrawl(self):
         # 检查商品ID有效性
         if not self.item_id or self.item_id == '': return
@@ -75,7 +79,9 @@ class Item():
 
             if self.crawled_time and self.crawled_time > Config.g_zeroValue:  # 1天86400秒
                 self.deal_deadLine2  = self.crawled_time - self.deal_bufferdays * 86400
+    """
 
+    """
     # 输出抓取的网页log
     def outItemLog(self):
         pages = []
@@ -101,3 +107,4 @@ class Item():
             sqls.append((Common.time_s(self.crawling_time), self.shop_id, self.item_id, self.item_name, p_tag, p_url))
             pages_d[p_tag] = p_content.strip()
         return sqls, (key, pages_d)
+    """
