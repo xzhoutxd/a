@@ -218,14 +218,16 @@ class JHSMain():
         act_list = []
         print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         for page in bResult_list:
-            if page[0].has_key('brandList') and page[0]['brandList'] != []:
+            i_page = page[0]
+            if i_page.has_key('brandList') and i_page['brandList'] != []:
                 #self.brand_find += len(page['brandList'])
+                activities = i_page['brandList']
                 b_position_start = 0
-                if page[0].has_key('currentPage') and int(page[0]['currentPage']) > 1:
-                    b_position_start = (int(page[0]['currentPage']) - 1) * 60
-                for i in range(0,len(page[0]['brandList'])):
+                if i_page.has_key('currentPage') and int(i_page['currentPage']) > 1:
+                    b_position_start = (int(i_page['currentPage']) - 1) * 60
+                for i in range(0,len(activities)):
                     print '# A activity start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    activity = page[0]['brandList'][i]
+                    activity = activities[i]
                     # 只测第一个
                     #if int(b_position_start+i) == 1:
                     print '#####A activity begin#####'
@@ -233,14 +235,15 @@ class JHSMain():
                     b = JHSBActItem()
                     b.antPage(activity, page[2], page[1], (b_position_start+i+1))
                     act_list.append([b.brandact_id, b.brandact_name, b.brandact_url])
-                    print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    itemnum = self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url)
-                    print '# activity id:%s name:%s url:%s'%(b.brandact_id, b.brandact_name, b.brandact_url)
-                    print '# activity item num:', itemnum
-                    print '# activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                    if b.brandact_sign != 3:
+                        print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                        itemnum = self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url)
+                        print '# activity id:%s name:%s url:%s'%(b.brandact_id, b.brandact_name, b.brandact_url)
+                        print '# activity item num:', itemnum
+                        print '# activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                    print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                     print '#####A activity end#####'
                     time.sleep(1)
-                    print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# brand activity num:', len(act_list)
 
@@ -315,9 +318,10 @@ class JHSMain():
             i += 1
             # 只测第一个
             #if position+i == 1:
+            ju_item_html = ju_item.group(1)
             item = None
             item = JHSItem()
-            item.antPage(page, actId, actName, actUrl, position+i)
+            item.antPage(ju_item_html, actId, actName, actUrl, position+i)
             time.sleep(1)
 
         return i
