@@ -27,6 +27,10 @@ class JHSBActItem():
         self.brandact_catgoryName = '' # 品牌团所在类别Name
         self.brandact_position = 0 # 品牌团所在类别位置
 
+        # 是否在首页展示
+        self.brandact_inJuHome = 0 # 是否在首页展示,0:不在,1:存在
+        self.brandact_juHome_position = '' # 在首页展示的位置
+
         # 品牌团信息
         self.brandact_id = '' # 品牌团Id
         self.brandact_url = '' # 品牌团链接
