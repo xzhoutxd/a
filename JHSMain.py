@@ -14,10 +14,14 @@ import base.Config as Config
 from base.TBCrawler import TBCrawler
 from JHSBActItem import JHSBActItem
 from JHSItem import JHSItem
+from db.MysqlAccess import MysqlAccess
 
 class JHSMain():
     '''A class of Juhuasuan Main Site'''
     def __init__(self):
+        # mysql
+        self.mysqlAccess = MysqlAccess()
+
         # 抓取设置
         self.crawler    = TBCrawler()
 
@@ -229,14 +233,16 @@ class JHSMain():
                     print '# A activity start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                     activity = activities[i]
                     # 只测第一个
-                    #if int(b_position_start+i) == 1:
+                    #if int(b_position_start+i) == 1 or int(b_position_start+i) == 2 or int(b_position_start+i) == 3:
                     print '#####A activity begin#####'
                     b = None
                     b = JHSBActItem()
-                    b.antPage(activity, page[2], page[1], (b_position_start+i+1))
+                    b.antPage(activity, page[2], page[1], (b_position_start+i))
+                    self.mysqlAccess.insertJhsAct(b.outSql())
                     act_list.append([b.brandact_id, b.brandact_name, b.brandact_url])
                     if b.brandact_sign != 3:
                         print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                        # Activity Items
                         itemnum = self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url)
                         print '# activity id:%s name:%s url:%s'%(b.brandact_id, b.brandact_name, b.brandact_url)
                         print '# activity item num:', itemnum
@@ -317,12 +323,14 @@ class JHSMain():
         for ju_item in p.finditer(page):
             i += 1
             # 只测第一个
-            #if position+i == 1:
-            ju_item_html = ju_item.group(1)
-            item = None
-            item = JHSItem()
-            item.antPage(ju_item_html, actId, actName, actUrl, position+i)
-            time.sleep(1)
+            #if position+i < 10:
+            if position+i:
+                ju_item_html = ju_item.group(1)
+                item = None
+                item = JHSItem()
+                item.antPage(ju_item_html, actId, actName, actUrl, position+i)
+                self.mysqlAccess.insertJhsItem(item.outSql())
+                time.sleep(1)
 
         return i
 

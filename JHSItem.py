@@ -39,6 +39,7 @@ class JHSItem():
         self.item_juName = '' # 商品聚划算Name
         self.item_juDesc = '' # 商品聚划算说明
         self.item_catId = '' # 商品叶子类目Id
+        self.item_catName = '' # 商品叶子类目Name
         self.item_brand = '' # 商品品牌
 
         # 商品店铺
@@ -55,7 +56,7 @@ class JHSItem():
         self.item_remindNum = '' # 商品关注人数
         self.item_soldCount = '' # 商品销售数量
         self.item_stock = '' # 商品库存
-        self.item_promotion = [] # 商品其他优惠
+        self.item_promotions = [] # 商品其他优惠
         self.item_prepare = 0 # 商品活动前备货数
         self.item_favorites = 0 # 商品收藏数
 
@@ -200,7 +201,7 @@ class JHSItem():
                                 if model.has_key('promLevels') and model['promLevels'] != []:
                                     for level in model['promLevels']:
                                         if level.has_key('title'):
-                                            self.item_promotion.append('%s:%s'%(title,level['title']))
+                                            self.item_promotions.append('%s:%s'%(title,level['title']))
 
     # 商品详情页信息
     def getFromTMTBPage(self):
@@ -230,10 +231,16 @@ class JHSItem():
         self.getFromTMTBPage()
         self.outItem()
 
+    # 输出SQL
+    def outSql(self):
+        #sql = 'replace into nd_jhs_parser_item(crawl_time,item_juid,act_id,act_name,act_url,item_position,item_ju_url,item_juname,item_judesc,item_jupic_url,item_id,item_url,seller_id,seller_name,shop_id,shop_name,shop_type,item_oriprice,item_actprice,discount,item_remindnum,item_soldcount,item_stock,item_prepare,item_favorites,item_promotions,cat_id,brand_name) value(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+
+        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,str(self.item_position),self.item_ju_url,self.item_juName,self.item_juDesc,self.item_juPic_url,self.item_id,self.item_url,str(self.item_sellerId),self.item_sellerName,str(self.item_shopId),self.item_shopName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),str(self.item_soldCount),str(self.item_stock),str(self.item_prepare),str(self.item_favorites),';'.join(self.item_promotions),str(self.item_catId),self.item_brand)
+
     #
     def outItem(self):
-        print 'self.crawling_time,self.item_actId,self.item_actName,self.item_act_url,self.item_position,self.item_juId,self.item_ju_url,self.item_id,self.item_url,self.item_juPic_url,self.item_juName,self.item_juDesc,self.item_catId,self.item_brand,self.item_sellerId,self.item_sellerName,self.item_shopId,self.item_shopName,self.item_shopType,self.item_oriPrice,self.item_actPrice,self.item_discount,self.item_remindNum,self.item_soldCount,self.item_stock,self.item_promotion,self.item_prepare,self.item_favorites'
-        print '# Ju Item:',self.crawling_time,self.item_actId,self.item_actName,self.item_act_url,self.item_position,self.item_juId,self.item_ju_url,self.item_id,self.item_url,self.item_juPic_url,self.item_juName,self.item_juDesc,self.item_catId,self.item_brand,self.item_sellerId,self.item_sellerName,self.item_shopId,self.item_shopName,self.item_shopType,self.item_oriPrice,self.item_actPrice,self.item_discount,self.item_remindNum,self.item_soldCount,self.item_stock,self.item_promotion,self.item_prepare,self.item_favorites
+        print 'self.crawling_time,self.item_actId,self.item_actName,self.item_act_url,self.item_position,self.item_juId,self.item_ju_url,self.item_id,self.item_url,self.item_juPic_url,self.item_juName,self.item_juDesc,self.item_catId,self.item_catName,self.item_brand,self.item_sellerId,self.item_sellerName,self.item_shopId,self.item_shopName,self.item_shopType,self.item_oriPrice,self.item_actPrice,self.item_discount,self.item_remindNum,self.item_soldCount,self.item_stock,self.item_promotions,self.item_prepare,self.item_favorites'
+        print '# Ju Item:',self.crawling_time,self.item_actId,self.item_actName,self.item_act_url,self.item_position,self.item_juId,self.item_ju_url,self.item_id,self.item_url,self.item_juPic_url,self.item_juName,self.item_juDesc,self.item_catId,self.item_catName,self.item_brand,self.item_sellerId,self.item_sellerName,self.item_shopId,self.item_shopName,self.item_shopType,self.item_oriPrice,self.item_actPrice,self.item_discount,self.item_remindNum,self.item_soldCount,self.item_stock,self.item_promotions,self.item_prepare,self.item_favorites
 
         """
         print '原数据信息'

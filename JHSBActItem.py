@@ -21,6 +21,8 @@ class JHSBActItem():
         self.crawling_time   = Common.now()
 
         # 类别
+        self.brandact_platform = '聚划算' # 品牌团所在平台
+        self.brandact_channel = '品牌闪购' # 品牌团所在频道
         self.brandact_catgoryId = 0 # 品牌团所在类别Id
         self.brandact_catgoryName = '' # 品牌团所在类别Name
         self.brandact_position = 0 # 品牌团所在类别位置
@@ -36,7 +38,8 @@ class JHSBActItem():
         self.brandact_endtime = 0.0 # 品牌团结束时间
         self.brandact_status = '' # 品牌团状态
         self.brandact_sign = 1 # 品牌团标识 1:普通品牌团,2:拼团,3:俪人购
-        self.brandact_other_ids = [] # 如果是拼团, 其他团的ID
+        self.brandact_other_ids = '' # 如果是拼团, 其他团的ID
+        self.brandact_brand = '' # 品牌团品牌信息
 
         # 店铺信息
         self.brandact_sellerId = '' # 品牌团卖家Id
@@ -95,9 +98,11 @@ class JHSBActItem():
                 self.brandact_sellerId = b_baseInfo['sellerId']
             if b_baseInfo.has_key('otherActivityIdList') and b_baseInfo['otherActivityIdList']:
                 # 如果是拼团, 其他团的ID
-                self.brandact_other_ids = b_baseInfo['otherActivityIdList']
+                self.brandact_other_ids = str(self.brandact_id) + ',' + ','.join(b_baseInfo['otherActivityIdList'])
                 # 品牌团标识
                 self.brandact_sign = 2
+            else:
+                self.brandact_other_ids = str(self.brandact_id)
 
         if self.brandact_pagedata.has_key('materials'):
             b_materials = self.brandact_pagedata['materials']
@@ -157,11 +162,15 @@ class JHSBActItem():
         self.initItem(page, catId, catName, position)
         self.itemConfig()
         self.brandActConpons()
-        self.outItem()
+        #self.outItem()
+
+    def outSql(self):
+        #sql  = 'replace into nd_jhs_parser_activity(crawl_time,act_id,category_id,category_name,act_position,act_platform,act_name,act_url,act_desc,act_logopic_url,act_enterpic_url,act_status,act_sign,_act_ids,seller_id,seller_name,shop_id,shop_name,discount,act_soldcount,act_remindnum,act_coupon,act_coupons,brand_name,start_time,end_time) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+        return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,self.brandact_url,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),self.brandact_brand,Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000))
 
     def outItem(self):
-        print 'self.crawling_time,self.brandact_catgoryId,self.brandact_catgoryName,self.brandact_position,self.brandact_id,self.brandact_url,self.brandact_name,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_starttime,self.brandact_endtime,self.brandact_status,self.brandact_sign,self.brandact_other_ids,self.brandact_sellerId,self.brandact_sellerName,self.brandact_shopId,self.brandact_shopName,self.brandact_soldCount,self.brandact_remindNum,self.brandact_discount,self.brandact_coupon,self.brandact_coupons'
-        print '# brandActivityItem:',self.crawling_time,self.brandact_catgoryId,self.brandact_catgoryName,self.brandact_position,self.brandact_id,self.brandact_url,self.brandact_name,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_starttime,self.brandact_endtime,self.brandact_status,self.brandact_sign,self.brandact_other_ids,self.brandact_sellerId,self.brandact_sellerName,self.brandact_shopId,self.brandact_shopName,self.brandact_soldCount,self.brandact_remindNum,self.brandact_discount,self.brandact_coupon,self.brandact_coupons
+        print 'self.brandact_platform,self.brandact_channel,self.crawling_time,self.brandact_catgoryId,self.brandact_catgoryName,self.brandact_position,self.brandact_id,self.brandact_url,self.brandact_name,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_starttime,self.brandact_endtime,self.brandact_status,self.brandact_sign,self.brandact_other_ids,self.brandact_sellerId,self.brandact_sellerName,self.brandact_shopId,self.brandact_shopName,self.brandact_soldCount,self.brandact_remindNum,self.brandact_discount,self.brandact_coupon,self.brandact_coupons'
+        print '# brandActivityItem:',self.brandact_platform,self.brandact_channel,self.crawling_time,self.brandact_catgoryId,self.brandact_catgoryName,self.brandact_position,self.brandact_id,self.brandact_url,self.brandact_name,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_starttime,self.brandact_endtime,self.brandact_status,self.brandact_sign,self.brandact_other_ids,self.brandact_sellerId,self.brandact_sellerName,self.brandact_shopId,self.brandact_shopName,self.brandact_soldCount,self.brandact_remindNum,self.brandact_discount,self.brandact_coupon,self.brandact_coupons
 
         """
         print '原数据信息:'
