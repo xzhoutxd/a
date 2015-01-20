@@ -94,7 +94,7 @@ class PTMItem(Item):
                 self.item_brand = Common.htmlDecode(p_value).strip()
 
         # 品牌
-        if self.item_brand != '':
+        if self.item_brand == '':
             m = re.search(r'<li id="J_attrBrandName" title="(.+?)">', page, flags=re.S)
             if m:
                 self.item_brand = Common.htmlDecode(m.group(1))

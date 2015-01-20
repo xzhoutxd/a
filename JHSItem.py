@@ -110,8 +110,8 @@ class JHSItem():
     # Configuration from json type
     def itemConfigFromJson(self):
         # 基本信息
-        if item.has_key('baseinfo'):
-            item_baseinfo = item['baseinfo']
+        if self.item_pageData.has_key('baseinfo'):
+            item_baseinfo = self.item_pageData['baseinfo']
             # 商品聚划算展示图片链接
             if item_baseinfo.has_key('picUrl') and item_baseinfo['picUrl'] != '':
                 self.item_juPic_url = item_baseinfo['picUrl']
@@ -134,20 +134,20 @@ class JHSItem():
                 self.item_id = item_baseinfo['itemId']
 
         # 商品关注人数, 商品销售数量
-        if item.has_key('remind'):
-            item_remind = item['remind']
+        if self.item_pageData.has_key('remind'):
+            item_remind = self.item_pageData['remind']
             if item_remind.has_key('remindNum'):
-                self.item_remindNum = item['remindNum']
+                self.item_remindNum = item_remind['remindNum']
             if item_remind.has_key('soldCount'):
-                self.item_soldCount = item['soldCount']
+                self.item_soldCount = item_remind['soldCount']
 
         # 商品原价, 商品活动价
-        if item.has_key('price'):
-            item_price = item['price']
+        if self.item_pageData.has_key('price'):
+            item_price = self.item_pageData['price']
             if item_price.has_key('origPrice'):
-                self.item_oriPrice = item['origPrice']
+                self.item_oriPrice = item_price['origPrice']
             if item_price.has_key('actPrice'):
-                self.item_actPrice = item['actPrice']
+                self.item_actPrice = item_price['actPrice']
 
     # 聚划算商品页信息
     def itemPage(self):
