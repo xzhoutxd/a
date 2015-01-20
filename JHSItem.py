@@ -122,6 +122,10 @@ class JHSItem():
                 m = re.search(r'<div class="normal-pic.+?<a href="(.+?)".+?>', i_page, flags=re.S)
                 if m:
                     self.item_url = m.group(1)
+                else:
+                    m = re.search(r'<div class="pic-box soldout".+?<a href="(.+?)".+?>', i_page, flags=re.S)
+                    if m:
+                        self.item_url = m.group(1)
 
                 # 商品卖家Id, 商品卖家Name
                 m = re.search(r'<div class="con inf-seller">\s+<a href=".+?user_number_id=(.+?)".+?>(.+?)</a>\s+</div>', i_page, flags=re.S)
@@ -144,6 +148,12 @@ class JHSItem():
                     self.item_oriPrice = m.group(1).strip()
                     if self.item_oriPrice.find(';') != -1:
                         self.item_oriPrice = self.item_oriPrice.split(';')[1]
+                else:
+                    m = re.search(r'<span class="originPrice">(.+?)</span>', i_page, flags=re.S)
+                    if m:
+                        self.item_oriPrice = m.group(1).strip()
+                        if self.item_oriPrice.find(';') != -1:
+                            self.item_oriPrice = self.item_oriPrice.split(';')[1]
 
                 # 商品活动价
                 m = re.search(r'<span class="currentPrice.+?>.+?</small>(.+?)</span>', i_page, flags=re.S)
@@ -166,7 +176,7 @@ class JHSItem():
 
                 if i_getdata_url:
                     json_str = self.crawler.getData(i_getdata_url, self.item_ju_url)
-                    self.item_pages['item_dynamic'] = json_str
+                    self.item_pages['item_dynamic'] = (i_getdata_url, json_str)
                     if json_str and json_str != '':
                         result = json.loads(json_str)
                         if result.has_key('data'):
@@ -182,46 +192,52 @@ class JHSItem():
 
     # 商品其他优惠信息
     def itemPromotiton(self):
-        if self.item_juPage and self.item_juPage != '':
-            m = re.search(r'src="(http://dskip.ju.taobao.com/promotion/json/get_shop_promotion.do?.+?)"', self.item_juPage)
-            if m:
-                promot_url = m.group(1)
-                promot_page = self.crawler.getData(promot_url, self.item_ju_url)
-                if promot_page and promot_page != '':
-                    self.item_pages['shop_promotion'] = promot_page
-                    m = re.search(r'jsonp\d+\((.+?)\)$', promot_page, flags=re.S)
-                    if m:
-                        json_str = m.group(1)
-                        result = json.loads(json_str)
-                        if result.has_key('success') and result.has_key('model') and result['model'] != []:
-                            for model in result['model']:
-                                title = ''
-                                if model.has_key('title'):
-                                    title = model['title']
-                                if model.has_key('promLevels') and model['promLevels'] != []:
-                                    for level in model['promLevels']:
-                                        if level.has_key('title'):
-                                            self.item_promotions.append('%s:%s'%(title,level['title']))
+        #if self.item_juPage and self.item_juPage != '':
+        #m = re.search(r'src="(http://dskip.ju.taobao.com/promotion/json/get_shop_promotion.do?.+?)"', self.item_juPage)
+        promot_url = 'http://dskip.ju.taobao.com/promotion/json/get_shop_promotion.do?ju_id=%s'%str(self.item_juId)
+        promot_page = self.crawler.getData(promot_url, self.item_ju_url)
+        if promot_page and promot_page != '':
+            self.item_pages['shop_promotion'] = (promot_url,promot_page)
+            #m = re.search(r'jsonp\d+\((.+?)\)$', promot_page, flags=re.S)
+            #if m:
+            #    json_str = m.group(1)
+            #    result = json.loads(json_str)
+            result = json.loads(promot_page)
+            if result.has_key('success') and result.has_key('model') and result['model'] != []:
+                for model in result['model']:
+                    title = ''
+                    if model.has_key('title'):
+                        title = model['title']
+                    if model.has_key('promLevels') and model['promLevels'] != []:
+                        for level in model['promLevels']:
+                            if level.has_key('title'):
+                                self.item_promotions.append('%s:%s'%(title,level['title']))
 
     # 商品详情页信息
     def getFromTMTBPage(self):
-        result = None
+        #result = None
+        Item = None
+        PItem = None
         # 天猫店铺
         if int(self.item_shopType) == 1:
-            T = TMItem()
-            T.antPage(self.item_url)
-            PT = PTMItem()
-            PT.antPage(T)
-            result = PT.outItemCrawl()
+            Item = TMItem()
+            Item.antPage(self.item_url)
+            PItem = PTMItem()
+            PItem.antPage(Item)
+            #result = PT.outItemCrawl()
         # 集市店铺
         elif int(self.item_shopType) == 2:
-            T = TBItem()
-            T.antPage(self.item_url)
-            PT = PTBItem()
-            result = PT.outItemCrawl()
+            Item = TBItem()
+            Item.antPage(self.item_url)
+            PItem = PTBItem()
+            PItem.antPage(Item)
+            #result = PT.outItemCrawl()
         # 商品店铺Id, 商品店铺Name, 商品叶子类目Id, 商品活动前备货数, 商品收藏数, 商品品牌
-        if result:
-            self.item_shopId, self.item_shopName, self.item_catId, self.item_prepare, self.item_favorites, self.item_brand = result
+        if PItem:
+            #self.item_shopId, self.item_shopName, self.item_catId, self.item_prepare, self.item_favorites, self.item_brand = result
+            self.item_shopId, self.item_shopName, self.item_catId, self.item_prepare, self.item_favorites, self.item_brand = PItem.shop_id, PItem.shop_name, PItem.item_catId, PItem.item_stock, PItem.item_favorites, PItem.item_brand
+        # 如果买光了或者活动结束了还需要的数据
+        # self.item_oriPrice, self.item_discount
 
     # 执行
     def antPage(self, page, actId, actName, actUrl, position):

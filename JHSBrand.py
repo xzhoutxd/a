@@ -56,15 +56,17 @@ class JHSBrand():
     def homeBrandAct(self, page):
         if not page or page == '': return
 
+        print '首页品牌团'
+        print '# ju home brand start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         self.ju_home_page = page
         m = re.search(r'<ul id="brandList" class="clearfix">(.+?)</ul>', page, flags=re.S)
         if m:
             brandact_content = m.group(1)
             p = re.compile(r'<li class="brand-mid-v2".+?>(.+?)</li>', flags=re.S)
             i = 0
-            for brand_act in p.finditer(brand_content):
+            for brand_act in p.finditer(brandact_content):
                 i += 1
-                m = re.search(r'<a class="link-box hover-avil" href="(.+?)".+?<span class="title">(.+?)</span>\s+</a>', brand_act, flags=re.S)
+                m = re.search(r'<a class="link-box hover-avil" href="(.+?)".+?>.+?<span class="title">(.+?)</span>.+?</a>', brand_act.group(1), flags=re.S)
                 if m:
                     brand_act_id, brand_act_url, brand_act_name = '', '', ''
                     brand_act_url, brand_act_name = m.group(1), m.group(2)
@@ -73,7 +75,8 @@ class JHSBrand():
                         brand_act_id = str(m.group(1))
                         self.home_brands[brand_act_id] = {'name':brand_act_name,'url':brand_act_url,'position':i}
                     self.home_brands_list.append({'id':brand_act_id,'name':brand_act_name,'url':brand_act_url,'position':i})
-            
+                    print i, brand_act_id, brand_act_url, brand_act_name
+        print '# ju home brand end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
     # 品牌团列表
     def activityList(self, page):
@@ -138,31 +141,34 @@ class JHSBrand():
                 activities = i_page['brandList']
                 b_position_start = 0
                 if i_page.has_key('currentPage') and int(i_page['currentPage']) > 1:
+                    # 每页取60条数据
                     b_position_start = (int(i_page['currentPage']) - 1) * 60
                 for i in range(0,len(activities)):
                     print '# A activity start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                     activity = activities[i]
-                    # 只测第一个
-                    #if int(b_position_start+i) < 4:
-                    print '#####A activity begin#####'
-                    b = None
-                    b = JHSBActItem()
-                    b.antPage(activity, page[2], page[1], (b_position_start+i))
-                    self.mysqlAccess.insertJhsAct(b.outSql())
-                    act_list.append([b.brandact_id, b.brandact_name, b.brandact_url])
-                    if self.home_brands.has_key(b.brandact_id):
-                        b.brandact_inJuHome = 1
-                        b.brandact_juHome_position = self.home_brands[b.brandact_id]['position']
-                    if b.brandact_sign != 3:
-                        print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                        # Activity Items
-                        itemnum = self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url)
-                        print '# activity id:%s name:%s url:%s'%(b.brandact_id, b.brandact_name, b.brandact_url)
-                        print '# activity item num:', itemnum
-                        print '# activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    print '#####A activity end#####'
-                    time.sleep(1)
+                    # 只测前几个
+                    if int(b_position_start+i) >= 0:
+                        print '#####A activity begin#####'
+                        b = None
+                        b = JHSBActItem()
+                        b.antPage(activity, page[2], page[1], (b_position_start+i+1))
+                        # 判断是否在首页推广
+                        if self.home_brands.has_key(str(b.brandact_id)):
+                            b.brandact_inJuHome = 1
+                            b.brandact_juHome_position = self.home_brands[str(b.brandact_id)]['position']
+                        # 入库
+                        self.mysqlAccess.insertJhsAct(b.outSql())
+                        act_list.append([b.brandact_id, b.brandact_name, b.brandact_url])
+                        if b.brandact_sign != 3:
+                            print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                            # Activity Items
+                            itemnum = self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url)
+                            print '# activity id:%s name:%s url:%s'%(b.brandact_id, b.brandact_name, b.brandact_url)
+                            print '# activity item num:', itemnum
+                            print '# activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                        print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                        print '#####A activity end#####'
+                        time.sleep(1)
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# brand activity num:', len(act_list)
 
@@ -180,9 +186,12 @@ class JHSBrand():
 
     # 从品牌团页获取数据
     def activityItems(self, actId, actName, actUrl):
-        #print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         page = self.crawler.getData(actUrl, Config.ju_brand_home)
         m = re.search(r'<div id="content">(.+?)</div>\s+<div class="crazy-wrap">', page, flags=re.S)
+        if m:
+            page = m.group(1)
+
+        m = re.search(r'<div class="act-main ju-itemlist">', page, flags=re.S)
         if m:
             self.activitytemp1(m.group(1), actId, actName, actUrl)
         else:
@@ -191,34 +200,31 @@ class JHSBrand():
     # 品牌团页面格式(1)
     def activitytemp1(self, page, actId, actName, actUrl):
         position = 0
-        # 商品
-        m = re.search(r'<div class="act-main ju-itemlist">', page, flags=re.S)
+        # source html floor
+        # 第一层
+        p = re.compile(r'<div class="act-item0">(.+?)</div>\s+<img', flags=re.S)
+        position += self.itemByBrandPage(page, actId, actName, p, position, actUrl)
+        # 第二层
+        m = re.search(r'<div class="act-item1">\s+<ul>(.+?)</u>\s+</div>', page, flags=re.S)
         if m:
-            # source html floor
-            # 第一层
-            p = re.compile(r'<div class="act-item0">(.+?)</div>\s+<img', flags=re.S)
-            position += self.itemByBrandPage(page, actId, actName, p, position, actUrl)
-            # 第二层
-            m = re.search(r'<div class="act-item1">\s+<ul>(.+?)</u>\s+</div>', page, flags=re.S)
-            if m:
-                item1_page = m.group(1)
-                p = re.compile(r'<li>(.+?)</li>', flags=re.S)
-                position += self.itemByBrandPage(item1_page, actId, actName, p, position, actUrl)
+            item1_page = m.group(1)
+            p = re.compile(r'<li>(.+?)</li>', flags=re.S)
+            position += self.itemByBrandPage(item1_page, actId, actName, p, position, actUrl)
 
-            # other floor
-            # 其他层数据
-            getdata_url = "http://ju.taobao.com/json/tg/ajaxGetItems.htm?stype=ids&styleType=small&includeForecast=true"
-            p = re.compile(r'<div class="act-item J_jupicker" data-item="(.+?)">', flags=re.S)
-            for floor_url in p.finditer(page):
-                ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                f_url = getdata_url + '&juIds=' + floor_url.group(1) + '&_ksTS=%s'%ts
-                print f_url
-                f_page = self.crawler.getData(f_url, actUrl)
-                m = re.search(r'html\":\'(.+?)\'', f_page, flags=re.S)
-                if m:
-                    f_html = m.group(1)
-                    p = re.compile(r'<li class="item-small-v3">(.+?)</li>', flags=re.S)
-                    position += self.itemByBrandPage(f_html, actId, actName, p, position, actUrl)
+        # other floor
+        # 其他层数据
+        getdata_url = "http://ju.taobao.com/json/tg/ajaxGetItems.htm?stype=ids&styleType=small&includeForecast=true"
+        p = re.compile(r'<div class="act-item J_jupicker" data-item="(.+?)">', flags=re.S)
+        for floor_url in p.finditer(page):
+            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+            f_url = getdata_url + '&juIds=' + floor_url.group(1) + '&_ksTS=%s'%ts
+            print f_url
+            f_page = self.crawler.getData(f_url, actUrl)
+            m = re.search(r'html\":\'(.+?)\'', f_page, flags=re.S)
+            if m:
+                f_html = m.group(1)
+                p = re.compile(r'<li class="item-small-v3">(.+?)</li>', flags=re.S)
+                position += self.itemByBrandPage(f_html, actId, actName, p, position, actUrl)
         return position
                 
     # 品牌团页面格式(2)
@@ -249,9 +255,9 @@ class JHSBrand():
         i = 0
         for ju_item in p.finditer(page):
             i += 1
-            # 只测第一个
-            #if position+i < 10:
-            if position+i:
+            # 只测前几个数据
+            if position+i < 2:
+            #if position+i:
                 ju_item_html = ju_item.group(1)
                 item = None
                 item = JHSItem()

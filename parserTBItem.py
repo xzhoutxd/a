@@ -46,6 +46,10 @@ class PTBItem(Item):
             title = Common.htmlDecode_s(m.group(1).strip())
             self.item_name = title.split('-淘宝网')[0].strip()
 
+        # 店铺Name
+        m = re.search(r'<div class="tb-shop-name">.+?<strong>\s+<a.+?title="(.+?)".+?>.+?</a>\s+</strong>', page, flags=re.S)
+        if m: self.shop_name = m.group(1)
+
         # Seller ID
         m = re.search(r'sellerId:"(\d+)"', page)
         if m: self.item_sellerId = m.group(1)
