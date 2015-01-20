@@ -76,6 +76,8 @@ class PTBItem(Item):
             param = m.group(1).replace('：', ':')
             p_name, p_value = param.split(':', 1)
             self.item_params[p_name] = Common.trim_s(p_value)
+            if p_name.find('品牌') != -1:
+                self.item_brand = Common.htmlDecode(p_value).strip()
 
         # 商品成交链接
         m = re.search(r'data-api="(.+?)"', page)

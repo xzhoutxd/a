@@ -187,7 +187,7 @@ class JHSBrand():
     # 从品牌团页获取数据
     def activityItems(self, actId, actName, actUrl):
         page = self.crawler.getData(actUrl, Config.ju_brand_home)
-        m = re.search(r'<div id="content">(.+?)</div>\s+<div class="crazy-wrap">', page, flags=re.S)
+        m = re.search(r'<div id="content".+?>(.+?)</div>\s+<div class="crazy-wrap">', page, flags=re.S)
         if m:
             page = m.group(1)
 
@@ -195,7 +195,11 @@ class JHSBrand():
         if m:
             self.activitytemp1(m.group(1), actId, actName, actUrl)
         else:
-            self.activitytemp2(page, actId, actName, actUrl)
+            m = re.search(r'<div class="l-floor J_Floor .+?data-ajaxurl="(.+?)">', page, flags=re.S)
+            if m:
+                self.activitytemp2(page, actId, actName, actUrl)
+            else:
+                self.activitytemp3(page, actId, actName, actUrl)
 
     # 品牌团页面格式(1)
     def activitytemp1(self, page, actId, actName, actUrl):
@@ -203,13 +207,13 @@ class JHSBrand():
         # source html floor
         # 第一层
         p = re.compile(r'<div class="act-item0">(.+?)</div>\s+<img', flags=re.S)
-        position += self.itemByBrandPage(page, actId, actName, p, position, actUrl)
+        position += self.itemByBrandPage(p.finditer(page), actId, actName, actUrl, position, 'html')
         # 第二层
         m = re.search(r'<div class="act-item1">\s+<ul>(.+?)</u>\s+</div>', page, flags=re.S)
         if m:
             item1_page = m.group(1)
             p = re.compile(r'<li>(.+?)</li>', flags=re.S)
-            position += self.itemByBrandPage(item1_page, actId, actName, p, position, actUrl)
+            position += self.itemByBrandPage(p.finditer(item1_page), actId, actName, actUrl, position, 'html')
 
         # other floor
         # 其他层数据
@@ -224,16 +228,34 @@ class JHSBrand():
             if m:
                 f_html = m.group(1)
                 p = re.compile(r'<li class="item-small-v3">(.+?)</li>', flags=re.S)
-                position += self.itemByBrandPage(f_html, actId, actName, p, position, actUrl)
+                position += self.itemByBrandPage(p.finditer(f_html), actId, actName, actUrl, position, 'html')
         return position
-                
+
     # 品牌团页面格式(2)
     def activitytemp2(self, page, actId, actName, actUrl):
+        position = 0
+        # 请求接口数据
+        p = re.compile(r'<div class="l-floor J_Floor .+? data-ajaxurl="(.+?)"', flags=re.S)
+        for floor_url in p.finditer(page):
+            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+            f_url = floor_url.group(1) + '&_ksTS=%s'%ts
+            print f_url
+            f_page = self.crawler.getData(f_url, actUrl)
+            m = re.search(r'^{.+?\"itemList\":\[.+?\].+?}$', f_page, flags=re.S)
+            if m:
+                result = json.loads(f_page)
+                if result.has_key('code') and int(result['code']) == 200 and result.has_key('itemList') and result['itemList'] != []:
+                    item_list = result['itemList']
+                    position += self.itemByBrandPage(item_list, actId, actName, actUrl, position, 'json')
+        return position
+
+    # 品牌团页面格式(3)
+    def activitytemp3(self, page, actId, actName, actUrl):
         position = 0
         # source html floor
         # 第一层
         p = re.compile(r'<li class="item-big-v2">(.+?)</li>', flags=re.S)
-        position += self.itemByBrandPage(page, actId, actName, p, position, actUrl)
+        position += self.itemByBrandPage(p.finditer(page), actId, actName, actUrl, position, 'html')
 
         # other floor
         # 其他层数据
@@ -247,21 +269,38 @@ class JHSBrand():
             if m:
                 f_html = m.group(1)
                 p = re.compile(r'<li class="item-small-v3">(.+?)</li>', flags=re.S)
-                position += self.itemByBrandPage(f_html, actId, actName, p, position, actUrl)
+                position += self.itemByBrandPage(p.finditer(f_html), actId, actName, actUrl, position, 'html')
         return position
 
     # 获取商品信息
-    def itemByBrandPage(self, page, actId, actName, p, position, actUrl):
+    def itemByBrandPage(self, itemdata_list, actId, actName, actUrl, position, page_type):
         i = 0
-        for ju_item in p.finditer(page):
+        for itemdata in itemdata_list:
             i += 1
             # 只测前几个数据
             if position+i < 2:
-            #if position+i:
-                ju_item_html = ju_item.group(1)
+                if page_type == 'html':
+                    ju_item_data = itemdata.group(1)
+                else:
+                    ju_item_data = itemdata
                 item = None
                 item = JHSItem()
-                item.antPage(ju_item_html, actId, actName, actUrl, position+i)
+                item.antPage(ju_item_data, actId, actName, actUrl, position+i, page_type)
+                self.mysqlAccess.insertJhsItem(item.outSql())
+                time.sleep(1)
+
+        return i
+
+    # 获取商品信息
+    def itemByBrandPageFromJson(self, itemjson_list, actId, actName, position, actUrl):
+        i = 0
+        for itemjson in itemjson_list:
+            i += 1
+            # 只测前几个数据
+            if position+i < 2:
+                item = None
+                item = JHSItem()
+                item.antPage(itemjson, actId, actName, actUrl, position+i, 'json')
                 self.mysqlAccess.insertJhsItem(item.outSql())
                 time.sleep(1)
 

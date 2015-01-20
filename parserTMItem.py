@@ -1,5 +1,8 @@
 #-*- coding:utf-8 -*-
 #!/usr/local/bin/python
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 import re
 #import base.Config as Config
@@ -87,6 +90,14 @@ class PTMItem(Item):
             param  = m.group(1).replace('：', ':')
             p_name, p_value = param.split(':', 1)            
             self.item_params[p_name] = Common.htmlDecode(p_value).strip()
+            if (Common.htmlDecode(p_name).strip()).find('品牌') != -1:
+                self.item_brand = Common.htmlDecode(p_value).strip()
+
+        # 品牌
+        if self.item_brand != '':
+            m = re.search(r'<li id="J_attrBrandName" title="(.+?)">', page, flags=re.S)
+            if m:
+                self.item_brand = Common.htmlDecode(m.group(1))
 
         # 成交记录链接
         m = re.search(r'detail:params="(\S+?),(\w+?)"', page)

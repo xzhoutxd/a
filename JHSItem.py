@@ -61,12 +61,13 @@ class JHSItem():
         self.item_favorites = 0 # 商品收藏数
 
         # 原数据信息
+        self.item_pageData_type = 'html' # 商品所属数据项内容, html,json
         self.item_pageData = '' # 商品所属数据项内容
         self.item_juPage = '' # 商品聚划算页面html内容
         self.item_pages = {} # 商品页面内请求数据列表
 
     # 商品初始化
-    def initItem(self, page, actId, actName, actUrl, position):
+    def initItem(self, page, actId, actName, actUrl, position, page_type):
         # 商品所属数据项内容
         self.item_pageData = page
         # 商品所属活动Id
@@ -77,9 +78,11 @@ class JHSItem():
         self.item_act_url = actUrl
         # 商品所在活动位置
         self.item_position = position
+        # 商品所属数据项的数据类型
+        self.item_pageData_type = page_type
 
-    # Configuration
-    def itemConfig(self):
+    # Configuration from html type
+    def itemConfigFromHtml(self):
         # 基本信息
         m = re.search(r'<a.+?href="(.+?)".+?>', self.item_pageData, flags=re.S)
         if m:
@@ -104,10 +107,55 @@ class JHSItem():
             if m:
                 self.item_juPic_url = m.group(1)
 
+    # Configuration from json type
+    def itemConfigFromJson(self):
+        # 基本信息
+        if item.has_key('baseinfo'):
+            item_baseinfo = item['baseinfo']
+            # 商品聚划算展示图片链接
+            if item_baseinfo.has_key('picUrl') and item_baseinfo['picUrl'] != '':
+                self.item_juPic_url = item_baseinfo['picUrl']
+            elif item_baseinfo.has_key('picUrlM') and item_baseinfo['picUrlM'] != '':
+                self.item_juPic_url = item_baseinfo['picUrlM']
+            # 商品聚划算链接
+            if item_baseinfo.has_key('itemUrl') and item_baseinfo['itemUrl'] != '':
+                self.item_ju_url = item_baseinfo['itemUrl']
+                ids_list = self.item_ju_url.split('&')
+                for ids in ids_list:
+                    if ids.find('item_id=') != -1:
+                        if self.item_id == '':
+                            # 商品Id
+                            self.item_id = ids.split('=')[1]
+                    elif ids.find('id=') != -1:
+                        # 商品聚划算Id
+                        self.item_juId = ids.split('=')[1]
+            # 商品Id
+            if item_baseinfo.has_key('itemId') and item_baseinfo['itemId'] != '':
+                self.item_id = item_baseinfo['itemId']
+
+        # 商品关注人数, 商品销售数量
+        if item.has_key('remind'):
+            item_remind = item['remind']
+            if item_remind.has_key('remindNum'):
+                self.item_remindNum = item['remindNum']
+            if item_remind.has_key('soldCount'):
+                self.item_soldCount = item['soldCount']
+
+        # 商品原价, 商品活动价
+        if item.has_key('price'):
+            item_price = item['price']
+            if item_price.has_key('origPrice'):
+                self.item_oriPrice = item['origPrice']
+            if item_price.has_key('actPrice'):
+                self.item_actPrice = item['actPrice']
+
+    # 聚划算商品页信息
+    def itemPage(self):
         # 聚划算商品页信息
         page = self.crawler.getData(self.item_ju_url, self.item_act_url)
         if page and page != '':
             self.item_juPage = page
+            self.item_pages['item_home'] = (self.item_ju_url, page)
             m = re.search(r'<div id="content" class="detail">(.+?)</div> <!-- /content -->', page, flags=re.S)
             if m:
                 i_page = m.group(1)
@@ -240,9 +288,13 @@ class JHSItem():
         # self.item_oriPrice, self.item_discount
 
     # 执行
-    def antPage(self, page, actId, actName, actUrl, position):
-        self.initItem(page, actId, actName, actUrl, position)
-        self.itemConfig()
+    def antPage(self, page, actId, actName, actUrl, position, page_type):
+        self.initItem(page, actId, actName, actUrl, position, page_type)
+        if page_type == 'json':
+            self.itemConfigFromJson()
+        else:
+            self.itemConfigFromHtml()
+        self.itemPage()
         self.itemPromotiton()
         self.getFromTMTBPage()
         self.outItem()
