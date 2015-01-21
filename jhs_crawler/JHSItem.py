@@ -12,10 +12,10 @@ import threading
 import base.Common as Common
 import base.Config as Config
 from base.TBCrawler import TBCrawler
-from TBItem import TBItem
-from TMItem import TMItem
-from parserTBItem import PTBItem
-from parserTMItem import PTMItem
+from crawler.TBItem import TBItem
+from crawler.TMItem import TMItem
+from parser.parserTBItem import PTBItem
+from parser.parserTMItem import PTMItem
 
 class JHSItem():
     '''A class of Juhuasuan Item'''
@@ -298,7 +298,9 @@ class JHSItem():
             self.item_shopId, self.item_shopName, self.item_catId, self.item_prepare, self.item_favorites, self.item_brand = PItem.shop_id, PItem.shop_name, PItem.item_catId, PItem.item_stock, PItem.item_favorites, PItem.item_brand
 
     # 执行
-    def antPage(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):
+    #def antPage(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):
+    def antPage(self, val):
+        page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url = val
         self.initItem(page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url)
         self.itemConfig()
         self.itemPromotiton()

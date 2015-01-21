@@ -5,10 +5,8 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 import re
-#import base.Config as Config
-import parser.Config as Config
-#import base.Common as Common
-import parser.Common as Common
+import base.Config as Config
+import base.Common as Common
 from parserItem import Item
 #from Deal import Deal
 #from TMSku import TMSku
@@ -72,7 +70,7 @@ class PTMItem(Item):
         if m: self.item_brandId = m.group(1)   
 
         # 品牌
-        m = re.search(r'"brand":"(\d+)"', page)
+        m = re.search(r'"brand":"(.+?)"', page)
         if m: self.item_brand = Common.htmlDecode(m.group(1)).strip()
 
         # 商品名称

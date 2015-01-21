@@ -5,8 +5,10 @@ import os
 import Common
 
 ######################## 环境变量  ########################
+configPath= '../../config/'
 pagePath = '../../page/jhs/'
 dataPath = '../../data/jhs/'
+imagePath = '../../image/qzj/'
 delim    = '\x01'
 #delim    = ','
 
@@ -23,7 +25,7 @@ ju_brand_home = 'http://ju.taobao.com/tg/brand.htm' # 品牌团
 TMALL_TYPE  = '1'
 TAOBAO_TYPE = '2'
 VIP_TYPE    = '3'
-JUHUASUAN_TYPE  = '4'
+JUHUASUAN_TYPE = '4'
 
 # 通用http报文头
 g_httpHeader  = {
@@ -98,6 +100,9 @@ g_padAppAgents = [
 
 # 抓取起始时间
 g_crawledTime = Common.str2timestamp('2000-01-01 00:00:00')
+
+# 淘宝信用级别字典
+#g_TBCreditDict = Common.buyerCredits(configPath + '/taobao_creditlevel.txt')
 
 # 网页最大抓取次数
 crawl_retry   = 100
