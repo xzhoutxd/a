@@ -1,8 +1,8 @@
 #-*- coding:utf-8 -*-
 #!/usr/bin/env python
-
-from sys import path
-path.append(r'../')
+from sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 import traceback
 import MysqlPool

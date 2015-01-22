@@ -4,13 +4,10 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-#sys.path.append('../')
 
 import re
 import base.Common as Common
-#import Common
 import base.Config as Config
-#import Config
 from Item import Item
 
 class TMItem(Item):
