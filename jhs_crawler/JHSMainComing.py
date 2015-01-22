@@ -1,5 +1,5 @@
 #-*- coding:utf-8 -*-
-#!/usr/local/bin/python
+#!/usr/bin/python
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')

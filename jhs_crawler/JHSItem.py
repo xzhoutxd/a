@@ -1,5 +1,5 @@
 #-*- coding:utf-8 -*-
-#!/usr/local/bin/python
+#!/usr/bin/python
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -62,7 +62,6 @@ class JHSItem():
         self.item_favorites = 0 # 商品收藏数
 
         # 原数据信息
-        self.item_pageData_type = 'html' # 商品所属数据项内容, html,json
         self.item_pageData = '' # 商品所属数据项内容
         self.item_juPage = '' # 商品聚划算页面html内容
         self.item_pages = {} # 商品页面内请求数据列表
@@ -280,26 +279,33 @@ class JHSItem():
 
     # 商品详情页信息
     def getFromTMTBPage(self):
-        #result = None
-        Item = None
-        PItem = None
-        # 天猫店铺
-        if int(self.item_shopType) == 1:
-            Item = TMItem()
-            Item.antPage(self.item_url)
-            PItem = PTMItem()
-            PItem.antPage(Item)
-            #result = PT.outItemCrawl()
-        # 集市店铺
-        elif int(self.item_shopType) == 2:
-            Item = TBItem()
-            Item.antPage(self.item_url)
-            PItem = PTBItem()
-            PItem.antPage(Item)
-            #result = PT.outItemCrawl()
-        # 商品店铺Id, 商品店铺Name, 商品叶子类目Id, 商品活动前备货数, 商品收藏数, 商品品牌
-        if PItem:
-            self.item_shopId, self.item_shopName, self.item_catId, self.item_prepare, self.item_favorites, self.item_brand = PItem.shop_id, PItem.shop_name, PItem.item_catId, PItem.item_stock, PItem.item_favorites, PItem.item_brand
+        try:
+            #result = None
+            Item = None
+            PItem = None
+            # 天猫店铺
+            if int(self.item_shopType) == 1:
+                Item = TMItem()
+                Item.antPage(self.item_url)
+                if Item.item_page and Item.item_page != '':
+                    PItem = PTMItem()
+                    PItem.antPage(Item)
+                    #result = PItem.outItemCrawl()
+            # 集市店铺
+            elif int(self.item_shopType) == 2:
+                Item = TBItem()
+                Item.antPage(self.item_url)
+                if Item.item_page and Item.item_page != '':
+                    PItem = PTBItem()
+                    PItem.antPage(Item)
+                    #result = PT.outItemCrawl()
+            # 商品店铺Id, 商品店铺Name, 商品叶子类目Id, 商品活动前备货数, 商品收藏数, 商品品牌
+            if PItem:
+                self.item_shopId, self.item_shopName, self.item_catId, self.item_prepare, self.item_favorites, self.item_brand = PItem.shop_id, PItem.shop_name, PItem.item_catId, PItem.item_stock, PItem.item_favorites, PItem.item_brand
+        except Exception as e:
+            print '# crawl item err[id(%s) url(%s)], error info:'%(self.item_id,self.item_url), e
+            traceback.print_exc()
+
 
     # 执行
     #def antPage(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):

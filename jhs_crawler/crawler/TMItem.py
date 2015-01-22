@@ -2,13 +2,15 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.append('../')
+reload(sys)
+sys.setdefaultencoding('utf-8')
+#sys.path.append('../')
 
 import re
-#import base.Common as Common
-import Common
-#import base.Config as Config
-import Config
+import base.Common as Common
+#import Common
+import base.Config as Config
+#import Config
 from Item import Item
 
 class TMItem(Item):
@@ -31,17 +33,13 @@ class TMItem(Item):
 
         # 商品详情页
         page = self.crawler.getData(url, Config.tmall_home)
-        #if not page or page == '': raise Common.InvalidPageException("Invalid Item Found")
-        if not page or page == '': 
-            print "url(%s):Invalid Item Found"%url
-            return ''
+        if not page or page == '': raise Common.InvalidPageException("Invalid Item Found")
 
         # 没有找到相应的商品信息 - 天猫
         m = re.search(r'<div class="errorDetail">\s+?<h2>很抱歉，您查看的商品找不到了！</h2>', page, flags=re.S)
         if m:
             self.item_page   = None
-            #raise Common.NoItemException("# itemPage : No tm item found")
-            print "# itemPage : No tm item found"
+            raise Common.NoItemException("# itemPage : No tm item found")
 
         # 匹配shop_id, item_id
         #<div id="LineZing" pagetype="2" shopid="73217422" tmplid="" itemid="40348828982"></div>
@@ -51,8 +49,7 @@ class TMItem(Item):
             self.shop_id, self.item_id = m.group(1), m.group(2)
         else:
             print '# itemPage: Invalid item page, url=%s' %url
-            #raise Common.InvalidPageException("# itemPage %s : Invalid shop/item id found" %self.item_url)
-            print "# itemPage %s : Invalid shop/item id found" %self.item_url
+            raise Common.InvalidPageException("# itemPage %s : Invalid shop/item id found" %self.item_url)
 
         # 保存商品页
         #self.item_pages.append(('%s-item-home' %self.shop_type, self.item_url, self.item_page))
@@ -71,21 +68,18 @@ class TMItem(Item):
         # SPU ID
         m = re.search(r'"spuId":"(\d+)"', page)
         if m: self.item_spuId = m.group(1)
-        #else: raise Common.InvalidPageException("# itemPage : Invalid item spu id found")
-        else: print "# itemPage : Invalid item spu id found"
+        else: raise Common.InvalidPageException("# itemPage : Invalid item spu id found")
 
         # 掌柜ID
         m = re.search(r'"sellerId":(\d+)', page)
         if m: self.item_sellerId = m.group(1)
-        #else: raise Common.InvalidPageException("# itemPage : Invalid item seller id found")
-        else: print "# itemPage : Invalid item seller id found"
+        else: raise Common.InvalidPageException("# itemPage : Invalid item seller id found")
 
         # 移动web页
         wap_url  = 'http://detail.m.tmall.com/item.htm?id=%s' % (self.item_id)
         wap_page = self.crawler.getData(wap_url, self.item_url, terminal='1')
         if not wap_page or wap_page == '':
-            #raise Common.InvalidPageException("# itemConfig : Invalid item wap page found")
-            print "# itemConfig : Invalid item wap page found"
+            raise Common.InvalidPageException("# itemConfig : Invalid item wap page found")
 
         #self.item_pages.append(('%s-item-wap' %self.shop_type, wap_url, wap_page))
         self.item_pages['item-wap'] = (wap_url, wap_page)

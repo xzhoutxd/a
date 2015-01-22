@@ -1,5 +1,5 @@
 #-*- coding:utf-8 -*-
-#!/usr/local/bin/python
+#!/usr/bin/python
 
 import base.Common as Common
 import base.Config as Config
