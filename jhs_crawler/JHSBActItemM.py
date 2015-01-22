@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore")
 
 class JHSBActItemM(MyThread):
     '''A class of jhs item thread manager'''
-    def __init__(self, thread_num = 300):
+    def __init__(self, thread_num = 10):
         # parent construct
         MyThread.__init__(self, thread_num)
 
@@ -66,8 +66,9 @@ class JHSBActItemM(MyThread):
                 # 商品信息处理
                 # _i_id, a_id, i_wh, _a_id, _i_wh, a_platform, a_name = _val
                 _val  = _data[1]
+                time.sleep(1)
                 item.antPage(_val)
-                print '# To crawl item val : ', Common.now_s(), _val[1], _val[2], _val[4], _val[6], _val[7]
+                print '# To crawl activity item val : ', Common.now_s(), _val[1], _val[2], _val[3]
 
                 # 汇聚商品
                 self.push_back(self.items, item)

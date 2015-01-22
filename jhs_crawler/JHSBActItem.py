@@ -19,6 +19,8 @@ class JHSBActItem():
         # 品牌团抓取设置
         self.crawler    = TBCrawler()
         self.crawling_time   = Common.now()
+        self.crawling_beginDate = ''
+        self.crawling_beginHour = ''
 
         # 类别
         self.brandact_platform = '聚划算-pc' # 品牌团所在平台
@@ -64,15 +66,20 @@ class JHSBActItem():
         self.brandact_pages = {} # 品牌页面内请求数据列表
 
     # 品牌团初始化
-    def initItem(self, page, catId, catName, position):
+    def initItem(self, page, catId, catName, position, begin_date, begin_hour):
         # 品牌团所在数据项内容
         self.brandact_pagedata = page
+        self.brandact_pages['act_init'] = ('', page)
         # 品牌团所在类别Id
         self.brandact_catgoryId = catId
         # 品牌团所在类别Name
         self.brandact_catgoryName = catName
         # 品牌团所在类别位置
         self.brandact_position = position
+        # 本次抓取开始日期
+        self.crawling_beginDate = begin_date
+        # 本次抓取开始小时
+        self.crawling_beginHour = begin_hour
 
     # Configuration
     def itemConfig(self):
@@ -150,6 +157,7 @@ class JHSBActItem():
             data = self.crawler.getData(self.brandact_url, Config.ju_brand_home)
             if data and data != '':
                 self.brandact_page = data
+                self.brandact_pages['act_home'] = (self.brandact_url, data)
 
     # 品牌团优惠券
     def brandActConpons(self):
@@ -162,15 +170,19 @@ class JHSBActItem():
                 self.brandact_coupons.append(''.join(coupon.groups()))
 
     # 执行
-    def antPage(self, page, catId, catName, position):
-        self.initItem(page, catId, catName, position)
+    #def antPage(self, page, catId, catName, position, begin_date, begin_hour):
+    def antPage(self, val):
+        page, catId, catName, position, begin_date, begin_hour = val
+        self.initItem(page, catId, catName, position, begin_date, begin_hour)
         self.itemConfig()
         self.brandActConpons()
         #self.outItem()
 
     def outSql(self):
-        #sql  = 'replace into nd_jhs_parser_activity(crawl_time,act_id,category_id,category_name,act_position,act_platform,act_name,act_url,act_desc,act_logopic_url,act_enterpic_url,act_status,act_sign,_act_ids,seller_id,seller_name,shop_id,shop_name,discount,act_soldcount,act_remindnum,act_coupon,act_coupons,brand_name,start_time,end_time) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,self.brandact_url,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),self.brandact_brand,str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000))
+
+    def outSqlForComing(self):
+        return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,self.brandact_url,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),self.brandact_brand,str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
 
     def outItem(self):
         print 'self.brandact_platform,self.brandact_channel,self.crawling_time,self.brandact_catgoryId,self.brandact_catgoryName,self.brandact_position,self.brandact_id,self.brandact_url,self.brandact_name,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_starttime,self.brandact_endtime,self.brandact_status,self.brandact_sign,self.brandact_other_ids,self.brandact_sellerId,self.brandact_sellerName,self.brandact_shopId,self.brandact_shopName,self.brandact_soldCount,self.brandact_remindNum,self.brandact_discount,self.brandact_coupon,self.brandact_coupons'

@@ -12,7 +12,6 @@ import base.Common as Common
 import base.Config as Config
 from base.TBCrawler import TBCrawler
 from JHSBrand import JHSBrand
-from JHSBrandNext import JHSBrandNext
 
 class JHSMain():
     '''A class of Juhuasuan Main Site'''
@@ -59,10 +58,6 @@ class JHSMain():
         # 正在热卖
         brand_obj = JHSBrand()
         brand_obj.antPage()
-
-        # 即将上线
-        #brand_obj = JHSBrandNext()
-        #brand_obj.antPage()
 
     # 生活汇频道
     def lifeChannel(self):

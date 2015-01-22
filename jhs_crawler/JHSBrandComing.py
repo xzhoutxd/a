@@ -15,6 +15,7 @@ import base.Config as Config
 from base.TBCrawler import TBCrawler
 from db.MysqlAccess import MysqlAccess
 from JHSBActItem import JHSBActItem
+from JHSBActItemM import JHSBActItemM
 from JHSItem import JHSItem
 from JHSItemM import JHSItemM
 
@@ -49,9 +50,9 @@ class JHSBrandComing():
         self.ju_home_page = '' # 聚划算首页
         self.ju_brand_page = '' # 聚划算品牌团页面
 
-        # 抓去开始时间
-        self.begin_date = ''
-        self.begin_hour = ''
+        # 抓取开始时间
+        self.begin_date = Common.today_s()
+        self.begin_hour = Common.nowhour_s()
 
     def antPage(self):
         # 获取品牌团列表页数据
@@ -108,6 +109,7 @@ class JHSBrandComing():
         ladygo_num = 0
         allitem_num = 0
         act_list = []
+        act_valList = []
         crawler_list = []
         print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         for page in bResult_list:
@@ -119,27 +121,44 @@ class JHSBrandComing():
                     # 每页取60条数据
                     b_position_start = (int(i_page['currentPage']) - 1) * 60
                 for i in range(0,len(activities)):
-                    print '# A activity start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                     activity = activities[i]
-                    # 只测前几个
-                    #if int(b_position_start+i) <= 5:
-                    if int(b_position_start+i) >= 0:
-                        print '#####A activity begin#####'
-                        b = None
-                        b = JHSBActItem()
-                        b.antPage(activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self,begin_hour)
-                        # 入库
-                        self.mysqlAccess.insertJhsActComing(b.outSqlForComing())
-                        act_list.append([b.brandact_id, b.brandact_name, b.brandact_url])
-                        if b.brandact_sign == 3:
-                            ladygo_num += 1
-                        print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                        print '#####A activity end#####'
-                        time.sleep(1)
+                    #print '# A activity start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                    #print '#####A activity begin#####'
+                    act_valList.append((activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self.begin_hour))
+                    #b = None
+                    #b = JHSBActItem()
+                    #b.antPage(activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self,begin_hour)
+                    # 入库
+                    #self.mysqlAccess.insertJhsActComing(b.outSqlForComing())
+                    #act_list.append([b.brandact_id, b.brandact_name, b.brandact_url])
+                    #if b.brandact_sign == 3:
+                    #    ladygo_num += 1
+                    #print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                    #print '#####A activity end#####'
+                    #time.sleep(1)
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        print '# brand activity num:', len(act_list)
-        print '# brand activity(ladygo) num:', ladygo_num
-        print '# brand activity items num:', allitem_num
+        print '# brand activity num:', len(act_valList)
+        #print '# brand activity(ladygo) num:', ladygo_num
+        #print '# brand activity items num:', allitem_num
+
+        m_Obj = JHSBActItemM()
+        m_Obj.createthread()
+        m_Obj.putItems(act_valList)
+        m_Obj.run()
+        while True:
+            try:
+                if m_Obj.empty_q():
+                    item_list = m_Obj.items
+                    for item in item_list:
+                        self.mysqlAccess.insertJhsActComing(item.outSqlForComing())
+                        #print item.outSqlForComing()
+                    print '# Activity List End'
+                    break
+            except Exception as e:
+                print 'Unknown exception crawl item :', e
+                traceback.print_exc()
+                break
+
 
 if __name__ == '__main__':
     pass

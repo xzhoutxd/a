@@ -106,6 +106,7 @@ g_crawledTime = Common.str2timestamp('2000-01-01 00:00:00')
 
 # 网页最大抓取次数
 crawl_retry   = 3
+#crawl_retry   = 10
 
 ######################## 其它设置  ########################
 

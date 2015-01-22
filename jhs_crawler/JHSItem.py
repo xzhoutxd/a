@@ -71,6 +71,7 @@ class JHSItem():
     def initItem(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):
         # 商品所属数据项内容
         self.item_pageData = page
+        self.item_pages['item_init'] = ('',page)
         # 商品所属活动Id
         self.item_actId = actId
         # 商品所属活动Name
@@ -261,7 +262,7 @@ class JHSItem():
         promot_url = 'http://dskip.ju.taobao.com/promotion/json/get_shop_promotion.do?ju_id=%s'%str(self.item_juId)
         promot_page = self.crawler.getData(promot_url, self.item_ju_url)
         if promot_page and promot_page != '':
-            self.item_pages['shop_promotion'] = (promot_url,promot_page)
+            self.item_pages['item_shoppromotion'] = (promot_url,promot_page)
             #m = re.search(r'jsonp\d+\((.+?)\)$', promot_page, flags=re.S)
             #if m:
             #    json_str = m.group(1)

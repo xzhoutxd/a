@@ -80,6 +80,9 @@ def str2timestamp(s, fmt="%Y-%m-%d %H:%M:%S"):
     except:
         return 0.0
 
+def nowhour_s(fmt='%H'):
+    return time.strftime(fmt, time.localtime(time.time()))
+
 # To compute time delta
 def timeDelta(t, h='00:00:00'):
     t_end = 0.0
