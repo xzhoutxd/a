@@ -41,6 +41,7 @@ class JHSItem():
         self.item_catId = '' # 商品叶子类目Id
         self.item_catName = '' # 商品叶子类目Name
         self.item_brand = '' # 商品品牌
+        self.item_isSoldout = 0 # 商品是否售罄 0:没有售罄,1:售罄
 
         # 商品店铺
         self.item_sellerId = '' # 商品卖家Id
@@ -252,6 +253,8 @@ class JHSItem():
 
                             if result_data.has_key('stock'):
                                 self.item_stock = result_data['stock']
+                            if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
+                                self.item_isSoldout = 1
 
     # 商品其他优惠信息
     def itemPromotiton(self):
@@ -305,7 +308,7 @@ class JHSItem():
         self.itemConfig()
         self.itemPromotiton()
         self.getFromTMTBPage()
-        self.outItem()
+        #self.outItem()
 
     # 输出SQL
     def outSql(self):

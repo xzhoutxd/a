@@ -1,8 +1,8 @@
 #-*- coding:utf-8 -*-
 #!/usr/bin/env python
 import sys
-sys.path.append('../')
-sys.path.append('../base')
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 import time
 import random
@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore")
 
 class JHSItemM(MyThread):
     '''A class of jhs item thread manager'''
-    def __init__(self, thread_num = 10):
+    def __init__(self, thread_num = 300):
         # parent construct
         MyThread.__init__(self, thread_num)
 
@@ -67,7 +67,7 @@ class JHSItemM(MyThread):
                 # _i_id, a_id, i_wh, _a_id, _i_wh, a_platform, a_name = _val
                 _val  = _data[1]
                 item.antPage(_val)
-                print '# To crawl item val : ', Common.now_s(), _val[:3]
+                print '# To crawl item val : ', Common.now_s(), _val[1], _val[2], _val[4], _val[6], _val[7]
 
                 # 汇聚商品
                 self.push_back(self.items, item)

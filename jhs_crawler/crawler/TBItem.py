@@ -31,17 +31,17 @@ class TBItem(Item):
 
         # 商品详情页
         page = self.crawler.getData(url, refers)
-        #if not page or page == '': raise Common.InvalidPageException("Invalid Item Found")
-        if not page or page == '': 
-            print "url(%s):Invalid Item Found"%url
-            return ''
+        if not page or page == '': raise Common.InvalidPageException("Invalid Item Found")
+        #if not page or page == '': 
+        #    print "url(%s):Invalid Item Found"%url
+        #    return ''
 
         # 没有找到相应的商品信息 - 淘宝
         m = re.search(r'<div class="error-notice-hd">很抱歉，您查看的宝贝不存在，可能已下架或者被转移。</div>', page, flags=re.S)
         if m:
             self.item_page = None
-            #raise Common.NoItemException("# itemPage : No tb item found")
-            print "# itemPage : No tb item found"
+            raise Common.NoItemException("# itemPage : No tb item found")
+            #print "# itemPage : No tb item found"
 
         # 匹配shop_id, item_id
         #<div id="LineZing" pagetype="2" shopid="73217422" tmplid="" itemid="40348828982"></div>
@@ -50,8 +50,8 @@ class TBItem(Item):
             self.item_page = page
             self.shop_id, self.item_id = m.group(1), m.group(2)
         else:
-            print '# itemPage: Invalid item page, url=%s' %url
-            #raise Common.InvalidPageException("# itemPage %s : Invalid shop/item id found" %self.item_url)
+            #print '# itemPage: Invalid item page, url=%s' %url
+            raise Common.InvalidPageException("# itemPage %s : Invalid shop/item id found" %self.item_url)
 
         # 保存商品页
         #self.item_pages.append(('%s-item-home' %self.shop_type, self.item_url, self.item_page))
@@ -77,8 +77,8 @@ class TBItem(Item):
 
             detail_page = self.crawler.getData(wholeSib_url, self.item_url)
             if not detail_page or detail_page == '':
-                #raise Common.InvalidPageException("# itemConfig : Invalid item detail page found")
-                print "# itemConfig : Invalid item detail page found"
+                raise Common.InvalidPageException("# itemConfig : Invalid item detail page found")
+                #print "# itemConfig : Invalid item detail page found"
 
             # 保存商品详情接口页
             #self.item_pages.append(('%s-item-detail' %self.shop_type, wholeSib_url, detail_page))

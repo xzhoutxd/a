@@ -136,6 +136,7 @@ class JHSBrand():
         ladygo_num = 0
         allitem_num = 0
         act_list = []
+        crawler_list = []
         print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         for page in bResult_list:
             i_page = page[0]
@@ -149,6 +150,7 @@ class JHSBrand():
                     print '# A activity start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                     activity = activities[i]
                     # 只测前几个
+                    #if int(b_position_start+i) <= 5:
                     if int(b_position_start+i) >= 0:
                         print '#####A activity begin#####'
                         b = None
@@ -162,19 +164,19 @@ class JHSBrand():
                         self.mysqlAccess.insertJhsAct(b.outSql())
                         act_list.append([b.brandact_id, b.brandact_name, b.brandact_url])
                         if b.brandact_sign != 3:
-                            print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                            print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), b.brandact_id, b.brandact_name
                             # Activity Items
                             item_valList = []
                             itemnum = self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url, item_valList)
                             # 多线程
                             m_itemsObj = JHSItemM()
+                            m_itemsObj.createthread()
                             m_itemsObj.putItems(item_valList)
-                            # 多线程抓取
-                            #m_itemsObj.crawl()
-                            #m_itemsObj.start()
-                            #m_itemsObj.startAll()
-                            m_itemsObj.run()
+                            crawler_list.append((b.brandact_id,b.brandact_name,m_itemsObj))
                             self.item_queue.put((b.brandact_id,b.brandact_name,m_itemsObj))
+                            # 多线程抓取
+                            #m_itemsObj.start()
+                            m_itemsObj.run()
 
                             #itemnum = self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url)
                             allitem_num = allitem_num + itemnum
@@ -202,15 +204,22 @@ class JHSBrand():
         #print '# activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         #print '#####All Activity Items End#####'
 
+        #for crawler_thread in crawler_list:
+        #    crawler_thread[2].run()
+        #    self.item_queue.put(crawler_thread)
+
         while True:
             try:
+                print 'item queue'
                 # 队列为空，退出
                 if self.item_queue.empty(): break
                 _item = self.item_queue.get()
+                print '#Item Check: actId:%s, actName:%s'%(_item[0], _item[1])
                 if _item[2].empty_q():
                     item_list = _item[2].items
                     for item in item_list:
                         self.mysqlAccess.insertJhsItem(item.outSql())
+                        #print item.outSql()
                     print '# Activity Item List End: actId:%s, actName:%s'%(_item[0], _item[1])
                 else:
                     self.item_queue.put(_item)

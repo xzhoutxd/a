@@ -21,7 +21,7 @@ class JHSBActItem():
         self.crawling_time   = Common.now()
 
         # 类别
-        self.brandact_platform = '聚划算' # 品牌团所在平台
+        self.brandact_platform = '聚划算-pc' # 品牌团所在平台
         self.brandact_channel = '品牌闪购' # 品牌团所在频道
         self.brandact_catgoryId = 0 # 品牌团所在类别Id
         self.brandact_catgoryName = '' # 品牌团所在类别Name
