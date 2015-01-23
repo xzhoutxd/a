@@ -41,12 +41,6 @@ class JHSMain():
 
         # 页面
         self.site_page  = None
-        # 商品团页面
-        #self.today_page_url = 'http://ju.taobao.com/json/tg/ajaxGetHomeItemsV2.json?type=0&stype=soldCount&callback=homelist' # 按照销量排行
-        self.today_page_url = 'http://ju.taobao.com/json/tg/ajaxGetHomeItemsV2.json?type=0&stype=soldCount' # 按照销量排行
-
-        # 品牌团页面
-        self.brand_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=0'
 
     # 商品团频道
     def todayChannel(self):
