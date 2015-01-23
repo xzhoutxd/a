@@ -1,6 +1,6 @@
 #-*- coding:utf-8 -*-
 #!/usr/bin/env python
-from sys
+import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
