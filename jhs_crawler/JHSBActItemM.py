@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore")
 
 class JHSBActItemM(MyThread):
     '''A class of jhs item thread manager'''
-    def __init__(self, thread_num = 10):
+    def __init__(self, thread_num = 20):
         # parent construct
         MyThread.__init__(self, thread_num)
 

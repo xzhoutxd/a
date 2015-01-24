@@ -160,6 +160,7 @@ class JHSItem():
     def itemConfig(self):
         # 聚划算商品页信息
         page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+        if not page or page == '': raise Common.InvalidPageException("# %s:not find ju item page,juid:%s,item_ju_url:%s"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), self.item_ju_url))
         if page and page != '':
             self.item_juPage = page
             self.item_pages['item_home'] = (self.item_ju_url, page)
@@ -304,24 +305,25 @@ class JHSItem():
             if PItem:
                 self.item_shopId, self.item_shopName, self.item_catId, self.item_prepare, self.item_favorites, self.item_brand = PItem.shop_id, PItem.shop_name, PItem.item_catId, PItem.item_stock, PItem.item_favorites, PItem.item_brand
         except Exception as e:
-            print '# crawl item err[id(%s) url(%s)], error info:'%(self.item_id,self.item_url), e
+            print "# %s,juid:%s,id:%s,item_url:%s,info:%"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), str(self.item_id), self.item_url, e)
             traceback.print_exc()
-
 
     # 执行
     #def antPage(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):
     def antPage(self, val):
-        page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url = val
-        self.initItem(page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url)
-        self.itemConfig()
-        self.itemPromotiton()
-        self.getFromTMTBPage()
-        #self.outItem()
+        try:
+            page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url = val
+            self.initItem(page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url)
+            self.itemConfig()
+            self.itemPromotiton()
+            self.getFromTMTBPage()
+            #self.outItem()
+        except Exception as e:
+            print "# %s,juid:%s,item_url:%s,info:%s"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), self.item_ju_url, e)
+            traceback.print_exc()
 
     # 输出SQL
     def outSql(self):
-        #sql = 'replace into nd_jhs_parser_item(crawl_time,item_juid,act_id,act_name,act_url,item_position,item_ju_url,item_juname,item_judesc,item_jupic_url,item_id,item_url,seller_id,seller_name,shop_id,shop_name,shop_type,item_oriprice,item_actprice,discount,item_remindnum,item_soldcount,item_stock,item_prepare,item_favorites,item_promotions,cat_id,brand_name) value(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-
         return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,str(self.item_position),self.item_ju_url,self.item_juName,self.item_juDesc,self.item_juPic_url,self.item_id,self.item_url,str(self.item_sellerId),self.item_sellerName,str(self.item_shopId),self.item_shopName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),str(self.item_soldCount),str(self.item_stock),str(self.item_prepare),str(self.item_favorites),';'.join(self.item_promotions),str(self.item_catId),self.item_brand)
 
     #

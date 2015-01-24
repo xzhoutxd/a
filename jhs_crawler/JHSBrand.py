@@ -203,6 +203,9 @@ class JHSBrand():
                         print '#####A activity end#####'
                         #time.sleep(1)
                     break
+            except StandardError as err:
+                print '# %s err:'%(sys._getframe().f_back.f_code.co_name),err  
+                traceback.print_exc()
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# brand activity num:', len(act_valList)
         print '# brand activity(ladygo) num:', ladygo_num
@@ -281,7 +284,7 @@ class JHSBrand():
         for floor_url in p.finditer(page):
             f_url = floor_url.group(1)
             print f_url
-            position = self.getItemDataFromInterface(f_url, actId, actName, actUrl, position, item_valList)
+            self.getItemDataFromInterface(f_url, actId, actName, actUrl, position, item_valList)
 
     # 品牌团页面格式(2)
     def activityType2(self, page, actId, actName, actUrl, item_valList):
@@ -309,7 +312,7 @@ class JHSBrand():
         p = re.compile(r'<div class=".+?J_jupicker" data-item="(.+?)">', flags=re.S)
         for floor_url in p.finditer(page):
             f_url = getdata_url + '&juIds=' + floor_url.group(1)
-            position = self.getItemDataFromInterface(f_url, actId, actName, actUrl, position, item_valList)
+            self.getItemDataFromInterface(f_url, actId, actName, actUrl, position, item_valList)
 
 
     # 品牌团页面格式(3)
@@ -392,7 +395,7 @@ class JHSBrand():
         p = re.compile(r'<div class=".+?J_jupicker" data-item="(.+?)">', flags=re.S)
         for floor_url in p.finditer(page):
             f_url = getdata_url + '&juIds=' + floor_url.group(1)
-            position = self.getItemDataFromInterface(f_url, actId, actName, actUrl, position, item_valList)
+            self.getItemDataFromInterface(f_url, actId, actName, actUrl, position, item_valList)
 
     # 从接口获取数据
     def getItemDataFromInterface(self, url, actId, actName, actUrl, position, item_valList):
