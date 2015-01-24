@@ -14,7 +14,7 @@ import base.Common as Common
 import base.Config as Config
 from base.TBCrawler import TBCrawler
 from db.MysqlAccess import MysqlAccess
-from JHSBActItem import JHSBActItem
+from JHSBActItemM import JHSBActItemM
 from JHSItem import JHSItem
 from JHSItemM import JHSItemM
 
@@ -123,7 +123,7 @@ class JHSBrand():
                     b_page = self.crawler.getData(b_url, Config.ju_brand_home)
                 try:
                     result = json.loads(b_page)
-                    print b_url
+                    #print b_url
                     bResult_list.append([result,f_name,f_catid])
                     if result.has_key('totalPage') and int(result['totalPage']) > i:
                         for page_i in range(i+1, int(result['totalPage'])+1):
@@ -132,16 +132,12 @@ class JHSBrand():
                             b_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, b_url)
                             b_page = self.crawler.getData(b_url, Config.ju_brand_home)
                             result = json.loads(b_page)
-                            print b_url
+                            #print b_url
                             bResult_list.append([result, f_name, f_catid])
                 except StandardError as err:
                     print '# err:',err
 
-        ladygo_num = 0
-        allitem_num = 0
-        act_list = []
-        crawler_list = []
-        print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        act_valList = []
         for page in bResult_list:
             i_page = page[0]
             if i_page.has_key('brandList') and i_page['brandList'] != []:
@@ -152,63 +148,75 @@ class JHSBrand():
                     b_position_start = (int(i_page['currentPage']) - 1) * 60
                 for i in range(0,len(activities)):
                     activity = activities[i]
-                    print '# A activity start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    print '#####A activity begin#####'
-                    b = None
-                    b = JHSBActItem()
                     val = (activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self.begin_hour)
-                    b.antPage(val)
-                    # 判断是否在首页推广
-                    if self.home_brands.has_key(str(b.brandact_id)):
-                        b.brandact_inJuHome = 1
-                        b.brandact_juHome_position = self.home_brands[str(b.brandact_id)]['position']
-                    # 入库
-                    self.mysqlAccess.insertJhsAct(b.outSql())
-                    act_list.append([b.brandact_id, b.brandact_name, b.brandact_url])
-                    if b.brandact_sign != 3:
-                        print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), b.brandact_id, b.brandact_name
-                        # Activity Items
-                        item_valList = []
-                        itemnum = self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url, item_valList)
-                        # 多线程
-                        m_itemsObj = JHSItemM()
-                        m_itemsObj.createthread()
-                        m_itemsObj.putItems(item_valList)
-                        crawler_list.append((b.brandact_id,b.brandact_name,m_itemsObj))
-                        self.item_queue.put((b.brandact_id,b.brandact_name,m_itemsObj))
-                        # 多线程抓取
-                        #m_itemsObj.start()
-                        m_itemsObj.run()
+                    act_valList.append(val)
+        self.run_brandAct(act_valList)
 
-                        #itemnum = self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url)
-                        allitem_num = allitem_num + itemnum
-                        print '# activity id:%s name:%s url:%s'%(b.brandact_id, b.brandact_name, b.brandact_url)
-                        print '# activity item num:', itemnum
-                        print '# activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    else:
-                        ladygo_num += 1
-                    print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    print '#####A activity end#####'
-                    #time.sleep(1)
+
+    # 多线程抓去品牌团活动
+    def run_brandAct(self, act_valList):
+        ladygo_num = 0
+        allitem_num = 0
+        crawler_list = []
+        print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        m_Obj = JHSBActItemM()
+        m_Obj.createthread()
+        m_Obj.putItems(act_valList)
+        m_Obj.run()
+        while True:
+            try:
+                if m_Obj.empty_q():
+                    item_list = m_Obj.items
+                    for b in item_list:
+                        print '#####A activity start#####'
+                        # 判断是否在首页推广
+                        if self.home_brands.has_key(str(b.brandact_id)):
+                            b.brandact_inJuHome = 1
+                            b.brandact_juHome_position = self.home_brands[str(b.brandact_id)]['position']
+                        # 品牌团活动入库
+                        self.mysqlAccess.insertJhsAct(b.outSql())
+                        # 只抓取非俪人购商品
+                        if b.brandact_sign != 3:
+                            print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), b.brandact_id, b.brandact_name
+                            # Activity Items
+                            # item init val list
+                            item_valList = []
+                            self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url, item_valList)
+                            # 多线程
+                            m_itemsObj = JHSItemM()
+                            m_itemsObj.createthread()
+                            m_itemsObj.putItems(item_valList)
+                            crawler_list.append((b.brandact_id,b.brandact_name,m_itemsObj))
+                            #self.item_queue.put((b.brandact_id,b.brandact_name,m_itemsObj))
+                            # 多线程抓取
+                            #m_itemsObj.run()
+
+                            # 单线程
+                            #self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url)
+                            allitem_num = allitem_num + len(item_valList)
+                            print '# activity id:%s name:%s url:%s'%(b.brandact_id, b.brandact_name, b.brandact_url)
+                            print '# activity items num:', len(item_valList)
+                            print '# activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                        else:
+                            ladygo_num += 1
+                        print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                        print '#####A activity end#####'
+                        #time.sleep(1)
+                    break
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        print '# brand activity num:', len(act_list)
+        print '# brand activity num:', len(act_valList)
         print '# brand activity(ladygo) num:', ladygo_num
         print '# brand activity items num:', allitem_num
 
-        #print '#####All Activity Items Start#####'
-        #print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        #for act in act_list:
-        #    print '# A activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        #    itemnum = self.activityItems(act[0], act[1], act[2])
-        #    print '# activity id:%s name:%s url:%s'%(act[0], act[1], act[2])
-        #    print '# activity item num:', itemnum
-        #    print '# A activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        #print '# activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        #print '#####All Activity Items End#####'
+        self.run_brandItems(crawler_list)
 
-        #for crawler_thread in crawler_list:
-        #    crawler_thread[2].run()
-        #    self.item_queue.put(crawler_thread)
+    # 多线程抓去品牌团商品
+    def run_brandItems(self, crawler_list):
+        for crawler_thread in crawler_list:
+            m_itemsObj = crawler_thread[2]
+            m_itemsObj.createthread()
+            m_itemsObj.run()
+            self.item_queue.put(crawler_thread)
 
         while True:
             try:
@@ -232,7 +240,6 @@ class JHSBrand():
 
     # 从品牌团页获取数据
     def activityItems(self, actId, actName, actUrl, item_valList):
-        allnum = 0
         page = self.crawler.getData(actUrl, Config.ju_brand_home)
         m = re.search(r'<div id="content".+?>(.+?)</div>\s+<div class="crazy-wrap">', page, flags=re.S)
         if m:
@@ -240,22 +247,21 @@ class JHSBrand():
 
         m = re.search(r'<div class="ju-itemlist">\s+<ul class="clearfix">.+?<li class="item-big-v2">.+?</li>.+?</ul>\s+</div>', page, flags=re.S)
         if m:
-            allnum = self.activityType1(page, actId, actName, actUrl, item_valList)
+            self.activityType1(page, actId, actName, actUrl, item_valList)
         else:
             m = re.search(r'<div class="act-main ju-itemlist">', page, flags=re.S)
             if m:
-                allnum = self.activityType2(m.group(1), actId, actName, actUrl, item_valList)
+                self.activityType2(m.group(1), actId, actName, actUrl, item_valList)
             else:
                 m = re.search(r'<div class="ju-itemlist J_JuHomeList">\s+<ul.+?>(.+?)</ul>', page, flags=re.S)
                 if m:
-                    allnum = self.activityType3(m.group(1), actId, actName, actUrl, item_valList)
+                    self.activityType3(m.group(1), actId, actName, actUrl, item_valList)
                 else:
                     m = re.search(r'<div class="l-floor J_Floor .+?data-ajaxurl="(.+?)">', page, flags=re.S)
                     if m:
-                        allnum = self.activityType4(page, actId, actName, actUrl, item_valList)
+                        self.activityType4(page, actId, actName, actUrl, item_valList)
                     else:
-                        allnum = self.activityTypeOther(page, actId, actName, actUrl, item_valList)
-        return allnum
+                        self.activityTypeOther(page, actId, actName, actUrl, item_valList)
 
     # 品牌团页面格式(1)
     def activityType1(self, page, actId, actName, actUrl, item_valList):
@@ -276,7 +282,6 @@ class JHSBrand():
             f_url = floor_url.group(1)
             print f_url
             position = self.getItemDataFromInterface(f_url, actId, actName, actUrl, position, item_valList)
-        return position
 
     # 品牌团页面格式(2)
     def activityType2(self, page, actId, actName, actUrl, item_valList):
@@ -306,7 +311,6 @@ class JHSBrand():
             f_url = getdata_url + '&juIds=' + floor_url.group(1)
             position = self.getItemDataFromInterface(f_url, actId, actName, actUrl, position, item_valList)
 
-        return position
 
     # 品牌团页面格式(3)
     def activityType3(self, page, actId, actName, actUrl, item_valList):
@@ -316,7 +320,6 @@ class JHSBrand():
             position += 1
             val = self.itemByBrandPageType1(itemdata.group(1), actId, actName, actUrl, position)
             item_valList.append(val)
-        return position
 
     # 品牌团页面格式(4)
     def activityType4(self, page, actId, actName, actUrl, item_valList):
@@ -336,7 +339,6 @@ class JHSBrand():
                         position += 1
                         val = self.itemByBrandPageType2(itemdata, actId, actName, actUrl, position)
                         item_valList.append(val)
-        return position
 
     # 品牌团页面格式
     def activityTypeOther(self, page, actId, actName, actUrl, item_valList):
@@ -391,7 +393,6 @@ class JHSBrand():
         for floor_url in p.finditer(page):
             f_url = getdata_url + '&juIds=' + floor_url.group(1)
             position = self.getItemDataFromInterface(f_url, actId, actName, actUrl, position, item_valList)
-        return position
 
     # 从接口获取数据
     def getItemDataFromInterface(self, url, actId, actName, actUrl, position, item_valList):
@@ -407,7 +408,6 @@ class JHSBrand():
                 position += 1
                 val = self.itemByBrandPageType1(itemdata.group(1), actId, actName, actUrl, position)
                 item_valList.append(val)
-        return position
 
     # 获取商品信息类型1
     def itemByBrandPageType1(self, itemdata, actId, actName, actUrl, position):

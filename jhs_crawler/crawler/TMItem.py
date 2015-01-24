@@ -86,13 +86,13 @@ class TMItem(Item):
         if m: self.item_sellCount = m.group(1)
 
         # 评价记录数
-        r_url = 'http://dsr.rate.tmall.com/list_dsr_info.htm?itemId=%s&spuId=%s&sellerId=%s&callback=%s' %(self.item_id, self.item_spuId, self.item_sellerId, Common.jsonCallback())
-        ratenum_page = self.crawler.getData(r_url, self.item_url)
-        if not ratenum_page or ratenum_page == '': return
+        #r_url = 'http://dsr.rate.tmall.com/list_dsr_info.htm?itemId=%s&spuId=%s&sellerId=%s&callback=%s' %(self.item_id, self.item_spuId, self.item_sellerId, Common.jsonCallback())
+        #ratenum_page = self.crawler.getData(r_url, self.item_url)
+        #if not ratenum_page or ratenum_page == '': return
 
         # 保存评价记录数页
         #self.item_pages.append(('%s-item-ratenum' %self.shop_type, r_url, ratenum_page))
-        self.item_pages['item-ratenum'] = (r_url, ratenum_page)
+        #self.item_pages['item-ratenum'] = (r_url, ratenum_page)
 
     # 商品收藏数
     def itemFavorites(self):

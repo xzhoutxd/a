@@ -11,7 +11,7 @@ import time
 import base.Common as Common
 import base.Config as Config
 from base.TBCrawler import TBCrawler
-from JHSBrand import JHSBrand
+#from JHSBrand import JHSBrand
 from JHSBrandComing import JHSBrandComing
 
 class JHSMain():

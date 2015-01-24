@@ -287,18 +287,19 @@ class JHSItem():
             if int(self.item_shopType) == 1:
                 Item = TMItem()
                 Item.antPage(self.item_url)
-                if Item.item_page and Item.item_page != '':
-                    PItem = PTMItem()
-                    PItem.antPage(Item)
-                    #result = PItem.outItemCrawl()
+                if not Item.item_page or Item.item_page == '': raise Common.InvalidPageException("# %s:not find TB or TM item page,juid:%s,id:%s,item_url:%s"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), str(self.item_id), self.item_url))
+                PItem = PTMItem()
+                PItem.antPage(Item)
+                #result = PItem.outItemCrawl()
             # 集市店铺
             elif int(self.item_shopType) == 2:
                 Item = TBItem()
                 Item.antPage(self.item_url)
-                if Item.item_page and Item.item_page != '':
-                    PItem = PTBItem()
-                    PItem.antPage(Item)
-                    #result = PT.outItemCrawl()
+                if not Item.item_page or Item.item_page == '': raise Common.InvalidPageException("# %s:not find TB or TM item page,juid:%s,id:%s,item_url:%s"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), str(self.item_id), self.item_url))
+                PItem = PTBItem()
+                PItem.antPage(Item)
+                #result = PT.outItemCrawl()
+                    
             # 商品店铺Id, 商品店铺Name, 商品叶子类目Id, 商品活动前备货数, 商品收藏数, 商品品牌
             if PItem:
                 self.item_shopId, self.item_shopName, self.item_catId, self.item_prepare, self.item_favorites, self.item_brand = PItem.shop_id, PItem.shop_name, PItem.item_catId, PItem.item_stock, PItem.item_favorites, PItem.item_brand

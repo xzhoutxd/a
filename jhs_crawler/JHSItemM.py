@@ -66,7 +66,7 @@ class JHSItemM(MyThread):
                 # 商品信息处理
                 # _i_id, a_id, i_wh, _a_id, _i_wh, a_platform, a_name = _val
                 _val  = _data[1]
-                time.sleep(1)
+                time.sleep(0.3)
                 item.antPage(_val)
                 print '# To crawl item val : ', Common.now_s(), _val[1], _val[2], _val[4], _val[6], _val[7]
 
