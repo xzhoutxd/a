@@ -71,7 +71,7 @@ class JHSItem():
     def initItem(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):
         # 商品所属数据项内容
         self.item_pageData = page
-        self.item_pages['item_init'] = ('',page)
+        self.item_pages['item-init'] = ('',page)
         # 商品所属活动Id
         self.item_actId = actId
         # 商品所属活动Name
@@ -161,10 +161,10 @@ class JHSItem():
     def itemConfig(self):
         # 聚划算商品页信息
         page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-        if not page or page == '': raise Common.InvalidPageException("# %s:not find ju item page,juid:%s,item_ju_url:%s"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), self.item_ju_url))
+        if not page or page == '': raise Common.InvalidPageException("# itemConfig: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
         if page and page != '':
             self.item_juPage = page
-            self.item_pages['item_home'] = (self.item_ju_url, page)
+            self.item_pages['item-home'] = (self.item_ju_url, page)
             m = re.search(r'<div id="content" class="detail">(.+?)</div> <!-- /content -->', page, flags=re.S)
             if m:
                 i_page = m.group(1)
@@ -242,28 +242,42 @@ class JHSItem():
 
                 if i_getdata_url:
                     json_str = self.crawler.getData(i_getdata_url, self.item_ju_url)
-                    self.item_pages['item_dynamic'] = (i_getdata_url, json_str)
+                    self.item_pages['item-dynamic'] = (i_getdata_url, json_str)
                     if json_str and json_str != '':
-                        result = json.loads(json_str)
-                        if result.has_key('data'):
-                            result_data = result['data']
-                            if result_data.has_key('soldCount'):
-                                self.item_soldCount = result_data['soldCount']
-                            else:
-                                if result_data.has_key('remindNum') and result_data['remindNum']:
-                                    self.item_remindNum = result_data['remindNum']
+                        #result = json.loads(json_str)
+                        #if result.has_key('data'):
+                        #    result_data = result['data']
+                        #    if result_data.has_key('soldCount'):
+                        #        self.item_soldCount = result_data['soldCount']
+                        #    else:
+                        #        if result_data.has_key('remindNum') and result_data['remindNum']:
+                        #            self.item_remindNum = result_data['remindNum']
 
-                            if result_data.has_key('stock'):
-                                self.item_stock = result_data['stock']
-                            if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
-                                self.item_isSoldout = 1
+                        #    if result_data.has_key('stock'):
+                        #        self.item_stock = result_data['stock']
+
+                        m = re.search(r'"soldCount":(.+?),', json_str, flags=re.S)
+                        if m:
+                            self.item_soldCount = (m.group(1)).replace('"','')
+                        else:
+                            m = re.search(r'"remindNum":(.+?),', json_str, flags=re.S)
+                            if m:
+                                self.item_remindNum = (m.group(1)).replace('"','')
+
+                        m = re.search(r'"stock":(.+?),', json_str, flags=re.S)
+                        if m:           
+                            self.item_stock = (m.group(1)).replace('"','')
+
+                        if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
+                            self.item_isSoldout = 1
 
     # 商品其他优惠信息
     def itemPromotiton(self):
         promot_url = 'http://dskip.ju.taobao.com/promotion/json/get_shop_promotion.do?ju_id=%s'%str(self.item_juId)
         promot_page = self.crawler.getData(promot_url, self.item_ju_url)
+        if not promot_page and promot_page == '': raise Common.InvalidPageException("# itemPromotion: not find promotion page")
         if promot_page and promot_page != '':
-            self.item_pages['item_shoppromotion'] = (promot_url,promot_page)
+            self.item_pages['item-shoppromotion'] = (promot_url,promot_page)
             #m = re.search(r'jsonp\d+\((.+?)\)$', promot_page, flags=re.S)
             #if m:
             #    json_str = m.group(1)
@@ -289,7 +303,7 @@ class JHSItem():
             if int(self.item_shopType) == 1:
                 Item = TMItem()
                 Item.antPage(self.item_url)
-                if not Item.item_page or Item.item_page == '': raise Common.InvalidPageException("# %s:not find TB or TM item page,juid:%s,id:%s,item_url:%s"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), str(self.item_id), self.item_url))
+                if not Item.item_page or Item.item_page == '': raise Common.InvalidPageException("# getFromTMTBPage:not find TB or TM item page,juid:%s,id:%s,item_url:%s"%(str(self.item_juId), str(self.item_id), self.item_url))
                 PItem = PTMItem()
                 PItem.antPage(Item)
                 #result = PItem.outItemCrawl()
@@ -297,7 +311,7 @@ class JHSItem():
             elif int(self.item_shopType) == 2:
                 Item = TBItem()
                 Item.antPage(self.item_url)
-                if not Item.item_page or Item.item_page == '': raise Common.InvalidPageException("# %s:not find TB or TM item page,juid:%s,id:%s,item_url:%s"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), str(self.item_id), self.item_url))
+                if not Item.item_page or Item.item_page == '': raise Common.InvalidPageException("# getFromTMTBPage:not find TB or TM item page,juid:%s,id:%s,item_url:%s"%(str(self.item_juId), str(self.item_id), self.item_url))
                 PItem = PTBItem()
                 PItem.antPage(Item)
                 #result = PT.outItemCrawl()
@@ -306,8 +320,7 @@ class JHSItem():
             if PItem:
                 self.item_shopId, self.item_shopName, self.item_catId, self.item_prepare, self.item_favorites, self.item_brand = PItem.shop_id, PItem.shop_name, PItem.item_catId, PItem.item_stock, PItem.item_favorites, PItem.item_brand
         except Exception as e:
-            print "# %s,juid:%s,id:%s,item_url:%s,info:%s"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), str(self.item_id), self.item_url, e)
-            traceback.print_exc()
+            raise Common.InvalidPageException("# getFromTMTBPage: juid:%s,id:%s,item_url:%s,info:%s"%(str(self.item_juId), str(self.item_id), self.item_url, e))
 
     # 执行
     #def antPage(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):
@@ -320,12 +333,28 @@ class JHSItem():
             #self.getFromTMTBPage()
             #self.outItem()
         except Exception as e:
-            print "# %s,juid:%s,item_url:%s,info:%s"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), self.item_ju_url, e)
-            traceback.print_exc()
+            raise Common.InvalidPageException("# antPage: juid:%s,item_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
+            #traceback.print_exc()
 
     # 输出SQL
     def outSql(self):
         return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,str(self.item_position),self.item_ju_url,self.item_juName,self.item_juDesc,self.item_juPic_url,self.item_id,self.item_url,str(self.item_sellerId),self.item_sellerName,str(self.item_shopId),self.item_shopName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),str(self.item_soldCount),str(self.item_stock),str(self.item_prepare),str(self.item_favorites),';'.join(self.item_promotions),str(self.item_catId),self.item_brand)
+
+    # 输出抓取的网页log
+    def outItemLog(self):
+        pages = []
+        for p_tag in self.item_pages.keys():
+            p_url, p_content = p_val
+
+            # 网页文件名
+            f_path = '%s_item/%s' %(self.item_actId, self.item_juId)
+            f_name = '%s-%s_%s_%d.htm' %(self.item_actId, self.item_juId, p_tag, self.crawling_time)
+
+            # 网页文件内容
+            f_content = '<!-- url=%s -->\n%s\n' %(p_url, p_content)
+            pages.append((f_name, p_tag, f_path, f_content))
+
+        return pages
 
     #
     def outItem(self):
@@ -344,69 +373,11 @@ class JHSItem():
 
 
 def test():
-    print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    crawler = TBCrawler()
-    actId = '4484443'
-    actName = '全场1.4折起'
-    actUrl = 'http://ju.taobao.com/tg/brand_items.htm?act_sign_id=4484443'
-    page = crawler.getData(actUrl, Config.ju_brand_home)
-    m = re.search(r'<div id="content">(.+?)</div>\s+<div class="crazy-wrap">', page, flags=re.S)
-    if m:
-        page = m.group(1)
-        # 商品
-        position = 0
-        m = re.search(r'<div class="act-main ju-itemlist">', page, flags=re.S)
-        if m:
-            # source html floor
-            p = re.compile(r'<div class="act-item0">(.+?)</div>\s+<img', flags=re.S)
-            position += itemByBrandPage(page, actId, actName, p, position, actUrl)
-            m = re.search(r'<div class="act-item1">\s+<ul>(.+?)</u>\s+</div>', page, flags=re.S)
-            if m:
-                item1_page = m.group(1)
-                p = re.compile(r'<li>(.+?)</li>', flags=re.S)
-                position += itemByBrandPage(item1_page, actId, actName, p, position, actUrl)
-
-            # other floor
-            getdata_url = "http://ju.taobao.com/json/tg/ajaxGetItems.htm?stype=ids&styleType=small&includeForecast=true"
-            p = re.compile(r'<div class="act-item J_jupicker" data-item="(.+?)">', flags=re.S)
-            for floor_url in p.finditer(page):
-                ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                f_url = getdata_url + '&juIds=' + floor_url.group(1) + '&_ksTS=%s'%ts
-                print f_url
-                f_page = crawler.getData(f_url, actUrl)
-                m = re.search(r'html\":\'(.+?)\'', f_page, flags=re.S)
-                if m:
-                    f_html = m.group(1)
-                    p = re.compile(r'<li class="item-small-v3">(.+?)</li>', flags=re.S)
-                    position += itemByBrandPage(f_html, actId, actName, p, position, actUrl)
-            
-        else:
-            # source html floor
-            p = re.compile(r'<li class="item-big-v2">(.+?)</li>', flags=re.S)
-            position += itemByBrandPage(page, actId, actName, p, position, actUrl)
-
-            # other floor
-            p = re.compile(r'<div class="l-floor J_Floor J_ItemList" .+? data-url="(.+?)">', flags=re.S)
-            for floor_url in p.finditer(page):
-                ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                f_url = floor_url.group(1) + '&_ksTS=%s'%ts
-                print f_url
-                f_page = crawler.getData(f_url, actUrl)
-                m = re.search(r'html\":\'(.+?)\'', f_page, flags=re.S)
-                if m:
-                    f_html = m.group(1)
-                    p = re.compile(r'<li class="item-small-v3">(.+?)</li>', flags=re.S)
-                    position += itemByBrandPage(f_html, actId, actName, p, position, actUrl)
-    print '# activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-
-def itemByBrandPage(page, actId, actName, p, position, actUrl):
-    i = 0
-    for ju_item in p.finditer(page):
-        i += 1
-        item = JHSItem()
-        item.antPage(page, actId, actName, actUrl, position+i)
-
-    return i
+    #(itemdata, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url)
+    item = JHSItem()
+    val = ("", "", "", "", 1, "http://detail.ju.taobao.com/home.htm?id=10000005351261&amp;item_id=41596732118", "41596732118", "10000005351261", "")
+    item.antPage(val)
+    item.outItem()
 
 if __name__ == '__main__':
     test()

@@ -69,7 +69,7 @@ class JHSBActItem():
     def initItem(self, page, catId, catName, position, begin_date, begin_hour):
         # 品牌团所在数据项内容
         self.brandact_pagedata = page
-        self.brandact_pages['act_init'] = ('', page)
+        self.brandact_pages['act-init'] = ('', page)
         # 品牌团所在类别Id
         self.brandact_catgoryId = catId
         # 品牌团所在类别Name
@@ -155,9 +155,10 @@ class JHSBActItem():
         # 品牌团页面html
         if self.brandact_url != '':
             data = self.crawler.getData(self.brandact_url, Config.ju_brand_home)
+            if not data and data == '': raise Common.InvalidPageException("# itemConfig:not fing act page,actid:%s,act_url:%s"%(str(self.brandact_id), self.brandact_url))
             if data and data != '':
                 self.brandact_page = data
-                self.brandact_pages['act_home'] = (self.brandact_url, data)
+                self.brandact_pages['act-home'] = (self.brandact_url, data)
 
     # 品牌团优惠券
     def brandActConpons(self):
@@ -171,7 +172,6 @@ class JHSBActItem():
         p = re.compile(r'<div class=".+?J_coupons">\s*<div class="c-price">(.+?)</div>\s*<div class="c-desc">\s*<span class="c-title">(.+?)</span>\s*<span class="c-require">(.+?)</span>\s*</div>', flags=re.S)
         for coupon in p.finditer(self.brandact_page):
             price, title, require = coupon.group(1).strip(), coupon.group(2).strip(), coupon.group(3).strip()
-            #print price, title, require
             i_coupons = ''
             m = re.search(r'<em>(.+?)</em>', price, flags=re.S)
             if m:
@@ -199,6 +199,22 @@ class JHSBActItem():
         self.brandActConpons()
         #self.outItem()
 
+    # 输出抓取的网页log
+    def outItemLog(self):
+        pages = []
+        for p_tag in self.brandact_pages.keys():
+            p_url, p_content = p_val
+
+            # 网页文件名
+            f_path = '%s_item/' %(self.brandact_id)
+            f_name = '%s-%s_%d.htm' %(self.brandact_id, p_tag, self.crawling_time)
+
+            # 网页文件内容
+            f_content = '<!-- url=%s -->\n%s\n' %(p_url, p_content)
+            pages.append((f_name, p_tag, f_path, f_content))
+
+        return pages
+
     def outSql(self):
         #return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,self.brandact_url,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),self.brandact_brand,str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000))
         return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,self.brandact_url,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),self.brandact_brand,str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
@@ -223,73 +239,7 @@ class JHSBActItem():
 
 
 def test():
-    b = JHSBActItem()
-    brand_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=0'
-    page = b.crawler.getData(Config.ju_brand_home, Config.ju_home)
-    if not page or page == '': print 'no brand page'
-    bResult_list = []
-    m = re.search(r'<div class="tb-module ju-brand-floor">(.+?)</div>\s*</div>\s*</div>\s*<div class="J_Module skin-default"', page, flags=re.S)
-    if m:
-        activity_floors = m.group(1)
-        p = re.compile(r'<div id="floor\d+" class="l-floor J_Floor placeholder ju-wrapper" (.+?)>.+?</div>', flags=re.S)
-        for activity_floor in p.finditer(activity_floors):
-            activity_floor_info = activity_floor.group(1)
-            f_name, f_catid, f_activitySignId = '', '', ''
-            m = re.search(r'data-floorName="(.+?)"\s+', activity_floor_info, flags=re.S)
-            if m:
-                f_name = m.group(1)
-
-            m = re.search(r'data-catid=\'(.+?)\'\s+', activity_floor_info, flags=re.S)
-            if m:
-                f_catid = m.group(1)
-
-            m = re.search(r'data-activitySignId=\"(.+?)\"$', activity_floor_info, flags=re.S)
-            if m:
-                f_activitySignId = m.group(1)
-            print '# activity floor:', f_name, f_catid, f_activitySignId
-
-            i = 1
-            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-            if f_activitySignId != '':
-                b_url = brand_page_url + '&page=%d'%i + '&activitySignId=%s'%f_activitySignId.replace(',','%2C') + '&stype=ids' + '&_ksTS=%s'%ts
-                b_page = b.crawler.getData(b_url, Config.ju_brand_home)
-            else:
-                b_url = brand_page_url + '&page=%d'%i + '&frontCatIds=%s'%f_catid + '&_ksTS=%s'%ts
-                b_page = b.crawler.getData(b_url, Config.ju_brand_home)
-            try:
-                result = json.loads(b_page)
-                print b_url
-                #bResult_list.append([result,f_name,f_catid])
-                # 只取女装
-                if int(f_catid) == 261000:
-                    bResult_list.append([result,f_name,f_catid])
-
-                if f_catid != '' and int(f_catid) == 261000 and result.has_key('totalPage') and int(result['totalPage']) > i:
-                #if result.has_key('totalPage') and int(result['totalPage']) > i:
-                    for page_i in range(i+1, int(result['totalPage'])+1):
-                        ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                        b_url = re.sub('&page=\d+&', '&page=%d&'%page_i, b_url)
-                        b_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, b_url)
-                        b_page = b.crawler.getData(b_url, Config.ju_brand_home)
-                        result = json.loads(b_page)
-                        print b_url
-                        bResult_list.append([result, f_name, f_catid])
-            except StandardError as err:
-                print '# err:',err
-    print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    for page in bResult_list:
-        if page[0].has_key('brandList') and page[0]['brandList'] != []:
-            #self.brand_find += len(page['brandList'])
-            b_position_start = 0
-            if page[0].has_key('currentPage') and int(page[0]['currentPage']) > 1:
-                b_position_start = (int(page[0]['currentPage']) - 1) * 60
-            for i in range(0,len(page[0]['brandList'])):
-                activity = page[0]['brandList'][i]
-                #if int(b_position_start+i) == 1:
-                #    b.antPage(activity, page[2], page[1], (b_position_start+i+1))
-                b.antPage(activity, page[2], page[1], (b_position_start+i+1))
-
-    print '# brand activityies end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+    pass
 
 
 #
