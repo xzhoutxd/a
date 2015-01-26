@@ -1,5 +1,5 @@
 #-*- coding:utf-8 -*-
-#!/usr/bin/python
+#!/usr/bin/env python
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -142,8 +142,8 @@ class JHSBrandComing():
         #print '# brand activity items num:', allitem_num
 
         m_Obj = JHSBActItemM()
-        m_Obj.createthread()
         m_Obj.putItems(act_valList)
+        m_Obj.createthread()
         m_Obj.run()
         while True:
             try:

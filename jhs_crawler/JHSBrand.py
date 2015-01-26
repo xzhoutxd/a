@@ -1,5 +1,5 @@
 #-*- coding:utf-8 -*-
-#!/usr/bin/python
+#!/usr/bin/env python
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -184,7 +184,7 @@ class JHSBrand():
                             self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url, item_valList)
                             # 多线程
                             m_itemsObj = JHSItemM()
-                            m_itemsObj.createthread()
+                            #m_itemsObj.createthread()
                             m_itemsObj.putItems(item_valList)
                             crawler_list.append((b.brandact_id,b.brandact_name,m_itemsObj))
                             #self.item_queue.put((b.brandact_id,b.brandact_name,m_itemsObj))
