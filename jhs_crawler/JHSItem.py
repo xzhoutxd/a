@@ -8,6 +8,7 @@ import re
 import random
 import json
 import time
+import traceback
 import threading
 import base.Common as Common
 import base.Config as Config
@@ -305,7 +306,7 @@ class JHSItem():
             if PItem:
                 self.item_shopId, self.item_shopName, self.item_catId, self.item_prepare, self.item_favorites, self.item_brand = PItem.shop_id, PItem.shop_name, PItem.item_catId, PItem.item_stock, PItem.item_favorites, PItem.item_brand
         except Exception as e:
-            print "# %s,juid:%s,id:%s,item_url:%s,info:%"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), str(self.item_id), self.item_url, e)
+            print "# %s,juid:%s,id:%s,item_url:%s,info:%s"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), str(self.item_id), self.item_url, e)
             traceback.print_exc()
 
     # 执行
@@ -316,7 +317,7 @@ class JHSItem():
             self.initItem(page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url)
             self.itemConfig()
             self.itemPromotiton()
-            self.getFromTMTBPage()
+            #self.getFromTMTBPage()
             #self.outItem()
         except Exception as e:
             print "# %s,juid:%s,item_url:%s,info:%s"%(sys._getframe().f_back.f_code.co_name, str(self.item_juId), self.item_ju_url, e)
