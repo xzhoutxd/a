@@ -188,7 +188,10 @@ class JHSBrand():
                             item_valList = []
                             self.activityItems(b.brandact_id, b.brandact_name, b.brandact_url, item_valList)
                             # 多线程
-                            m_itemsObj = JHSItemM()
+                            if len(item_valList) > 40:
+                                m_itemsObj = JHSItemM(40)
+                            else:
+                                m_itemsObj = JHSItemM(len(item_valList))
                             m_itemsObj.putItems(item_valList)
                             #m_itemsObj.createthread()
                             crawler_list.append((b.brandact_id,b.brandact_name,m_itemsObj))
@@ -228,7 +231,7 @@ class JHSBrand():
 
         while True:
             try:
-                print 'item queue'
+                #print 'item queue'
                 # 队列为空，退出
                 if self.itemcrawler_queue.empty(): break
                 _item = self.itemcrawler_queue.get()
@@ -338,7 +341,7 @@ class JHSBrand():
         for floor_url in p.finditer(page):
             ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
             f_url = floor_url.group(1) + '&_ksTS=%s'%ts
-            print f_url
+            #print f_url
             f_page = self.crawler.getData(f_url, actUrl)
             m = re.search(r'^{.+?\"itemList\":\[.+?\].+?}$', f_page, flags=re.S)
             if m:
@@ -407,7 +410,7 @@ class JHSBrand():
     def getItemDataFromInterface(self, url, actId, actName, actUrl, position, item_valList):
         ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
         f_url = url + '&_ksTS=%s'%ts
-        print f_url
+        #print f_url
         f_page = self.crawler.getData(f_url, actUrl)
         m = re.search(r'html\":\'(.+?)\'', f_page, flags=re.S)
         if m:

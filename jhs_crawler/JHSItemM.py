@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore")
 
 class JHSItemM(MyThread):
     '''A class of jhs item thread manager'''
-    def __init__(self, thread_num = 400):
+    def __init__(self, thread_num = 20):
         # parent construct
         MyThread.__init__(self, thread_num)
 
@@ -49,6 +49,8 @@ class JHSItemM(MyThread):
         if _retry < Config.crawl_retry:
             _data = (_retry, _val)
             self.put_q(_data)
+        else:
+            print "# retry too many times, no get item:", _val
 
     # To crawl item
     def crawl(self):
@@ -64,9 +66,8 @@ class JHSItemM(MyThread):
                 item = JHSItem()
 
                 # 商品信息处理
-                # _i_id, a_id, i_wh, _a_id, _i_wh, a_platform, a_name = _val
+                # _pageData, _actId, _actName, _actUrl, _position, _ju_url, _id, _juId, _juPic_url = _val
                 _val  = _data[1]
-                #time.sleep(0.3)
                 item.antPage(_val)
                 print '# To crawl item val : ', Common.now_s(), _val[1], _val[2], _val[4], _val[6], _val[7]
 
@@ -78,8 +79,8 @@ class JHSItemM(MyThread):
 
             except Exception as e:
                 self.crawlRetry(_data)
-                #time.sleep(random.uniform(1,10))
-                time.sleep(1)
+                time.sleep(random.uniform(1,5))
+                #time.sleep(1)
 
                 print 'Unknown exception crawl item :', e
                 traceback.print_exc()
