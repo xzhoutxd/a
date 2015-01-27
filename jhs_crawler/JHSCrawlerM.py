@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore")
 
 class JHSCrawlerM(MyThread):
     '''A class of jhs item thread manager'''
-    def __init__(self, jhs_type, thread_num = 15):
+    def __init__(self, jhs_type, thread_num = 10):
         # parent construct
         MyThread.__init__(self, thread_num)
 
@@ -35,6 +35,12 @@ class JHSCrawlerM(MyThread):
 
         # dial client
         self.dial_client = DialClient()
+
+        # local ip
+        self._ip = Common.local_ip()
+
+        # router tag
+        self._tag = 'ikuai'
 
     # To dial router
     def dialRouter(self, _type, _obj):
@@ -63,7 +69,6 @@ class JHSCrawlerM(MyThread):
             _data = (_retry, _val)
             self.put_q(_data)
         else:
-            else:
             print "# retry too many times, no get item:", _val
 
     # To crawl item

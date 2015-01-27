@@ -15,9 +15,9 @@ import base.Config as Config
 from base.TBCrawler import TBCrawler
 from db.MysqlAccess import MysqlAccess
 from JHSCrawlerM import JHSCrawlerM
-from JHSBActItemM import JHSBActItemM
+#from JHSBActItemM import JHSBActItemM
 from JHSItem import JHSItem
-from JHSItemM import JHSItemM
+#from JHSItemM import JHSItemM
 
 class JHSBrand():
     '''A class of brand Item'''
@@ -173,7 +173,7 @@ class JHSBrand():
         crawler_list = []
         print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         #m_Obj = JHSBActItemM()
-        m_Obj = JHSCrawlerM(1)
+        m_Obj = JHSCrawlerM(1, 5)
         m_Obj.putItems(act_valList)
         m_Obj.createthread()
         m_Obj.run()

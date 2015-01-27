@@ -10,15 +10,17 @@ import traceback
 import threading
 import base.Config as Config
 import base.Common as Common
+from dial.DialClient import DialClient
 from base.MyThread  import MyThread
 from JHSBActItem import JHSBActItem
+from JHSItem import JHSItem
 
 import warnings
 warnings.filterwarnings("ignore")
 
 class JHSBActItemM(MyThread):
     '''A class of jhs item thread manager'''
-    def __init__(self, thread_num = 20):
+    def __init__(self, jhs_type, thread_num = 15):
         # parent construct
         MyThread.__init__(self, thread_num)
 
@@ -26,10 +28,21 @@ class JHSBActItemM(MyThread):
         self.mutex      = threading.Lock()
 
         # jhs queue type
-        self.jhs_type   = Config.JUHUASUAN_TYPE
+        self.jhs_type   = jhs_type # 1:品牌团频道页,2:商品页
         
         # activity items
         self.items      = []
+
+        # dial client
+        self.dial_client = DialClient()
+
+    # To dial router
+    def dialRouter(self, _type, _obj):
+        try:
+            _module = '%s_%s' %(_type, _obj)
+            self.dial_client.send((_module, self._ip, self._tag))
+        except Exception as e:
+            print '# To dial router exception :', e
 
     def push_back(self, L, v):
         if self.mutex.acquire(1):
@@ -49,6 +62,8 @@ class JHSBActItemM(MyThread):
         if _retry < Config.crawl_retry:
             _data = (_retry, _val)
             self.put_q(_data)
+        else:
+            print "# retry too many times, no get item:", _val
 
     # To crawl item
     def crawl(self):
@@ -60,17 +75,22 @@ class JHSBActItemM(MyThread):
                 # 取队列消息
                 _data = self.get_q()
 
-                # 商品实例
-                item = JHSBActItem()
+                if self.jhs_type == 1:
+                    # 品牌团实例
+                    # _pageData, _catid, _catname, _position, _begin_date, _begin_hour = _val
+                    item = JHSBActItem()
+                else:
+                    # 商品实例
+                    # _pageData, _actId, _actName, _actUrl, _position, _ju_url, _id, _juId, _juPic_url = _val
+                    item = JHSItem()
 
-                # 商品信息处理
-                # _i_id, a_id, i_wh, _a_id, _i_wh, a_platform, a_name = _val
+                # 信息处理
                 _val  = _data[1]
                 time.sleep(1)
                 item.antPage(_val)
-                print '# To crawl activity item val : ', Common.now_s(), _val[1], _val[2], _val[3]
+                print '# To crawl activity item val : ', Common.now_s(), _val[1], _val[2]
 
-                # 汇聚商品
+                # 汇聚
                 self.push_back(self.items, item)
 
                 # 通知queue, task结束
@@ -78,7 +98,13 @@ class JHSBActItemM(MyThread):
 
             except Exception as e:
                 self.crawlRetry(_data)
-                time.sleep(random.uniform(1,10))
+                time.sleep(random.uniform(10,30))
+                # 重新拨号
+                if self.jhs_type == 1:
+                    self.dialRouter(4, 'chn')
+                else:
+                    self.dialRouter(4, 'item')
+
 
                 print 'Unknown exception crawl item :', e
                 traceback.print_exc()

@@ -234,4 +234,11 @@ def cookieJar2Dict(cj):
         cj_d[c.name] = c.value
     return cj_d
 
-    
+   
+# local ip
+import socket
+def local_ip():
+    host = socket.gethostname()
+    ip = socket.gethostbyname(host)
+    return ip
+ 
