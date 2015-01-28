@@ -109,15 +109,16 @@ class JHSCrawlerM(MyThread):
 
             except Exception as e:
                 self.crawlRetry(_data)
-                time.sleep(random.uniform(10,30))
                 # 重新拨号
                 if self.jhs_type == 1:
                     self.dialRouter(4, 'chn')
                 else:
                     self.dialRouter(4, 'item')
+                #time.sleep(random.uniform(10,30))
 
                 print 'Unknown exception crawl item :', e
                 traceback.print_exc()
+                time.sleep(random.uniform(10,30))
 
 if __name__ == '__main__':
     pass
