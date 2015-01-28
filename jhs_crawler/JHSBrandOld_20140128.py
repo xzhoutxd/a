@@ -55,11 +55,11 @@ class JHSBrand():
         self.begin_hour = Common.nowhour_s()
 
         # 抓取间隔
-        self.gap_num = 100
+        self.gap_num = 50
 
         # 并发线程值
         self.act_max_th = 5 # 活动抓取时的最大线程
-        self.item_max_th = 50 # 商品抓取时的最大线程
+        self.item_max_th = 30 # 商品抓取时的最大线程
         
 
     def antPage(self):
@@ -169,17 +169,22 @@ class JHSBrand():
                     b_position_start = (int(i_page['currentPage']) - 1) * 60
                 for i in range(0,len(activities)):
                     activity = activities[i]
-                    val = (activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self.begin_hour, self.home_brands)
+                    val = (activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self.begin_hour)
                     act_valList.append(val)
+                    # 分隔抓取
+                    #if len(act_valList) == self.gap_num:
+                    #self.run_brandAct(act_valList)
+                    #act_valList = []
         if len(act_valList) > 0:
             self.run_brandAct(act_valList)
 
     
+    @profile
     # 多线程抓去品牌团活动
     def run_brandAct(self, act_valList):
         ladygo_num = 0
         allitem_num = 0
-        crawler_val_list = []
+        crawler_list = []
         print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         #m_Obj = JHSBActItemM()
         m_Obj = JHSCrawlerM(1, self.act_max_th)
@@ -192,7 +197,6 @@ class JHSBrand():
                     item_list = m_Obj.items
                     for b in item_list:
                         print '#####A activity start#####'
-                        """
                         key1, key2 = str(b.brandact_id), b.brandact_url.split('?')[0]
                         # 判断是否在首页推广
                         if self.home_brands.has_key(key1):
@@ -201,28 +205,36 @@ class JHSBrand():
                         elif self.home_brands.has_key(key2):
                             b.brandact_inJuHome = 1
                             b.brandact_juHome_position = self.home_brands[key2]['position']
-                        """
-                        sql, brandact_itemVal_list = b
-                        brandact_id, brandact_name, brandact_url, brandact_sign = sql[1], sql[7], sql[8], sql[13]
                         # 品牌团活动入库
-                        self.mysqlAccess.insertJhsAct(sql)
-                        #print sql
-                        brandact_sign, brandact_itemVal_list
+                        self.mysqlAccess.insertJhsAct(b.outSql())
+                        #print b.outSql()
                         # 只抓取非俪人购商品
-                        if brandact_sign != 3:
+                        if b.brandact_sign != 3:
+                            print '# activity Items start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), b.brandact_id, b.brandact_name
                             # Activity Items
                             # item init val list
                             item_valList = None
-                            item_valList = brandact_itemVal_list
+                            item_valList = b.brandact_itemVal_list
                             if len(item_valList) > 0:
-                                crawler_val_list.append((brandact_id,brandact_name,item_valList))
+                                # 多线程 控制并发的线程数
+                                if len(item_valList) > self.item_max_th:
+                                    m_itemsObj = JHSCrawlerM(2, self.item_max_th)
+                                else:
+                                    m_itemsObj = JHSCrawlerM(2,len(item_valList))
+                                m_itemsObj.putItems(item_valList)
+                                crawler_list.append((b.brandact_id,b.brandact_name,m_itemsObj))
                                 allitem_num = allitem_num + len(item_valList)
-                                print '# activity id:%s name:%s url:%s'%(brandact_id, brandact_name, brandact_url)
+                                print '# activity id:%s name:%s url:%s'%(b.brandact_id, b.brandact_name, b.brandact_url)
                                 print '# activity items num:', len(item_valList)
+                                print '# activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                         else:
                             ladygo_num += 1
                         print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                         print '#####A activity end#####'
+                        # 分隔抓取
+                        if len(crawler_list) == self.gap_num:
+                            result = self.run_brandItems(crawler_list)
+                            crawler_list = []
                         #time.sleep(1)
                     del item_list
                     del m_Obj
@@ -230,53 +242,45 @@ class JHSBrand():
             except StandardError as err:
                 print '# %s err:'%(sys._getframe().f_back.f_code.co_name),err  
                 traceback.print_exc()
+        if len(crawler_list) > 0:
+            self.run_brandItems(crawler_list)
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# brand activity num:', len(act_valList)
         print '# brand activity(ladygo) num:', ladygo_num
         print '# brand activity items num:', allitem_num
 
-        self.run_brandItems(crawler_val_list)
-
     # 多线程抓去品牌团商品
-    @profile
-    def run_brandItems(self, crawler_val_list):
+    def run_brandItems(self, crawler_list):
         i = 0
-        for crawler_val in crawler_val_list:
-            brandact_id, brandact_name, item_valList = crawler_val
-            print '# activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
-            # 多线程 控制并发的线程数
-            if len(item_valList) > self.item_max_th:
-                m_itemsObj = JHSCrawlerM(2, self.item_max_th)
-            else:
-                m_itemsObj = JHSCrawlerM(2, len(item_valList))
-            self.itemcrawler_queue.put((brandact_id, brandact_name, m_itemsObj))
-            m_itemsObj.putItems(item_valList)
+        for crawler_thread in crawler_list:
+            i += 1
+            self.itemcrawler_queue.put(crawler_thread)
+            m_itemsObj = crawler_thread[2]
             m_itemsObj.createthread()
             m_itemsObj.run()
-            i += 1
-            if i % self.gap_num == 0 or i == len(crawler_val_list):
-                while True:
-                    try:
-                        #print 'item queue'
-                        # 队列为空，退出
-                        if self.itemcrawler_queue.empty(): break
-                        _item = self.itemcrawler_queue.get()
-                        actid, actname, obj = _item
-                        print '# Item Check: actId:%s, actName:%s'%(actid, actname)
-                        if obj.empty_q():
-                            item_list = obj.items
-                            for sql in item_list:
-                                #self.mysqlAccess.insertJhsItem(item.outSql())
-                                self.mysqlAccess.insertJhsItem(sql)
-                            del obj
-                            del item_list
-                            print '# Activity Item List End: actId:%s, actName:%s'%(actid, actname)
-                        else:
-                            self.itemcrawler_queue.put(_item)
-                    except Exception as e:
-                        print 'Unknown exception item result :', e
-                        traceback.print_exc()
-                        #return 'Unknown exception item result :%s'%e
+
+        while True:
+            try:
+                #print 'item queue'
+                # 队列为空，退出
+                if self.itemcrawler_queue.empty(): break
+                _item = self.itemcrawler_queue.get()
+                actid, actname, obj = _item
+                print '# Item Check: actId:%s, actName:%s'%(actid, actname)
+                if obj.empty_q():
+                    item_list = obj.items
+                    for item in item_list:
+                        self.mysqlAccess.insertJhsItem(item.outSql())
+                        #print item.outSql()
+                    del obj
+                    del item_list
+                    print '# Activity Item List End: actId:%s, actName:%s'%(actid, actname)
+                else:
+                    self.itemcrawler_queue.put(_item)
+            except Exception as e:
+                print 'Unknown exception item result :', e
+                traceback.print_exc()
+                #return 'Unknown exception item result :%s'%e
         #return 'ok'
 
 

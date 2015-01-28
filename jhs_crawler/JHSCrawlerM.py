@@ -37,7 +37,8 @@ class JHSCrawlerM(MyThread):
         self.dial_client = DialClient()
 
         # local ip
-        self._ip = Common.local_ip()
+        #self._ip = Common.local_ip()
+        self._ip = '192.168.1.35'
 
         # router tag
         self._tag = 'ikuai'
@@ -94,10 +95,14 @@ class JHSCrawlerM(MyThread):
                 _val  = _data[1]
                 time.sleep(1)
                 item.antPage(_val)
-                print '# To crawl activity item val : ', Common.now_s(), _val[1], _val[2]
+                if self.jhs_type == 1:
+                    print '# To crawl activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
+                else:
+                    print '# To crawl activity item val : ', Common.now_s(), _val[2], _val[4], _val[6]
 
                 # 汇聚
-                self.push_back(self.items, item)
+                #self.push_back(self.items, item)
+                self.push_back(self.items, item.outTuple())
 
                 # 通知queue, task结束
                 self.queue.task_done()

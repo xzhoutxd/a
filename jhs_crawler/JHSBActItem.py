@@ -30,6 +30,7 @@ class JHSBActItem():
         self.brandact_position = 0 # 品牌团所在类别位置
 
         # 是否在首页展示
+        self.home_brands = {} # 首页品牌团信息
         self.brandact_inJuHome = 0 # 是否在首页展示,0:不在,1:存在
         self.brandact_juHome_position = '' # 在首页展示的位置
 
@@ -69,7 +70,7 @@ class JHSBActItem():
         self.brandact_pages = {} # 品牌页面内请求数据列表
 
     # 品牌团初始化
-    def initItem(self, page, catId, catName, position, begin_date, begin_hour):
+    def initItem(self, page, catId, catName, position, begin_date, begin_hour, home_brands):
         # 品牌团所在数据项内容
         self.brandact_pagedata = page
         self.brandact_pages['act-init'] = ('', page)
@@ -83,6 +84,8 @@ class JHSBActItem():
         self.crawling_beginDate = begin_date
         # 本次抓取开始小时
         self.crawling_beginHour = begin_hour
+        # 首页品牌团信息
+        self.home_brands = home_brands
 
     # Configuration
     def itemConfig(self):
@@ -154,11 +157,21 @@ class JHSBActItem():
                 if b_price['hasCoupon']:
                   # 品牌团优惠券 有优惠券
                   self.brandact_coupon = 1
+
+        # 判断是否在首页推广
+        if self.brandact_id != '' and self.brandact_url != '':
+            key1, key2 = str(self.brandact_id), self.brandact_url.split('?')[0]
+            if self.home_brands.has_key(key1):
+                self.brandact_inJuHome = 1
+                self.brandact_juHome_position = self.home_brands[key1]['position']
+            elif self.home_brands.has_key(key2):
+                self.brandact_inJuHome = 1
+                self.brandact_juHome_position = self.home_brands[key2]['position']
         
         # 品牌团页面html
         if self.brandact_url != '':
             data = self.crawler.getData(self.brandact_url, Config.ju_brand_home)
-            if not data and data == '': raise Common.InvalidPageException("# itemConfig:not fing act page,actid:%s,act_url:%s"%(str(self.brandact_id), self.brandact_url))
+            if not data and data == '': raise Common.InvalidPageException("# itemConfig:not find act page,actid:%s,act_url:%s"%(str(self.brandact_id), self.brandact_url))
             if data and data != '':
                 self.brandact_page = data
                 self.brandact_pages['act-home'] = (self.brandact_url, data)
@@ -196,7 +209,8 @@ class JHSBActItem():
 
     # 从品牌团页获取商品数据
     def brandActItems(self):
-        page = self.crawler.getData(self.brandact_url, Config.ju_brand_home)
+        #page = self.crawler.getData(self.brandact_url, Config.ju_brand_home)
+        page = self.brandact_page
         m = re.search(r'<div id="content".+?>(.+?)</div>\s+<div class="crazy-wrap">', page, flags=re.S)
         if m:
             page = m.group(1)
@@ -427,7 +441,9 @@ class JHSBActItem():
         self.initItem(page, catId, catName, position, begin_date, begin_hour)
         self.itemConfig()
         self.brandActConpons()
-        self.brandActItems()
+        # 不抓俪人购的商品
+        if self.brandact_sign != 3:
+            self.brandActItems()
         #self.outItem()
 
     # 输出抓取的网页log
@@ -451,6 +467,10 @@ class JHSBActItem():
 
     def outSqlForComing(self):
         return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,self.brandact_url,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),self.brandact_brand,str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
+
+    def outTuple(self):
+        sql = self.outSql()
+        return (sql, self.brandact_itemVal_list)
 
     def outItem(self):
         print 'self.brandact_platform,self.brandact_channel,self.crawling_time,self.brandact_catgoryId,self.brandact_catgoryName,self.brandact_position,self.brandact_id,self.brandact_url,self.brandact_name,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_starttime,self.brandact_endtime,self.brandact_status,self.brandact_sign,self.brandact_other_ids,self.brandact_sellerId,self.brandact_sellerName,self.brandact_shopId,self.brandact_shopName,self.brandact_soldCount,self.brandact_remindNum,self.brandact_discount,self.brandact_coupon,self.brandact_coupons'
