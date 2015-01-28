@@ -437,8 +437,8 @@ class JHSBActItem():
     # 执行
     #def antPage(self, page, catId, catName, position, begin_date, begin_hour):
     def antPage(self, val):
-        page, catId, catName, position, begin_date, begin_hour = val
-        self.initItem(page, catId, catName, position, begin_date, begin_hour)
+        page, catId, catName, position, begin_date, begin_hour, home_brands = val
+        self.initItem(page, catId, catName, position, begin_date, begin_hour, home_brands)
         self.itemConfig()
         self.brandActConpons()
         # 不抓俪人购的商品
