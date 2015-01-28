@@ -51,9 +51,10 @@ class JHSCrawlerM(MyThread):
         except Exception as e:
             print '# To dial router exception :', e
 
-    def push_back(self, L, v):
+    def push_back(self, v):
         if self.mutex.acquire(1):
-            L.append(v)
+            #L.append(v)
+            self.items.append(v)
             self.mutex.release()
 
     def putItem(self, _item):
@@ -93,7 +94,7 @@ class JHSCrawlerM(MyThread):
 
                 # 信息处理
                 _val  = _data[1]
-                time.sleep(1)
+                #time.sleep(1)
                 item.antPage(_val)
                 if self.jhs_type == 1:
                     print '# To crawl activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
@@ -102,7 +103,7 @@ class JHSCrawlerM(MyThread):
 
                 # 汇聚
                 #self.push_back(self.items, item)
-                self.push_back(self.items, item.outTuple())
+                self.push_back(item.outTuple())
 
                 # 通知queue, task结束
                 self.queue.task_done()

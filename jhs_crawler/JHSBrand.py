@@ -244,15 +244,13 @@ class JHSBrand():
 
             while True:
                 try:
-                    #print 'item queue'
-                    # 队列为空，退出
                     print '# Item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
                     if m_itemsObj.empty_q():
                         item_list = m_itemsObj.items
                         for sql in item_list:
                             self.mysqlAccess.insertJhsItem(sql)
                         print '# Activity Item List End: actId:%s, actName:%s'%(brandact_id, brandact_name)
-                    break
+                        break
                 except Exception as e:
                     print 'Unknown exception item result :', e
                     traceback.print_exc()
@@ -280,6 +278,7 @@ class JHSBrand():
                             #del obj
                             #del item_list
                             print '# Activity Item List End: actId:%s, actName:%s'%(actid, actname)
+                            break
                         else:
                             self.itemcrawler_queue.put(_item)
                     except Exception as e:

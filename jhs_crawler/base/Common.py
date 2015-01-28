@@ -139,6 +139,12 @@ def median(numbers):
         #m_val = (copy[n/2-1] + copy[n/2])/2
     return m_val
 
+def add_hours(ts, n=0, fmt='%Y-%m-%d %H:%M:%S'):
+    dt = datetime.datetime.fromtimestamp(ts)
+    nHours = datetime.timedelta(hours=n)
+    dt = dt + nHours
+    return dt.strftime(fmt)
+
 import HTMLParser
 gHtmlParser = HTMLParser.HTMLParser()
 

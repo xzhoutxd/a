@@ -446,6 +446,16 @@ class JHSBActItem():
             self.brandActItems()
         #self.outItem()
 
+    def antPageMain(self, val):
+        page, catId, catName, position, begin_date, begin_hour, home_brands = val
+        self.initItem(page, catId, catName, position, begin_date, begin_hour, home_brands)
+        self.itemConfig()
+        self.brandActConpons()
+        # 不抓俪人购的商品只爬一个小时内开团的活动
+        #self.brandact_starttime - self.brandact_starttime < 1 小时
+        if self.brandact_sign != 3:
+            self.brandActItems()
+
     # 输出抓取的网页log
     def outItemLog(self):
         pages = []
