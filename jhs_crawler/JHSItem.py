@@ -89,74 +89,6 @@ class JHSItem():
         # 商品活动展示图片Url
         self.item_juPic_url = item_juPic_url
 
-    # Configuration from html type
-    def itemConfigFromHtml(self):
-        # 基本信息
-        m = re.search(r'<a.+?href="(.+?)".+?>', self.item_pageData, flags=re.S)
-        if m:
-            # 商品聚划算链接
-            self.item_ju_url = m.group(1)
-            if self.item_ju_url:
-                ids_list = self.item_ju_url.split('&')
-                for ids in ids_list:
-                    if ids.find('item_id=') != -1:
-                        # 商品Id
-                        self.item_id = ids.split('=')[1]
-                    elif ids.find('id=') != -1:
-                        # 商品聚划算Id
-                        self.item_juId = ids.split('=')[1]
-
-        # 商品聚划算展示图片链接
-        m = re.search(r'<img class="item-pic" data-ks-lazyload="(.+?)"', self.item_pageData, flags=re.S)
-        if m:
-            self.item_juPic_url = m.group(1)
-        else:
-            m = re.search(r'<img data-ks-lazyload="(.+?)"', self.item_pageData, flags=re.S)
-            if m:
-                self.item_juPic_url = m.group(1)
-
-    # Configuration from json type
-    def itemConfigFromJson(self):
-        # 基本信息
-        if self.item_pageData.has_key('baseinfo'):
-            item_baseinfo = self.item_pageData['baseinfo']
-            # 商品聚划算展示图片链接
-            if item_baseinfo.has_key('picUrl') and item_baseinfo['picUrl'] != '':
-                self.item_juPic_url = item_baseinfo['picUrl']
-            elif item_baseinfo.has_key('picUrlM') and item_baseinfo['picUrlM'] != '':
-                self.item_juPic_url = item_baseinfo['picUrlM']
-            # 商品聚划算链接
-            if item_baseinfo.has_key('itemUrl') and item_baseinfo['itemUrl'] != '':
-                self.item_ju_url = item_baseinfo['itemUrl']
-                ids_list = self.item_ju_url.split('&')
-                for ids in ids_list:
-                    if ids.find('item_id=') != -1:
-                        if self.item_id == '':
-                            # 商品Id
-                            self.item_id = ids.split('=')[1]
-                    elif ids.find('id=') != -1:
-                        # 商品聚划算Id
-                        self.item_juId = ids.split('=')[1]
-            # 商品Id
-            if item_baseinfo.has_key('itemId') and item_baseinfo['itemId'] != '':
-                self.item_id = item_baseinfo['itemId']
-
-        # 商品关注人数, 商品销售数量
-        if self.item_pageData.has_key('remind'):
-            item_remind = self.item_pageData['remind']
-            if item_remind.has_key('remindNum'):
-                self.item_remindNum = item_remind['remindNum']
-            if item_remind.has_key('soldCount'):
-                self.item_soldCount = item_remind['soldCount']
-
-        # 商品原价, 商品活动价
-        if self.item_pageData.has_key('price'):
-            item_price = self.item_pageData['price']
-            if item_price.has_key('origPrice'):
-                self.item_oriPrice = item_price['origPrice']
-            if item_price.has_key('actPrice'):
-                self.item_actPrice = item_price['actPrice']
-
     # 聚划算商品页信息
     def itemConfig(self):
         # 聚划算商品页信息
@@ -331,7 +263,6 @@ class JHSItem():
             self.itemConfig()
             self.itemPromotiton()
             #self.getFromTMTBPage()
-            #self.outItem()
         except Exception as e:
             raise Common.InvalidPageException("# antPage: juid:%s,item_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
             #traceback.print_exc()
@@ -340,10 +271,15 @@ class JHSItem():
     def outSql(self):
         return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,str(self.item_position),self.item_ju_url,self.item_juName,self.item_juDesc,self.item_juPic_url,self.item_id,self.item_url,str(self.item_sellerId),self.item_sellerName,str(self.item_shopId),self.item_shopName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),str(self.item_soldCount),str(self.item_stock),str(self.item_prepare),str(self.item_favorites),';'.join(self.item_promotions),str(self.item_catId),self.item_brand)
 
+    # 输出每小时SQL
+    def outSqlForHour(self):
+        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_ju_url,self.item_juName,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice))
+
     # 输出Tuple
     def outTuple(self):
         sql = self.outSql()
-        return sql
+        hourSql = self.outSqlForHour()
+        return (sql, hourSql)
 
     # 输出抓取的网页log
     def outItemLog(self):

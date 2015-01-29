@@ -18,9 +18,10 @@ class JHSBActItem():
     def __init__(self):
         # 品牌团抓取设置
         self.crawler    = TBCrawler()
-        self.crawling_time   = Common.now()
-        self.crawling_beginDate = ''
-        self.crawling_beginHour = ''
+        self.crawling_time   = Common.now() # 当前爬取时间
+        self.crawling_beginDate = '' # 本次爬取日期
+        self.crawling_beginHour = '' # 本次爬取小时
+        self.crawling_confirm = 1 # 本活动是否需要爬取 1:是 2:否
 
         # 类别
         self.brandact_platform = '聚划算-pc' # 品牌团所在平台
@@ -42,6 +43,7 @@ class JHSBActItem():
         self.brandact_logopic_url = '' # 品牌团Logo图片链接
         self.brandact_enterpic_url = '' # 品牌团展示图片链接
         self.brandact_starttime = 0.0 # 品牌团开团时间
+        self.brandact_startdate = '' # 品牌团开团日期
         self.brandact_endtime = 0.0 # 品牌团结束时间
         self.brandact_status = '' # 品牌团状态
         self.brandact_sign = 1 # 品牌团标识 1:普通品牌团,2:拼团,3:俪人购
@@ -104,6 +106,7 @@ class JHSBActItem():
             if b_baseInfo.has_key('ostime') and b_baseInfo['ostime']:
                 # 品牌团开团时间
                 self.brandact_starttime = b_baseInfo['ostime']
+                self.brandact_startdate = Common.add_hours_D(int(float(self.brandact_starttime)/1000), 1)
             if b_baseInfo.has_key('oetime') and b_baseInfo['oetime']:
                 # 品牌团结束时间
                 self.brandact_endtime = b_baseInfo['oetime']
@@ -232,6 +235,9 @@ class JHSBActItem():
                         self.brandActType4(page)
                     else:
                         self.brandActTypeOther(page)
+        if self.brandact_itemVal_list != []:
+            self.brandact_itemVal_list.append(self.crawling_beginDate)
+            self.brandact_itemVal_list.append(self.crawling_beginHour)
 
     # 品牌团页面格式(1)
     def brandActType1(self, page):
@@ -436,7 +442,7 @@ class JHSBActItem():
 
     # 执行
     #def antPage(self, page, catId, catName, position, begin_date, begin_hour):
-    def antPage(self, val):
+    def antPageOld(self, val):
         page, catId, catName, position, begin_date, begin_hour, home_brands = val
         self.initItem(page, catId, catName, position, begin_date, begin_hour, home_brands)
         self.itemConfig()
@@ -446,15 +452,18 @@ class JHSBActItem():
             self.brandActItems()
         #self.outItem()
 
-    def antPageMain(self, val):
+    def antPage(self, val):
         page, catId, catName, position, begin_date, begin_hour, home_brands = val
         self.initItem(page, catId, catName, position, begin_date, begin_hour, home_brands)
         self.itemConfig()
-        self.brandActConpons()
-        # 不抓俪人购的商品只爬一个小时内开团的活动
-        #self.brandact_starttime - self.brandact_starttime < 1 小时
-        if self.brandact_sign != 3:
-            self.brandActItems()
+        # 只爬一个小时内开团的活动
+        if Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time) < 1:
+            self.brandActConpons()
+            # 不抓俪人购的商品
+            if self.brandact_sign != 3:
+                self.brandActItems()
+        else:
+            self.crawling_confirm = 2
 
     # 输出抓取的网页log
     def outItemLog(self):
@@ -472,15 +481,28 @@ class JHSBActItem():
 
         return pages
 
+    # 正点开团
     def outSql(self):
         return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,self.brandact_url,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),self.brandact_brand,str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
 
+    # 即将上线
     def outSqlForComing(self):
         return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,self.brandact_url,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),self.brandact_brand,str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
 
+    # 每天抓取
+    def outSqlForDay(self):
+        return (str(self.brandact_id),self.brandact_name,self.brandact_url,Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
+
+    # 每小时抓取
+    def outSqlForHour(self):
+        return (str(self.brandact_id),self.brandact_name,self.brandact_url,Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
+
+    # 输出元组
     def outTuple(self):
-        sql = self.outSql()
-        return (sql, self.brandact_itemVal_list)
+        main_sql = self.outSql()
+        day_sql = self.outSqlForDay()
+        hour_sql = self.outSqlForHour()
+        return (self.brandact_itemVal_list, main_sql, day_sql, hour_sql, self.crawling_confirm)
 
     def outItem(self):
         print 'self.brandact_platform,self.brandact_channel,self.crawling_time,self.brandact_catgoryId,self.brandact_catgoryName,self.brandact_position,self.brandact_id,self.brandact_url,self.brandact_name,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_starttime,self.brandact_endtime,self.brandact_status,self.brandact_sign,self.brandact_other_ids,self.brandact_sellerId,self.brandact_sellerName,self.brandact_shopId,self.brandact_shopName,self.brandact_soldCount,self.brandact_remindNum,self.brandact_discount,self.brandact_coupon,self.brandact_coupons'

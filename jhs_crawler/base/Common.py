@@ -145,6 +145,17 @@ def add_hours(ts, n=0, fmt='%Y-%m-%d %H:%M:%S'):
     dt = dt + nHours
     return dt.strftime(fmt)
 
+def add_hours_D(ts, n=0, fmt='%Y-%m-%d'):
+    dt = datetime.datetime.fromtimestamp(ts)
+    nHours = datetime.timedelta(hours=n)
+    dt = dt + nHours
+    return dt.strftime(fmt)
+
+def subTS_hours(ts1, ts2):
+    #t1 = datetime.datetime.fromtimestamp(ts1)
+    #t2 = datetime.datetime.fromtimestamp(ts2)
+    return abs((ts1 - ts2)/3600)
+
 import HTMLParser
 gHtmlParser = HTMLParser.HTMLParser()
 
