@@ -356,7 +356,7 @@ class JHSBActItem():
             f_url = getdata_url + '&juIds=' + floor_url.group(1)
             self.getItemDataFromInterface(f_url, position)
 
-    # 从接口获取数据
+    # 从接口获取商品数据列表
     def getItemDataFromInterface(self, url, position):
         ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
         f_url = url + '&_ksTS=%s'%ts
@@ -439,7 +439,7 @@ class JHSBActItem():
         return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url)
 
     # 执行
-    #def antPage(self, page, catId, catName, position, begin_date, begin_hour):
+    #def antPageOld(self, page, catId, catName, position, begin_date, begin_hour):
     def antPageOld(self, val):
         page, catId, catName, position, begin_date, begin_hour, home_brands = val
         self.initItem(page, catId, catName, position, begin_date, begin_hour, home_brands)

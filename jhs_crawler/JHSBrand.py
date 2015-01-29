@@ -216,7 +216,7 @@ class JHSBrand():
                             print '#####A activity end#####'
                             #time.sleep(1)
                         else:
-                            print '# Not Need activity id:%s name:%s url:%s'%(brandact_id, brandact_name, brandact_url)
+                            print '# Not New activity, id:%s name:%s url:%s'%(brandact_id, brandact_name, brandact_url)
                     #del item_list
                     #del m_Obj
                     break
