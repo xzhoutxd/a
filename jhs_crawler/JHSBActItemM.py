@@ -28,13 +28,20 @@ class JHSBActItemM(MyThread):
         self.mutex      = threading.Lock()
 
         # jhs queue type
-        self.jhs_type   = jhs_type # 1:品牌团频道页,2:商品页
+        self.jhs_type   = jhs_type # 1:即将上线品牌团频道页
         
         # activity items
         self.items      = []
 
         # dial client
         self.dial_client = DialClient()
+
+        # local ip
+        #self._ip = Common.local_ip()
+        self._ip = '192.168.1.35'
+
+        # router tag
+        self._tag = 'ikuai'
 
     # To dial router
     def dialRouter(self, _type, _obj):
@@ -44,9 +51,9 @@ class JHSBActItemM(MyThread):
         except Exception as e:
             print '# To dial router exception :', e
 
-    def push_back(self, L, v):
+    def push_back(self, v):
         if self.mutex.acquire(1):
-            L.append(v)
+            self.items.append(v)
             self.mutex.release()
 
     def putItem(self, _item):
@@ -79,32 +86,25 @@ class JHSBActItemM(MyThread):
                     # 品牌团实例
                     # _pageData, _catid, _catname, _position, _begin_date, _begin_hour = _val
                     item = JHSBActItem()
-                else:
-                    # 商品实例
-                    # _pageData, _actId, _actName, _actUrl, _position, _ju_url, _id, _juId, _juPic_url = _val
-                    item = JHSItem()
 
-                # 信息处理
-                _val  = _data[1]
-                time.sleep(1)
-                item.antPage(_val)
-                print '# To crawl activity item val : ', Common.now_s(), _val[1], _val[2]
-
-                # 汇聚
-                self.push_back(self.items, item)
+                    # 信息处理
+                    _val  = _data[1]
+                    item.antPageComing(_val)
+                    time.sleep(1)
+                    print '# To crawl coming activity val : ', Common.now_s(), _val[1], _val[2]
+                    # 汇聚
+                    self.push_back(item)
 
                 # 通知queue, task结束
                 self.queue.task_done()
 
+                time.sleep(1)
             except Exception as e:
                 self.crawlRetry(_data)
-                time.sleep(random.uniform(10,30))
                 # 重新拨号
                 if self.jhs_type == 1:
                     self.dialRouter(4, 'chn')
-                else:
-                    self.dialRouter(4, 'item')
-
+                time.sleep(random.uniform(10,30))
 
                 print 'Unknown exception crawl item :', e
                 traceback.print_exc()

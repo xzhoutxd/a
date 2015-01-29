@@ -90,6 +90,22 @@ class JHSBActItem():
         # 首页品牌团信息
         self.home_brands = home_brands
 
+    # 品牌团初始化
+    def initItemComing(self, page, catId, catName, position, begin_date, begin_hour):
+        # 品牌团所在数据项内容
+        self.brandact_pagedata = page
+        self.brandact_pages['act-init'] = ('', page)
+        # 品牌团所在类别Id
+        self.brandact_catgoryId = catId
+        # 品牌团所在类别Name
+        self.brandact_catgoryName = catName
+        # 品牌团所在类别位置
+        self.brandact_position = position
+        # 本次抓取开始日期
+        self.crawling_beginDate = begin_date
+        # 本次抓取开始小时
+        self.crawling_beginHour = begin_hour
+
     # Configuration
     def itemConfig(self):
         # 基本信息
@@ -450,6 +466,7 @@ class JHSBActItem():
             self.brandActItems()
         #self.outItem()
 
+    # 品牌团信息和其中商品基本信息
     def antPage(self, val):
         page, catId, catName, position, begin_date, begin_hour, home_brands = val
         self.initItem(page, catId, catName, position, begin_date, begin_hour, home_brands)
@@ -462,6 +479,13 @@ class JHSBActItem():
                 self.brandActItems()
         else:
             self.crawling_confirm = 2
+
+    # 即将上线的品牌团信息
+    def antPageComing(self, val):
+        page, catId, catName, position, begin_date, begin_hour = val
+        self.initItemComing(page, catId, catName, position, begin_date, begin_hour)
+        self.itemConfig()
+        self.brandActConpons()
 
     # 输出抓取的网页log
     def outItemLog(self):

@@ -11,10 +11,9 @@ import time
 import base.Common as Common
 import base.Config as Config
 from base.TBCrawler import TBCrawler
-#from JHSBrand import JHSBrand
 from JHSBrandComing import JHSBrandComing
 
-class JHSMain():
+class JHSMainComing():
     '''A class of Juhuasuan Main Site'''
     def __init__(self):
         # 抓取设置
@@ -42,12 +41,6 @@ class JHSMain():
 
         # 页面
         self.site_page  = None
-        # 商品团页面
-        #self.today_page_url = 'http://ju.taobao.com/json/tg/ajaxGetHomeItemsV2.json?type=0&stype=soldCount&callback=homelist' # 按照销量排行
-        self.today_page_url = 'http://ju.taobao.com/json/tg/ajaxGetHomeItemsV2.json?type=0&stype=soldCount' # 按照销量排行
-
-        # 品牌团页面
-        self.brand_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=0'
 
     # 商品团频道
     def todayChannel(self):
@@ -56,7 +49,7 @@ class JHSMain():
 
     # 品牌团频道
     def brandChannel(self):
-        # 即将上线
+        # 即将上线品牌团
         brand_obj = JHSBrandComing()
         brand_obj.antPage()
 
@@ -64,18 +57,6 @@ class JHSMain():
     def lifeChannel(self):
         page = self.crawler.getData(self.life_url, self.refers)
         if not page or page == '': return
-
-        self.lifeCategory(page)
-
-    # 生活汇类目
-    def lifeCategory(self, page):
-        m = re.search(r'<ul class="category cate-life">(.+?)</ul>', page, flags=re.S)
-        if m:
-            cats = m.group(1)
-            p = re.compile(r'<li>\s+<a href="(.+?)" .+?>\s+<span>(.+?)</span>\s+</a>\s+</li>', flags=re.S)
-            for cat in p.finditer(cats):
-                c_url, c_name = cat.group(1), cat.group(2)
-                print '# today category:', c_name, c_url
 
     # 生活汇城市
     def lifeCity(self):
@@ -92,7 +73,7 @@ class JHSMain():
                 self.cities[c_name] = c_url
 
 if __name__ == '__main__':
-    j = JHSMain()
+    j = JHSMainComing()
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     j.brandChannel()
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))

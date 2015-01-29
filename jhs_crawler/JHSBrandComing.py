@@ -14,10 +14,7 @@ import base.Common as Common
 import base.Config as Config
 from base.TBCrawler import TBCrawler
 from db.MysqlAccess import MysqlAccess
-from JHSBActItem import JHSBActItem
 from JHSBActItemM import JHSBActItemM
-from JHSItem import JHSItem
-from JHSItemM import JHSItemM
 
 class JHSBrandComing():
     '''A class of brand Item'''
@@ -33,7 +30,6 @@ class JHSBrandComing():
 
         # 首页
         self.ju_home_url   = 'http://ju.taobao.com'
-        self.refers     = 'http://www.tmall.com'
 
         # 品牌团页面
         self.brand_url  = 'http://ju.taobao.com/tg/brand.htm'
@@ -43,11 +39,9 @@ class JHSBrandComing():
         self.home_brands_list = []
 
         # 品牌团页面
-        self.brand_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=0'
         self.brandcoming_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=1'
 
         # 页面信息
-        self.ju_home_page = '' # 聚划算首页
         self.ju_brand_page = '' # 聚划算品牌团页面
 
         # 抓取开始时间
@@ -63,28 +57,20 @@ class JHSBrandComing():
         if not page or page == '': return
 
         self.ju_brand_page = page
+        # 从接口中获取的数据列表
         bResult_list = []
         #print page
         m = re.search(r'<div.+?data-catid=\'(\d+)\' data-forecast="true">\s+<div class="f-sub-floor">\s+<span>(.+?)</span>\s+</div>', page, flags=re.S)
         if m:
             print m.group(1)
 
+        # 分类按接口获取即将上线json
         p = re.compile(r'<div.+?data-catid=\'(\d+)\' data-forecast="true">\s+<div class="f-sub-floor">\s+<span>(.+?)</span>\s+</div>', flags=re.S)
-
         for activity_floor in p.finditer(page):
-            #activity_floor_info = activity_floor.group(1)
             f_name, f_catid, f_activitySignId = '', '', ''
             f_catid, f_name = activity_floor.group(1), activity_floor.group(2)
-            #m = re.search(r'data-floorName="(.+?)"\s+', activity_floor_info, flags=re.S)
-            #if m:
-            #    f_name = m.group(1)
-
-            #m = re.search(r'data-catid=\'(.+?)\'\s+', activity_floor_info, flags=re.S)
-            #if m:
-            #    f_catid = m.group(1)
 
             print '# Coming activity floor:', f_name, f_catid, f_activitySignId
-
             i = 1
             ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
             if f_catid != '':
@@ -94,6 +80,7 @@ class JHSBrandComing():
                 result = json.loads(b_page)
                 print b_url
                 bResult_list.append([result,f_name,f_catid])
+                # 分页从接口中获取数据
                 if result.has_key('totalPage') and int(result['totalPage']) > i:
                     for page_i in range(i+1, int(result['totalPage'])+1):
                         ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
@@ -106,11 +93,7 @@ class JHSBrandComing():
             except StandardError as err:
                 print '# err:',err
 
-        ladygo_num = 0
-        allitem_num = 0
-        act_list = []
         act_valList = []
-        crawler_list = []
         print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         for page in bResult_list:
             i_page = page[0]
@@ -122,43 +105,29 @@ class JHSBrandComing():
                     b_position_start = (int(i_page['currentPage']) - 1) * 60
                 for i in range(0,len(activities)):
                     activity = activities[i]
-                    #print '# A activity start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    #print '#####A activity begin#####'
                     act_valList.append((activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self.begin_hour))
-                    #b = None
-                    #b = JHSBActItem()
-                    #b.antPage(activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self,begin_hour)
-                    # 入库
-                    #self.mysqlAccess.insertJhsActComing(b.outSqlForComing())
-                    #act_list.append([b.brandact_id, b.brandact_name, b.brandact_url])
-                    #if b.brandact_sign == 3:
-                    #    ladygo_num += 1
-                    #print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    #print '#####A activity end#####'
-                    #time.sleep(1)
-        print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        print '# brand activity num:', len(act_valList)
-        #print '# brand activity(ladygo) num:', ladygo_num
-        #print '# brand activity items num:', allitem_num
 
-        m_Obj = JHSBActItemM()
-        m_Obj.putItems(act_valList)
-        m_Obj.createthread()
-        m_Obj.run()
-        while True:
-            try:
-                if m_Obj.empty_q():
-                    item_list = m_Obj.items
-                    for item in item_list:
-                        self.mysqlAccess.insertJhsActComing(item.outSqlForComing())
-                        #print item.outSqlForComing()
-                    print '# Activity List End'
+        if len(act_valList) > 0:
+            # 多线程爬取即将上线活动
+            m_Obj = JHSBActItemM(1)
+            m_Obj.putItems(act_valList)
+            m_Obj.createthread()
+            m_Obj.run()
+            while True:
+                try:
+                    if m_Obj.empty_q():
+                        item_list = m_Obj.items
+                        for item in item_list:
+                            self.mysqlAccess.insertJhsActComing(item.outSqlForComing())
+                            #print item.outSqlForComing()
+                        print '# Activity List End'
+                        break
+                except Exception as e:
+                    print 'Unknown exception crawl item :', e
+                    traceback.print_exc()
                     break
-            except Exception as e:
-                print 'Unknown exception crawl item :', e
-                traceback.print_exc()
-                break
-
+        print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        print '# brand activity coming soon num:', len(act_valList)
 
 if __name__ == '__main__':
     pass
