@@ -94,7 +94,7 @@ class JHSBActItemM(MyThread):
                     print '# To crawl coming activity val : ', Common.now_s(), _val[1], _val[2]
                     # 汇聚
                     self.push_back(item)
-
+                    
                 # 通知queue, task结束
                 self.queue.task_done()
 

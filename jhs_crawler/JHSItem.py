@@ -23,7 +23,9 @@ class JHSItem():
     def __init__(self):
         # 商品页面抓取设置
         self.crawler    = TBCrawler()
-        self.crawling_time   = Common.now()
+        self.crawling_time   = Common.now() # 当前爬取时间
+        self.crawling_beginDate = '' # 本次爬取日期
+        self.crawling_beginHour = '' # 本次爬取小时
 
         # 商品所在活动
         self.item_actId = '' # 商品所属活动Id
@@ -100,108 +102,146 @@ class JHSItem():
             m = re.search(r'<div id="content" class="detail">(.+?)</div> <!-- /content -->', page, flags=re.S)
             if m:
                 i_page = m.group(1)
-                # 商品Id, 商品聚划算Id, 商品店铺类型 
-                m = re.search(r'JU_DETAIL_DYNAMIC = {(.+?)};', i_page, flags=re.S)
+            else:
+                i_page = page
+            # 商品Id, 商品聚划算Id, 商品店铺类型 
+            m = re.search(r'JU_DETAIL_DYNAMIC = {(.+?)};', i_page, flags=re.S)
+            if m:
+                m = re.search(r'"item_id": "(.+?)",.+?"id": "(.+?)",.+?"shopType": (.+?)\s+', i_page, flags=re.S)
                 if m:
-                    m = re.search(r'"item_id": "(.+?)",.+?"id": "(.+?)",.+?"shopType": (.+?)\s+', i_page, flags=re.S)
-                    if m:
-                        self.item_id, self.item_juId, self.item_shopType = m.group(1), m.group(2), m.group(3)
-                # 商品图片
-                if self.item_juPic_url == '':
-                    m = re.search(r'<div class="item-pic-wrap">.+?<img.+?src="(.+?)".+?/>', i_page, flags=re.S)
+                    self.item_id, self.item_juId, self.item_shopType = m.group(1), m.group(2), m.group(3)
+            # 商品图片
+            if self.item_juPic_url == '':
+                m = re.search(r'<div class="item-pic-wrap">.+?<img.+?src="(.+?)".+?/>', i_page, flags=re.S)
+                if m:
+                    self.item_juPic_url = m.group(1)
+                else:
+                    m = re.search(r'<div class="normal-pic.+?<img.+?data-ks-imagezoom="(.+?)".+?/>', i_page, flags=re.S)
                     if m:
                         self.item_juPic_url = m.group(1)
-                    else:
-                        m = re.search(r'<div class="normal-pic.+?<img.+?data-ks-imagezoom="(.+?)".+?/>', i_page, flags=re.S)
-                        if m:
-                            self.item_juPic_url = m.group(1)
 
-                # 商品链接
-                m = re.search(r'<div class="normal-pic.+?<a href="(.+?)".+?>', i_page, flags=re.S)
+            # 商品链接
+            m = re.search(r'<div class="normal-pic.+?<a href="(.+?)".+?>', i_page, flags=re.S)
+            if m:
+                self.item_url = m.group(1)
+            else:
+                m = re.search(r'<div class="pic-box soldout".+?<a href="(.+?)".+?>', i_page, flags=re.S)
                 if m:
                     self.item_url = m.group(1)
-                else:
-                    m = re.search(r'<div class="pic-box soldout".+?<a href="(.+?)".+?>', i_page, flags=re.S)
-                    if m:
-                        self.item_url = m.group(1)
 
-                # 商品卖家Id, 商品卖家Name
-                m = re.search(r'<div class="con inf-seller">\s+<a href=".+?user_number_id=(.+?)".+?>(.+?)</a>\s+</div>', i_page, flags=re.S)
-                if m:
-                    self.item_sellerId, self.item_sellerName = m.group(1), m.group(2)
+            # 商品卖家Id, 商品卖家Name
+            m = re.search(r'<div class="con inf-seller">\s+<a href=".+?user_number_id=(.+?)".+?>(.+?)</a>\s+</div>', i_page, flags=re.S)
+            if m:
+                self.item_sellerId, self.item_sellerName = m.group(1), m.group(2)
 
-                # 商品聚划算Name
-                m = re.search(r'<h2 class="name">(.+?)</h2>', i_page, flags=re.S)
-                if m:
-                    self.item_juName = m.group(1).strip()
+            # 商品聚划算Name
+            m = re.search(r'<h2 class="name">(.+?)</h2>', i_page, flags=re.S)
+            if m:
+                self.item_juName = m.group(1).strip()
 
-                # 商品聚划算说明
-                m = re.search(r'<div class="description">(.+?)</div>', i_page, flags=re.S)
-                if m:
-                    self.item_juDesc = m.group(1).strip()
+            # 商品聚划算说明
+            m = re.search(r'<div class="description">(.+?)</div>', i_page, flags=re.S)
+            if m:
+                self.item_juDesc = m.group(1).strip()
 
-                # 商品原价
-                m = re.search(r'<del class="originPrice">(.+?)</del>', i_page, flags=re.S)
+            # 商品原价
+            m = re.search(r'<del class="originPrice">(.+?)</del>', i_page, flags=re.S)
+            if m:
+                self.item_oriPrice = m.group(1).strip()
+                if self.item_oriPrice.find(';') != -1:
+                    self.item_oriPrice = self.item_oriPrice.split(';')[1]
+            else:
+                m = re.search(r'<span class="originPrice">(.+?)</span>', i_page, flags=re.S)
                 if m:
                     self.item_oriPrice = m.group(1).strip()
                     if self.item_oriPrice.find(';') != -1:
                         self.item_oriPrice = self.item_oriPrice.split(';')[1]
-                else:
-                    m = re.search(r'<span class="originPrice">(.+?)</span>', i_page, flags=re.S)
+
+            # 商品活动价
+            m = re.search(r'<span class="currentPrice.+?>.+?</small>(.+?)</span>', i_page, flags=re.S)
+            if m:
+                self.item_actPrice = m.group(1).strip()
+
+            # 商品打折
+            m = re.search(r'data-polldiscount="(.+?)"', i_page, flags=re.S)
+            if m:
+                self.item_discount = m.group(1)
+
+            # 商品关注人数, 商品销售数量, 商品库存
+            i_getdata_url = ''
+            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+            m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"apiItemDynamicInfo": "(.+?)",.+?};', i_page, flags=re.S)
+            if m:
+                i_getdata_url = m.group(1) + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
+            else:
+                i_getdata_url = 'http://dskip.ju.taobao.com/detail/json/item_dynamic.htm' + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
+
+            if i_getdata_url:
+                json_str = self.crawler.getData(i_getdata_url, self.item_ju_url)
+                self.item_pages['item-dynamic'] = (i_getdata_url, json_str)
+                if json_str and json_str != '':
+                    #result = json.loads(json_str)
+                    #if result.has_key('data'):
+                    #    result_data = result['data']
+                    #    if result_data.has_key('soldCount'):
+                    #        self.item_soldCount = result_data['soldCount']
+                    #    else:
+                    #        if result_data.has_key('remindNum') and result_data['remindNum']:
+                    #            self.item_remindNum = result_data['remindNum']
+
+                    #    if result_data.has_key('stock'):
+                    #        self.item_stock = result_data['stock']
+
+                    m = re.search(r'"soldCount":(.+?),', json_str, flags=re.S)
                     if m:
-                        self.item_oriPrice = m.group(1).strip()
-                        if self.item_oriPrice.find(';') != -1:
-                            self.item_oriPrice = self.item_oriPrice.split(';')[1]
-
-                # 商品活动价
-                m = re.search(r'<span class="currentPrice.+?>.+?</small>(.+?)</span>', i_page, flags=re.S)
-                if m:
-                    self.item_actPrice = m.group(1).strip()
-
-                # 商品打折
-                m = re.search(r'data-polldiscount="(.+?)"', i_page, flags=re.S)
-                if m:
-                    self.item_discount = m.group(1)
-
-                # 商品关注人数, 商品销售数量, 商品库存
-                i_getdata_url = ''
-                ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"apiItemDynamicInfo": "(.+?)",.+?};', i_page, flags=re.S)
-                if m:
-                    i_getdata_url = m.group(1) + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
-                else:
-                    i_getdata_url = 'http://dskip.ju.taobao.com/detail/json/item_dynamic.htm' + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
-
-                if i_getdata_url:
-                    json_str = self.crawler.getData(i_getdata_url, self.item_ju_url)
-                    self.item_pages['item-dynamic'] = (i_getdata_url, json_str)
-                    if json_str and json_str != '':
-                        #result = json.loads(json_str)
-                        #if result.has_key('data'):
-                        #    result_data = result['data']
-                        #    if result_data.has_key('soldCount'):
-                        #        self.item_soldCount = result_data['soldCount']
-                        #    else:
-                        #        if result_data.has_key('remindNum') and result_data['remindNum']:
-                        #            self.item_remindNum = result_data['remindNum']
-
-                        #    if result_data.has_key('stock'):
-                        #        self.item_stock = result_data['stock']
-
-                        m = re.search(r'"soldCount":(.+?),', json_str, flags=re.S)
+                        self.item_soldCount = (m.group(1)).replace('"','')
+                    else:
+                        m = re.search(r'"remindNum":(.+?),', json_str, flags=re.S)
                         if m:
-                            self.item_soldCount = (m.group(1)).replace('"','')
-                        else:
-                            m = re.search(r'"remindNum":(.+?),', json_str, flags=re.S)
-                            if m:
-                                self.item_remindNum = (m.group(1)).replace('"','')
+                            self.item_remindNum = (m.group(1)).replace('"','')
 
-                        m = re.search(r'"stock":(.+?),', json_str, flags=re.S)
-                        if m:           
-                            self.item_stock = (m.group(1)).replace('"','')
+                    m = re.search(r'"stock":(.+?),', json_str, flags=re.S)
+                    if m:           
+                        self.item_stock = (m.group(1)).replace('"','')
 
-                        if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
-                            self.item_isSoldout = 1
+                    if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
+                        self.item_isSoldout = 1
+
+    # 每天获取的商品信息
+    def itemConfigDay(self):
+        # 聚划算商品页信息
+        page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+        if not page or page == '': raise Common.InvalidPageException("# itemConfigDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+        if page and page != '':
+            self.item_juPage = page
+            self.item_pages['item-home'] = (self.item_ju_url, page)
+            # 商品关注人数, 商品销售数量, 商品库存
+            i_getdata_url = ''
+            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+            m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"apiItemDynamicInfo": "(.+?)",.+?};', page, flags=re.S)
+            if m:
+                i_getdata_url = m.group(1) + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
+            else:
+                i_getdata_url = 'http://dskip.ju.taobao.com/detail/json/item_dynamic.htm' + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
+
+            if i_getdata_url:
+                json_str = self.crawler.getData(i_getdata_url, self.item_ju_url)
+                self.item_pages['item-dynamic'] = (i_getdata_url, json_str)
+                if json_str and json_str != '':
+                    m = re.search(r'"soldCount":(.+?),', json_str, flags=re.S)
+                    if m:
+                        self.item_soldCount = (m.group(1)).replace('"','')
+                    else:
+                        m = re.search(r'"remindNum":(.+?),', json_str, flags=re.S)
+                        if m:
+                            self.item_remindNum = (m.group(1)).replace('"','')
+
+                    m = re.search(r'"stock":(.+?),', json_str, flags=re.S)
+                    if m:           
+                        self.item_stock = (m.group(1)).replace('"','')
+
+                    if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
+                        self.item_isSoldout = 1
 
     # 商品其他优惠信息
     def itemPromotiton(self):
@@ -264,8 +304,18 @@ class JHSItem():
             self.itemPromotiton()
             #self.getFromTMTBPage()
         except Exception as e:
-            raise Common.InvalidPageException("# antPage: juid:%s,item_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
+            raise Common.InvalidPageException("# antPage: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
             #traceback.print_exc()
+
+    # 每天一次
+    def antPageDay(self, val):
+        try:
+            #self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice,self.crawling_beginDate,self.crawling_beginHour = val
+            self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice = val
+            self.itemConfigDay()
+        except Exception as e:
+            raise Common.InvalidPageException("# antPageDay: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
+
 
     # 输出SQL
     def outSql(self):
@@ -273,13 +323,22 @@ class JHSItem():
 
     # 输出每小时SQL
     def outSqlForHour(self):
-        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_ju_url,self.item_juName,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice))
+        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice))
+
+    # 每天的SQL
+    def outSqlForDay(self):
+        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice),str(self.item_soldCount),str(self.item_stock))
 
     # 输出Tuple
     def outTuple(self):
         sql = self.outSql()
         hourSql = self.outSqlForHour()
         return (sql, hourSql)
+
+    # 输出每天Tuple
+    def outTupleDay(self):
+        sql = self.outSqlForDay()
+        return sql
 
     # 输出抓取的网页log
     def outItemLog(self):

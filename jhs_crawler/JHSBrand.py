@@ -235,14 +235,14 @@ class JHSBrand():
     def run_brandItems(self, crawler_val_list):
         i = 0
         for crawler_val in crawler_val_list:
-            brandact_id, brandact_name, item_valList = crawler_val
+            brandact_id, brandact_name, item_valTuple = crawler_val
             print '# activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
             # 多线程 控制并发的线程数
-            if len(item_valList) > self.item_max_th:
+            if len(item_valTuple) > self.item_max_th:
                 m_itemsObj = JHSCrawlerM(2, self.item_max_th)
             else: 
-                m_itemsObj = JHSCrawlerM(2, len(item_valList))
-            m_itemsObj.putItems(item_valList)
+                m_itemsObj = JHSCrawlerM(2, len(item_valTuple))
+            m_itemsObj.putItems(item_valTuple)
             m_itemsObj.createthread()
             m_itemsObj.run()
 
@@ -264,7 +264,7 @@ class JHSBrand():
 
         """
             self.itemcrawler_queue.put((brandact_id, brandact_name, m_itemsObj))
-            m_itemsObj.putItems(item_valList)
+            m_itemsObj.putItems(item_valTuple)
             m_itemsObj.createthread()
             m_itemsObj.run()
             i += 1

@@ -10,6 +10,7 @@ import traceback
 import threading
 import base.Config as Config
 import base.Common as Common
+from dial.DialClient import DialClient
 from base.MyThread  import MyThread
 from JHSItem import JHSItem
 
@@ -18,7 +19,7 @@ warnings.filterwarnings("ignore")
 
 class JHSItemM(MyThread):
     '''A class of jhs item thread manager'''
-    def __init__(self, thread_num = 20):
+    def __init__(self, jhs_type, thread_num = 10):
         # parent construct
         MyThread.__init__(self, thread_num)
 
@@ -26,14 +27,33 @@ class JHSItemM(MyThread):
         self.mutex      = threading.Lock()
 
         # jhs queue type
-        self.jhs_type   = Config.JUHUASUAN_TYPE
+        self.jhs_type   = jhs_type # 1:每天一次的商品, 2:每小时一次的商品
         
         # activity items
         self.items      = []
 
-    def push_back(self, L, v):
+        # dial client
+        self.dial_client = DialClient()
+
+        # local ip
+        #self._ip = Common.local_ip()
+        self._ip = '192.168.1.35'
+
+        # router tag
+        self._tag = 'ikuai'
+
+    # To dial router
+    def dialRouter(self, _type, _obj):
+        try:
+            _module = '%s_%s' %(_type, _obj)
+            self.dial_client.send((_module, self._ip, self._tag))
+        except Exception as e:
+            print '# To dial router exception :', e
+
+    def push_back(self, v):
         if self.mutex.acquire(1):
-            L.append(v)
+            #L.append(v)
+            self.items.append(v)
             self.mutex.release()
 
     def putItem(self, _item):
@@ -65,25 +85,34 @@ class JHSItemM(MyThread):
                 # 商品实例
                 item = JHSItem()
 
-                # 商品信息处理
-                # _pageData, _actId, _actName, _actUrl, _position, _ju_url, _id, _juId, _juPic_url = _val
+                # 信息处理
                 _val  = _data[1]
-                item.antPage(_val)
-                print '# To crawl item val : ', Common.now_s(), _val[1], _val[2], _val[4], _val[6], _val[7]
-
-                # 汇聚商品
-                self.push_back(self.items, item)
+                if self.jhs_type == 1:
+                    # 每天一次商品实例
+                    # _juid,act_id,act_name,act_url,_juname,_ju_url,_id,_url,_oriprice,_actprice = _val
+                    item.antPageDay(_val)
+                    print '# Day To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
+                    # 汇聚
+                    self.push_back(item.outTupleDay())
+                else:
+                    # 每小时一次商品实例
+                    # _crawl_time,_juid,act_id,_juname,_ju_url = _val
+                    item.antPageHour(_val)
+                    print '# Hour To crawl activity item val : ', Common.now_s(), _val[1], _val[2], _val[3]
+                    # 汇聚
+                    self.push_back(item.outTupleHour())
 
                 # 通知queue, task结束
                 self.queue.task_done()
 
             except Exception as e:
                 self.crawlRetry(_data)
-                time.sleep(random.uniform(1,5))
-                #time.sleep(1)
+                # 重新拨号
+                self.dialRouter(4, 'item')
 
                 print 'Unknown exception crawl item :', e
                 traceback.print_exc()
+                time.sleep(random.uniform(10,30))
 
 if __name__ == '__main__':
     pass

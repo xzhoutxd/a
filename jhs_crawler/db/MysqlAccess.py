@@ -57,14 +57,30 @@ class MysqlAccess():
         except Exception, e:
             print '# insert Jhs alive act for day exception:', e
 
-
     # 查找需要每天抓取的活动
     def selectJhsActDayalive(self, args):
         # 非俪人购
         # 当前时间减一天小于结束时间，需要每天抓取
         try:
             sql = 'select * from nd_jhs_parser_activity_alive_day where _end_time >= %s'
+            return self.jhs_db.select(sql, args)
+        except Exception, e:
+            print '# select Jhs alive act for day exception:', e
+
+    # 从每天抓取表中删除已经结束的活动
+    def deleteJhsActDayalive(self, args):
+        # 当前时间减一天大于结束时间，需要删除
+        try:
+            sql = 'delete from nd_jhs_parser_activity_alive_day where _end_time < %s'
             self.jhs_db.execute(sql, args)
+        except Exception, e:
+            print '# delete Jhs alive act for day exception:', e
+
+    # 查找需要每天抓取活动的商品 按照活动Id查找
+    def selectJhsItemsDayalive(self, args):
+        try:
+            sql = 'select a.item_juid,a.act_id,a.act_name,a.act_url,a.item_juname,a.item_ju_url,a.item_id,a.item_url,a.item_oriprice,a.item_actprice from nd_jhs_parser_item as a join nd_jhs_parser_activity_alive_day as b on a.act_id = b.act_id where b.act_id = %s'
+            return self.jhs_db.select(sql, args)
         except Exception, e:
             print '# select Jhs alive act for day exception:', e
 
@@ -76,14 +92,13 @@ class MysqlAccess():
         except Exception, e:
             print '# insert Jhs alive act for hour exception:', e
 
-
     # 查找需要小时抓取的活动
     def selectJhsActHouralive(self, args):
         # 非俪人购
         # 当前时间减去最大时间段小于开始时间，当前时间减去最小时间段大于开始时间，需要每小时抓取
         try:
             sql = 'select * from nd_jhs_parser_activity_alive_hour where _start_time > %s and _start_time < %s'
-            self.jhs_db.execute(sql, args)
+            return self.jhs_db.select(sql, args)
         except Exception, e:
             print '# select Jhs alive act for hour exception:', e
 
