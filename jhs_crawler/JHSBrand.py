@@ -195,11 +195,11 @@ class JHSBrand():
                         # 判断本活动是否需要爬取
                         if crawling_confirm == 1:
                             newact_num += 1
-                            print sql
+                            #print sql
                             # 品牌团活动入库
-                            #self.mysqlAccess.insertJhsAct(sql)
-                            #self.mysqlAccess.insertJhsActDayalive(daySql)
-                            #self.mysqlAccess.insertJhsActHouralive(hourSql)
+                            self.mysqlAccess.insertJhsAct(sql)
+                            self.mysqlAccess.insertJhsActDayalive(daySql)
+                            self.mysqlAccess.insertJhsActHouralive(hourSql)
                             #print sql
                             # 只抓取非俪人购商品
                             if brandact_sign != 3:
@@ -253,9 +253,9 @@ class JHSBrand():
                         item_list = m_itemsObj.items
                         for item in item_list:
                             sql, hourSql = item
-                            print sql,hourSql
-                            #self.mysqlAccess.insertJhsItem(sql)
-                            #self.mysqlAccess.insertJhsItemForHour(hourSql)
+                            #print sql,hourSql
+                            self.mysqlAccess.insertJhsItem(sql)
+                            self.mysqlAccess.insertJhsItemForHour(hourSql)
                         print '# Activity Item List End: actId:%s, actName:%s'%(brandact_id, brandact_name)
                         break
                 except Exception as e:

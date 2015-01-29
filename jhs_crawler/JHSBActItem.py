@@ -22,6 +22,7 @@ class JHSBActItem():
         self.crawling_beginDate = '' # 本次爬取日期
         self.crawling_beginHour = '' # 本次爬取小时
         self.crawling_confirm = 1 # 本活动是否需要爬取 1:是 2:否
+        self.beginH_gap = 1 # 定义新品牌团时间段(小时)
 
         # 类别
         self.brandact_platform = '聚划算-pc' # 品牌团所在平台
@@ -235,9 +236,6 @@ class JHSBActItem():
                         self.brandActType4(page)
                     else:
                         self.brandActTypeOther(page)
-        if self.brandact_itemVal_list != []:
-            self.brandact_itemVal_list.append(self.crawling_beginDate)
-            self.brandact_itemVal_list.append(self.crawling_beginHour)
 
     # 品牌团页面格式(1)
     def brandActType1(self, page):
@@ -456,8 +454,8 @@ class JHSBActItem():
         page, catId, catName, position, begin_date, begin_hour, home_brands = val
         self.initItem(page, catId, catName, position, begin_date, begin_hour, home_brands)
         self.itemConfig()
-        # 只爬一个小时内开团的活动
-        if Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time) < 1:
+        # 只爬一段时间内要开团的活动
+        if Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time) < self.beginH_gap:
             self.brandActConpons()
             # 不抓俪人购的商品
             if self.brandact_sign != 3:
