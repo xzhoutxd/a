@@ -57,44 +57,96 @@ class JHSBrandComing():
         if not page or page == '': return
 
         self.ju_brand_page = page
-        # 从接口中获取的数据列表
-        bResult_list = []
         #print page
+
+        # 数据接口URL list
+        b_url_valList = []
+        # 模板1
         m = re.search(r'<div.+?data-catid=\'(\d+)\' data-forecast="true">\s+<div class="f-sub-floor">\s+<span>(.+?)</span>\s+</div>', page, flags=re.S)
         if m:
-            print m.group(1)
+            b_url_valList = self.activityListForComingTemp1(page)
+        else:
+            # 模板2
+            m = re.search(r'<div.+?id="(subfloor\d+)" data-ajax="(.+?)">\s+<div class="f-sub-floor">\s+<span>(.+?)</span>\s+</div>', page, flags=re.S)
+            if m:
+                b_url_valList = self.activityListForComingTemp2(page)
+            else:
+                print '# err: not matching all templates.'
 
-        # 分类按接口获取即将上线json
+        if b_url_valList != []:
+            # 从接口中获取的数据列表
+            bResult_list = []
+            for b_url_val in b_url_valList:
+                bResult_list += self.get_jsonData(b_url_val)
+
+            if bResult_list and bResult_list != []:
+                self.parser_activities(bResult_list)
+        else:
+            print '# err: not find activity json data URL list.'
+         
+    # 品牌团页面模板1
+    def activityListForComingTemp1(self, page):
+        # 获取数据接口的URL
+        url_valList = []
         p = re.compile(r'<div.+?data-catid=\'(\d+)\' data-forecast="true">\s+<div class="f-sub-floor">\s+<span>(.+?)</span>\s+</div>', flags=re.S)
-        for activity_floor in p.finditer(page):
-            f_name, f_catid, f_activitySignId = '', '', ''
-            f_catid, f_name = activity_floor.group(1), activity_floor.group(2)
+        for sub_floor in p.finditer(page):
+            f_name, f_catid = '', '', ''
+            f_catid, f_name = sub_floor.group(1), sub_floor.group(2)
 
-            print '# Coming activity floor:', f_name, f_catid, f_activitySignId
-            i = 1
-            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+            print '# Coming activity floor:', f_name, f_catid
             if f_catid != '':
-                b_url = self.brandcoming_page_url + '&page=%d'%i + '&frontCatIds=%s'%f_catid + '&_ksTS=%s'%ts
-                b_page = self.crawler.getData(b_url, Config.ju_brand_home)
-            try:
-                result = json.loads(b_page)
-                print b_url
-                bResult_list.append([result,f_name,f_catid])
-                # 分页从接口中获取数据
-                if result.has_key('totalPage') and int(result['totalPage']) > i:
-                    for page_i in range(i+1, int(result['totalPage'])+1):
-                        ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                        b_url = re.sub('&page=\d+&', '&page=%d&'%page_i, b_url)
-                        b_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, b_url)
-                        b_page = self.crawler.getData(b_url, Config.ju_brand_home)
-                        result = json.loads(b_page)
-                        print b_url
-                        bResult_list.append([result, f_name, f_catid])
-            except StandardError as err:
-                print '# err:',err
+                page_num = 1
+                f_url = self.brandcoming_page_url + '&page=%d'%page_num + '&frontCatIds=%s'%f_catid
+                url_valList.append((f_url, f_name, f_catid))
+        return url_valList
 
+    # 品牌团页面模板2
+    def activityListForComingTemp2(self, page):
+        # 获取数据接口的URL
+        url_valList = []
+        p = re.compile(r'<div.+?id="(subfloor\d+)" data-ajax="(.+?)">\s+<div class="f-sub-floor">\s+<span>(.+?)</span>\s+</div>', flags=re.S)
+        for sub_floor in p.finditer(page):
+            f_url, f_name, f_catid = '', '', ''
+            f_url, f_name = sub_floor.group(2), sub_floor.group(3)
+
+            if f_url:
+                m = re.search(r'frontCatIds=(\d+)', f_url)
+                if m:
+                    f_catid = m.group(1)
+                print '# Coming activity floor:', f_name, f_catid, f_url
+                url_valList.append((f_url, f_name, f_catid))
+        return url_valList
+                
+    # 通过数据接口获取每一页的数据
+    def get_jsonData(self, val):
+        bResult_list = []
+        try:
+            b_url, f_name, f_catid = val
+            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+            b_url = b_url + '&_ksTS=%s'%ts
+            b_page = self.crawler.getData(b_url, Config.ju_brand_home)
+            result = json.loads(b_page)
+            print b_url
+            bResult_list.append([result,f_name,f_catid])
+            # 分页从接口中获取数据
+            if result.has_key('totalPage') and int(result['totalPage']) > 1:
+                for page_i in range(2, int(result['totalPage'])+1):
+                    ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+                    b_url = re.sub('&page=\d+&', '&page=%d&'%page_i, b_url)
+                    b_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, b_url)
+                    print b_url
+                    b_page = self.crawler.getData(b_url, Config.ju_brand_home)
+                    result = json.loads(b_page)
+                    bResult_list.append([result, f_name, f_catid])
+        except Exception as e:
+            print '# exception err in get_jsonData info:',e
+
+        return bResult_list
+
+    def parser_activities(self, bResult_list):
         act_valList = []
-        print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        print '# coming activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        # 获取多线程需要的字段val
         for page in bResult_list:
             i_page = page[0]
             if i_page.has_key('brandList') and i_page['brandList'] != []:
@@ -103,6 +155,7 @@ class JHSBrandComing():
                 if i_page.has_key('currentPage') and int(i_page['currentPage']) > 1:
                     # 每页取60条数据
                     b_position_start = (int(i_page['currentPage']) - 1) * 60
+                print '# coming every page num:',len(activities)
                 for i in range(0,len(activities)):
                     activity = activities[i]
                     act_valList.append((activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self.begin_hour))
@@ -120,12 +173,14 @@ class JHSBrandComing():
                         for item in item_list:
                             self.mysqlAccess.insertJhsActComing(item.outSqlForComing())
                             #print item.outSqlForComing()
-                        print '# Activity List End'
+                        print '# Coming Activity List End'
                         break
                 except Exception as e:
-                    print 'Unknown exception crawl item :', e
+                    print '# exception err crawl item :', e
                     traceback.print_exc()
                     break
+        else:
+            print '# err: not find activity crawling val list'
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# brand activity coming soon num:', len(act_valList)
 

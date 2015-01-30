@@ -50,6 +50,7 @@ class JHSBActItem():
         self.brandact_sign = 1 # 品牌团标识 1:普通品牌团,2:拼团,3:俪人购
         self.brandact_other_ids = '' # 如果是拼团, 其他团的ID
         self.brandact_brand = '' # 品牌团品牌信息
+        self.brandact_brandId = '' # 品牌团品牌Id
 
         # 店铺信息
         self.brandact_sellerId = '' # 品牌团卖家Id
@@ -140,6 +141,10 @@ class JHSBActItem():
                 self.brandact_sign = 2
             else:
                 self.brandact_other_ids = str(self.brandact_id)
+            
+            if b_baseInfo.has_key('brandId') and b_baseInfo['brandId']:
+                # 品牌团Id
+                self.brandact_brandId = b_baseInfo['brandId']
 
         if self.brandact_pagedata.has_key('materials'):
             b_materials = self.brandact_pagedata['materials']
