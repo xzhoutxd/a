@@ -49,12 +49,15 @@ class JHSBrandComing():
         self.begin_hour = Common.nowhour_s()
 
     def antPage(self):
-        # 获取品牌团列表页数据
-        page = self.crawler.getData(self.brand_url, self.ju_home_url)
-        self.activityListForComing(page) 
+        try:
+            # 获取品牌团列表页数据
+            page = self.crawler.getData(self.brand_url, self.ju_home_url)
+            self.activityListForComing(page) 
+        except Exception as e:
+            print '# exception err in antPage info:',e
 
     def activityListForComing(self, page):
-        if not page or page == '': return
+        if not page or page == '': raise Common.InvalidPageException("# activityListForComing: not get JHS brand home.")
 
         self.ju_brand_page = page
         #print page
@@ -143,10 +146,13 @@ class JHSBrandComing():
 
         return bResult_list
 
+    # 解析每一页的数据
     def parser_activities(self, bResult_list):
-        act_valList = []
         print '# coming activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         # 获取多线程需要的字段val
+        act_valList = []
+        # 前一页的数据量,用于计算活动所在的位置
+        prepage_count = 0
         for page in bResult_list:
             i_page = page[0]
             if i_page.has_key('brandList') and i_page['brandList'] != []:
@@ -154,7 +160,11 @@ class JHSBrandComing():
                 b_position_start = 0
                 if i_page.has_key('currentPage') and int(i_page['currentPage']) > 1:
                     # 每页取60条数据
-                    b_position_start = (int(i_page['currentPage']) - 1) * 60
+                    #b_position_start = (int(i_page['currentPage']) - 1) * 60
+                    b_position_start = (int(i_page['currentPage']) - 1) * prepage_count
+                else:
+                    # 保存前一页的数据条数
+                    prepage_count = len(activities)
                 print '# coming every page num:',len(activities)
                 for i in range(0,len(activities)):
                     activity = activities[i]
@@ -185,10 +195,11 @@ class JHSBrandComing():
         print '# brand activity coming soon num:', len(act_valList)
 
 if __name__ == '__main__':
-    pass
-#    actId, actName, actUrl = '4790221', '四大徽茶国礼茶', 'http://act.ju.taobao.com/market/sidahuicha.php'
-#    B = JHSBrand()
-#    B.activityItems(actId, actName, actUrl)
+    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+    # 即将上线品牌团
+    brand_obj = JHSBrandComing()
+    brand_obj.antPage()
+    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
 
 
