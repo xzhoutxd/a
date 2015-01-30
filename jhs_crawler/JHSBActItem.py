@@ -35,6 +35,7 @@ class JHSBActItem():
         self.home_brands = {} # 首页品牌团信息
         self.brandact_inJuHome = 0 # 是否在首页展示,0:不在,1:存在
         self.brandact_juHome_position = '' # 在首页展示的位置
+        self.brandact_juHome_dataType = '' # 在首页展示的所属栏目
 
         # 品牌团信息
         self.brandact_id = '' # 品牌团Id
@@ -184,7 +185,7 @@ class JHSBActItem():
                   self.brandact_coupon = 1
 
         # 判断是否在首页推广
-        if self.brandact_id != '' and self.brandact_url != '':
+        if self.home_brands != {} and self.brandact_id != '' and self.brandact_url != '':
             key1, key2 = str(self.brandact_id), self.brandact_url.split('?')[0]
             if self.home_brands.has_key(key1):
                 self.brandact_inJuHome = 1
@@ -412,13 +413,17 @@ class JHSBActItem():
 
         # 商品聚划算展示图片链接
         item_juPic_url = ''
-        m = re.search(r'<img class="item-pic" data-ks-lazyload="(.+?)"', itemdata, flags=re.S)
+        m = re.search(r'<img class="item-pic" src="(.+?)"', itemdata, flags=re.S)
         if m:
             item_juPic_url = m.group(1)
         else:
-            m = re.search(r'<img data-ks-lazyload="(.+?)"', itemdata, flags=re.S)
+            m = re.search(r'<img class="item-pic" data-ks-lazyload="(.+?)"', itemdata, flags=re.S)
             if m:
                 item_juPic_url = m.group(1)
+            else:
+                m = re.search(r'<img data-ks-lazyload="(.+?)"', itemdata, flags=re.S)
+                if m:
+                    item_juPic_url = m.group(1)
 
         # 解析聚划算商品
         return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url)
@@ -458,18 +463,6 @@ class JHSBActItem():
 
         # 解析聚划算商品
         return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url)
-
-    # 执行
-    #def antPageOld(self, page, catId, catName, position, begin_date, begin_hour):
-    def antPageOld(self, val):
-        page, catId, catName, position, begin_date, begin_hour, home_brands = val
-        self.initItem(page, catId, catName, position, begin_date, begin_hour, home_brands)
-        self.itemConfig()
-        self.brandActConpons()
-        # 不抓俪人购的商品
-        if self.brandact_sign != 3:
-            self.brandActItems()
-        #self.outItem()
 
     # 品牌团信息和其中商品基本信息
     def antPage(self, val):

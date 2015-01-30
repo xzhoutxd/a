@@ -16,6 +16,7 @@ from memory_profiler import profile
 from base.TBCrawler import TBCrawler
 from db.MysqlAccess import MysqlAccess
 from JHSCrawlerM import JHSCrawlerM
+from JHSHomeBrand import JHSHomeBrand
 
 class JHSBrand():
     '''A class of brand Item'''
@@ -41,6 +42,7 @@ class JHSBrand():
         self.home_brands_list = []
 
         # 品牌团页面
+        # 模板1 数据接口URL
         self.brand_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=0'
 
         # 页面信息
@@ -56,25 +58,33 @@ class JHSBrand():
 
         # 并发线程值
         self.act_max_th = 5 # 活动抓取时的最大线程
-        self.item_max_th = 40 # 商品抓取时的最大线程
+        self.item_max_th = 30 # 商品抓取时的最大线程
         
 
     def antPage(self):
-        # 获取首页的品牌团
-        page = self.crawler.getData(self.ju_home_url, self.refers)
-        self.homeBrandAct(page) 
+        try:
+            # 获取首页的品牌团
+            page = self.crawler.getData(self.ju_home_url, self.refers)
+            hb = JHSHomeBrand()
+            hb.antPage(page)
+            self.home_brands = hb.home_brands
+            #print self.home_brands
+            #self.homeBrandAct(page) 
 
-        # 获取品牌团列表页数据
-        page = self.crawler.getData(self.brand_url, self.ju_home_url)
-        self.activityList(page) 
+            # 获取品牌团列表页数据
+            page = self.crawler.getData(self.brand_url, self.ju_home_url)
+            self.activityList(page) 
+        except Exception as e:
+            print '# exception err in antPage info:',e
 
     # 首页的品牌团
     def homeBrandAct(self, page):
-        if not page or page == '': return
+        if not page or page == '': raise Common.InvalidPageException("# homeBrandAct: not get JHS home.")
 
         print '首页品牌团'
         print '# ju home brand start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         self.ju_home_page = page
+
         m = re.search(r'<ul id="brandList" class="clearfix">(.+?)</ul>', page, flags=re.S)
         if m:
             brandact_content = m.group(1)
@@ -104,58 +114,148 @@ class JHSBrand():
 
                     self.home_brands_list.append({'id':brand_act_id,'name':brand_act_name,'url':brand_act_url,'position':i})
                     print i, brand_act_id, brand_act_url, brand_act_name
+        else:
+            m = re.search(r'<script>\s+window.shangouData = \[(.+?)\];\s+</script>', page, flags=re.S)
+            if m:
+                home_shangou = m.group(1)
+                result = json.loads(home_shangou)
+                brandId_list = []
+                #print result
+                if result.has_key('indexShanGouVO'):
+                    index = result['indexShanGouVO']
+                    if index.has_key('hotBrands'):
+                        print '# hot brands:', len(index['hotBrands'])
+                        for hotbrand in index['hotBrands']:
+                            brandId_list.append(hotbrand['baseInfo']['activityId'])
+                            #print hotbrand
+                    if index.has_key('lastBrands'):
+                        print '# last brands:', len(index['lastBrands'])
+                        for lastbrand in index['lastBrands']:
+                            brandId_list.append(lastbrand['baseInfo']['activityId'])
+                        #    print lastbrand
+                    if index.has_key('newBrands'):
+                        print '# new brands:', len(index['newBrands'])
+                        for newbrand in index['newBrands']:
+                            brandId_list.append(newbrand['baseInfo']['activityId'])
+                        #    print newbrand
+                    if index.has_key('newNum'):
+                        print '# new brand:', index['newNum']
+                    if index.has_key('onlineNum'):
+                        print '# online brand:', index['onlineNum']
+                    if index.has_key('totalNum'):
+                        print '# totalNum:', index['totalNum']
+                    print '# brand Id list sort:', sorted(brandId_list)
         print '# ju home brand end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
     # 品牌团列表
     def activityList(self, page):
-        if not page or page == '': return
-
+        if not page or page == '': raise Common.InvalidPageException("# brand activityList: not get JHS brand home.")
         self.ju_brand_page = page
-        bResult_list = []
-        m = re.search(r'<div class="tb-module ju-brand-floor">(.+?)</div>\s*</div>\s*</div>\s*<div class="J_Module skin-default"', page, flags=re.S)
+        # 数据接口URL list
+        b_url_valList = []
+        # 模板1
+        m = re.search(r'<div id="floor\d+" class="l-floor J_Floor placeholder ju-wrapper" (.+?)>.+?</div>', page, flags=re.S)
         if m:
-            activity_floors = m.group(1)
-            p = re.compile(r'<div id="floor\d+" class="l-floor J_Floor placeholder ju-wrapper" (.+?)>.+?</div>', flags=re.S)
-            for activity_floor in p.finditer(activity_floors):
-                activity_floor_info = activity_floor.group(1)
-                f_name, f_catid, f_activitySignId = '', '', ''
-                m = re.search(r'data-floorName="(.+?)"\s+', activity_floor_info, flags=re.S)
-                if m:
-                    f_name = m.group(1)
+            b_url_valList = self.activityListTemp1(page)
+        else:
+            # 模板2
+            m = re.search(r'<div id="(\d+)" class="l-floor J_Floor placeholder ju-wrapper" data-ajax="(.+?)">\s+<div class="l-f-title">\s+<div class="l-f-tbox">(.+?)</div>', page, flags=re.S)
+            if m:
+                b_url_valList = self.activityListTemp2(page)
+            else:
+                print '# err: not matching all templates.'
 
-                m = re.search(r'data-catid=\'(.+?)\'\s+', activity_floor_info, flags=re.S)
-                if m:
-                    f_catid = m.group(1)
+        if b_url_valList != []:
+            # 从接口中获取的数据列表
+            bResult_list = []
+            for b_url_val in b_url_valList:
+                bResult_list += self.get_jsonData(b_url_val)
 
-                m = re.search(r'data-activitySignId=\"(.+?)\"$', activity_floor_info, flags=re.S)
-                if m:
-                    f_activitySignId = m.group(1)
-                print '# activity floor:', f_name, f_catid, f_activitySignId
+            if bResult_list and bResult_list != []:
+                self.parser_activities(bResult_list)
+        else:
+            print '# err: not find activity json data URL list.'
 
-                begin_page = 1
-                ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                if f_activitySignId != '':
-                    b_url = self.brand_page_url + '&page=%d'%begin_page + '&activitySignId=%s'%f_activitySignId.replace(',','%2C') + '&stype=ids' + '&_ksTS=%s'%ts
-                else:
-                    b_url = self.brand_page_url + '&page=%d'%begin_page + '&frontCatIds=%s'%f_catid + '&_ksTS=%s'%ts
-                try:
+    # 品牌团页面模板1
+    def activityListTemp1(self, page):
+        # 获取数据接口的URL
+        url_valList = []
+        p = re.compile(r'<div id="floor\d+" class="l-floor J_Floor placeholder ju-wrapper" (.+?)>.+?</div>', flags=re.S)
+        for floor in p.finditer(page):
+            floor_info = floor.group(1)
+            f_name, f_catid, f_activitySignId = '', '', ''
+            m = re.search(r'data-floorName="(.+?)"\s+', floor_info, flags=re.S)
+            if m:
+                f_name = m.group(1)
+
+            m = re.search(r'data-catid=\'(.+?)\'\s+', floor_info, flags=re.S)
+            if m:
+                f_catid = m.group(1)
+
+            m = re.search(r'data-activitySignId=\"(.+?)\"$', floor_info, flags=re.S)
+            if m:
+                f_activitySignId = m.group(1)
+            print '# activity floor:', f_name, f_catid, f_activitySignId
+
+            begin_page = 1
+            if f_activitySignId != '':
+                f_url = self.brand_page_url + '&page=%d'%begin_page + '&activitySignId=%s'%f_activitySignId.replace(',','%2C') + '&stype=ids'
+                print '# brand activity floor: %s activitySignIds: %s, url: %s'%(f_name, f_activitySignId, f_url)
+            else:
+                f_url = self.brand_page_url + '&page=%d'%begin_page + '&frontCatIds=%s'%f_catid
+                print '# brand activity floor:', f_name, f_catid, f_url
+                url_valList.append((f_url, f_name, f_catid))
+        return url_valList
+
+    # 品牌团页面模板2
+    def activityListTemp2(self, page):
+        # 获取数据接口的URL
+        url_valList = []
+        #<div id="265000" class="l-floor J_Floor placeholder ju-wrapper" data-ajax="http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?page=1&btypes=1,2&showType=0&frontCatIds=265000">
+        #    <div class="l-f-title">
+        #        <div class="l-f-tbox">内衣配饰</div>
+        p = re.compile(r'<div id="(\d+)" class="l-floor J_Floor placeholder ju-wrapper" data-ajax="(.+?)">\s+<div class="l-f-title">\s+<div class="l-f-tbox">(.+?)</div>', flags=re.S)
+        for floor in p.finditer(page):
+            f_name, f_catid, f_url, f_activitySignId = '', '', '', ''
+            f_catid, f_url, f_name = floor.group(1), floor.group(2), floor.group(3)
+            if f_url != '':
+                print '# brand activity floor:', f_name, f_catid, f_url
+                url_valList.append((f_url, f_name, f_catid))
+        return url_valList
+
+    # 通过数据接口获取每一页的数据
+    def get_jsonData(self, val):
+        bResult_list = []
+        try:
+            b_url, f_name, f_catid = val
+            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+            b_url = b_url + '&_ksTS=%s'%ts
+            b_page = self.crawler.getData(b_url, Config.ju_brand_home)
+            result = json.loads(b_page)
+            #print b_url
+            bResult_list.append([result,f_name,f_catid])
+            # 分页从接口中获取数据
+            if result.has_key('totalPage') and int(result['totalPage']) > 1:
+                for page_i in range(2, int(result['totalPage'])+1):
+                    ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+                    b_url = re.sub('&page=\d+&', '&page=%d&'%page_i, b_url)
+                    b_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, b_url)
                     b_page = self.crawler.getData(b_url, Config.ju_brand_home)
                     result = json.loads(b_page)
                     #print b_url
-                    bResult_list.append([result,f_name,f_catid])
-                    if result.has_key('totalPage') and int(result['totalPage']) > begin_page:
-                        for page_i in range(begin_page+1, int(result['totalPage'])+1):
-                            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                            b_url = re.sub('&page=\d+&', '&page=%d&'%page_i, b_url)
-                            b_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, b_url)
-                            b_page = self.crawler.getData(b_url, Config.ju_brand_home)
-                            result = json.loads(b_page)
-                            #print b_url
-                            bResult_list.append([result, f_name, f_catid])
-                except StandardError as err:
-                    print '# err:',err
+                    bResult_list.append([result, f_name, f_catid])
+        except Exception as e:
+            print '# exception err in get_jsonData info:',e
 
+        return bResult_list
+
+    # 解析每一页的数据
+    def parser_activities(self, bResult_list):
+        print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        # 获取多线程需要的字段val
         act_valList = []
+        # 前一页的数据量,用于计算活动所在的位置
+        prepage_count = 0
         for page in bResult_list:
             i_page = page[0]
             if i_page.has_key('brandList') and i_page['brandList'] != []:
@@ -163,14 +263,20 @@ class JHSBrand():
                 b_position_start = 0
                 if i_page.has_key('currentPage') and int(i_page['currentPage']) > 1:
                     # 每页取60条数据 ###需要修改（60）###
-                    b_position_start = (int(i_page['currentPage']) - 1) * 60
+                    #b_position_start = (int(i_page['currentPage']) - 1) * 60
+                    b_position_start = (int(i_page['currentPage']) - 1) * prepage_count
+                else:
+                    # 保存前一页的数据条数
+                    prepage_count = len(activities)
+                print '# brand every page num:',len(activities)
                 for i in range(0,len(activities)):
                     activity = activities[i]
                     val = (activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self.begin_hour, self.home_brands)
                     act_valList.append(val)
         if len(act_valList) > 0:
             self.run_brandAct(act_valList)
-
+        else:
+            print '# err: not find activity crawling val list'
     
     # 多线程抓去品牌团活动
     def run_brandAct(self, act_valList):
@@ -202,7 +308,7 @@ class JHSBrand():
                             self.mysqlAccess.insertJhsActHouralive(hourSql)
                             #print sql
                             # 只抓取非俪人购商品
-                            if brandact_sign != 3:
+                            if int(brandact_sign) != 3:
                                 # Activity Items
                                 # item init val list
                                 if brandact_itemVal_list and len(brandact_itemVal_list) > 0:
@@ -220,9 +326,10 @@ class JHSBrand():
                     #del item_list
                     #del m_Obj
                     break
-            except StandardError as err:
-                print '# %s err:'%(sys._getframe().f_back.f_code.co_name),err  
+            except Exception as e:
+                print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e 
                 traceback.print_exc()
+                break
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# All brand activity num:', len(act_valList)
         print '# New add brand activity num:', newact_num
@@ -259,8 +366,10 @@ class JHSBrand():
                         print '# Activity Item List End: actId:%s, actName:%s'%(brandact_id, brandact_name)
                         break
                 except Exception as e:
-                    print 'Unknown exception item result :', e
+                    print '# exception err crawl item: ', e
+                    print '# crawler_val:', crawler_val
                     traceback.print_exc()
+                    break
 
         """
             self.itemcrawler_queue.put((brandact_id, brandact_name, m_itemsObj))
@@ -291,10 +400,18 @@ class JHSBrand():
                         else:
                             self.itemcrawler_queue.put(_item)
                     except Exception as e:
-                        print 'Unknown exception item result :', e
+                        print '# exception err crawl item: ', e
                         traceback.print_exc()
+                        break
         """
-
 
 if __name__ == '__main__':
     pass
+    """
+    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+    b = JHSBrand()
+    b.antPage()
+    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+    """
+
+
