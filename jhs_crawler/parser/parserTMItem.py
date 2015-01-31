@@ -12,7 +12,7 @@ from parserItem import Item
 #from TMSku import TMSku
 
 class PTMItem(Item):
-    '''A class of tmall item'''
+    '''A class of tmall item parser'''
     def __init__(self):
         # parent construct
         Item.__init__(self)

@@ -168,80 +168,41 @@ class JHSItem():
                 self.item_discount = m.group(1)
 
             # 商品关注人数, 商品销售数量, 商品库存
-            i_getdata_url = ''
-            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-            m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"apiItemDynamicInfo": "(.+?)",.+?};', i_page, flags=re.S)
-            if m:
-                i_getdata_url = m.group(1) + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
-            else:
-                i_getdata_url = 'http://dskip.ju.taobao.com/detail/json/item_dynamic.htm' + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
-
-            if i_getdata_url:
-                json_str = self.crawler.getData(i_getdata_url, self.item_ju_url)
-                self.item_pages['item-dynamic'] = (i_getdata_url, json_str)
-                if json_str and json_str != '':
-                    #result = json.loads(json_str)
-                    #if result.has_key('data'):
-                    #    result_data = result['data']
-                    #    if result_data.has_key('soldCount'):
-                    #        self.item_soldCount = result_data['soldCount']
-                    #    else:
-                    #        if result_data.has_key('remindNum') and result_data['remindNum']:
-                    #            self.item_remindNum = result_data['remindNum']
-
-                    #    if result_data.has_key('stock'):
-                    #        self.item_stock = result_data['stock']
-
-                    m = re.search(r'"soldCount":(.+?),', json_str, flags=re.S)
-                    if m:
-                        self.item_soldCount = (m.group(1)).replace('"','')
-                    else:
-                        m = re.search(r'"remindNum":(.+?),', json_str, flags=re.S)
-                        if m:
-                            self.item_remindNum = (m.group(1)).replace('"','')
-
-                    m = re.search(r'"stock":(.+?),', json_str, flags=re.S)
-                    if m:           
-                        self.item_stock = (m.group(1)).replace('"','')
-
-                    if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
-                        self.item_isSoldout = 1
+            self.itemDynamic(page)
 
     # 每天获取的商品信息
-    def itemConfigDay(self):
-        # 聚划算商品页信息
-        page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-        if not page or page == '': raise Common.InvalidPageException("# itemConfigDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-        if page and page != '':
-            self.item_juPage = page
-            self.item_pages['item-home'] = (self.item_ju_url, page)
-            # 商品关注人数, 商品销售数量, 商品库存
-            i_getdata_url = ''
-            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-            m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"apiItemDynamicInfo": "(.+?)",.+?};', page, flags=re.S)
-            if m:
-                i_getdata_url = m.group(1) + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
-            else:
-                i_getdata_url = 'http://dskip.ju.taobao.com/detail/json/item_dynamic.htm' + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
+    def itemDynamic(self, page):
+        self.item_juPage = page
+        self.item_pages['item-home'] = (self.item_ju_url, page)
+        # 商品关注人数, 商品销售数量, 商品库存
+        i_getdata_url = ''
+        ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+        m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"apiItemDynamicInfo": "(.+?)",.+?};', page, flags=re.S)
+        if m:
+            i_getdata_url = m.group(1) + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
+        else:
+            i_getdata_url = 'http://dskip.ju.taobao.com/detail/json/item_dynamic.htm' + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
 
-            if i_getdata_url:
-                json_str = self.crawler.getData(i_getdata_url, self.item_ju_url)
-                self.item_pages['item-dynamic'] = (i_getdata_url, json_str)
-                if json_str and json_str != '':
-                    m = re.search(r'"soldCount":(.+?),', json_str, flags=re.S)
-                    if m:
-                        self.item_soldCount = (m.group(1)).replace('"','')
-                    else:
-                        m = re.search(r'"remindNum":(.+?),', json_str, flags=re.S)
-                        if m:
-                            self.item_remindNum = (m.group(1)).replace('"','')
+        if i_getdata_url:
+            json_str = self.crawler.getData(i_getdata_url, self.item_ju_url)
+            self.item_pages['item-dynamic'] = (i_getdata_url, json_str)
+            if json_str and json_str != '':
+                m = re.search(r'"soldCount":\s*"(.+?)",', json_str, flags=re.S)
+                if m:
+                    self.item_soldCount = m.group(1)
 
-                    m = re.search(r'"stock":(.+?),', json_str, flags=re.S)
-                    if m:           
-                        self.item_stock = (m.group(1)).replace('"','')
+                m = re.search(r'"remindNum":\s*"(.+?)",', json_str, flags=re.S)
+                if m:
+                    remindNum = m.group(1)
+                    if remindNum != '' and int(remindNum) != 0:
+                        self.item_remindNum = remindNum
 
-                    if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
-                        self.item_isSoldout = 1
+                m = re.search(r'"stock":\s*"(.+?)",', json_str, flags=re.S)
+                if m:           
+                    self.item_stock = m.group(1)
+
+                if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
+                    self.item_isSoldout = 1
 
     # 商品其他优惠信息
     def itemPromotiton(self):
@@ -312,7 +273,12 @@ class JHSItem():
         try:
             #self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice,self.crawling_beginDate,self.crawling_beginHour = val
             self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice = val
-            self.itemConfigDay()
+            # 聚划算商品页信息
+            page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+            if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+            # 商品关注人数, 商品销售数量, 商品库存
+            self.itemDynamic(page)
+
         except Exception as e:
             raise Common.InvalidPageException("# antPageDay: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
 
@@ -329,6 +295,10 @@ class JHSItem():
     def outSqlForDay(self):
         return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice),str(self.item_soldCount),str(self.item_stock))
 
+    # 更新每小时SQL
+    def outUpdateSqlForHour(self):
+        return (str(self.item_soldCount),Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId))
+
     # 输出Tuple
     def outTuple(self):
         sql = self.outSql()
@@ -338,6 +308,11 @@ class JHSItem():
     # 输出每天Tuple
     def outTupleDay(self):
         sql = self.outSqlForDay()
+        return sql
+
+    # 输出更新每小时Tuple
+    def outTupleHour():
+        sql = self.outUpdateSqlForHour()
         return sql
 
     # 输出抓取的网页log
@@ -374,10 +349,18 @@ class JHSItem():
 
 def test():
     #(itemdata, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url)
+
+    url = 'http://detail.ju.taobao.com/home.htm?id=10000005644539&item_id=35093553474'
+    url = 'http://detail.ju.taobao.com/home.htm?id=10000005625649&item_id=37865414237'
+    item_id = '37865414237'
+    ju_id = '10000005625649'
     item = JHSItem()
-    val = ("", "", "", "", 1, "http://detail.ju.taobao.com/home.htm?id=10000005351261&amp;item_id=41596732118", "41596732118", "10000005351261", "")
+    val = ('', '', '', '', 1, url, item_id, ju_id, '')
     item.antPage(val)
-    item.outItem()
+    #item.outItem()
+    #print item.item_remindNum
+    #print item.item_soldCount
+    #print item.item_stock
 
 if __name__ == '__main__':
     test()

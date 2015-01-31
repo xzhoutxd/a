@@ -15,7 +15,7 @@ import base.Config as Config
 from base.TBCrawler import TBCrawler
 
 class JHSHomeBrand():
-    '''A class of brand Item'''
+    '''A class of brand for home hot'''
     def __init__(self):
         # 页面信息
         self.ju_home_page = '' # 聚划算首页

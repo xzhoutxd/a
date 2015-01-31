@@ -33,7 +33,7 @@ class JHSItemM(MyThread):
         self.items      = []
 
         # dial client
-        self.dial_client = DialClient()
+        #self.dial_client = DialClient()
 
         # local ip
         #self._ip = Common.local_ip()
@@ -108,11 +108,11 @@ class JHSItemM(MyThread):
             except Exception as e:
                 self.crawlRetry(_data)
                 # 重新拨号
-                self.dialRouter(4, 'item')
+                #self.dialRouter(4, 'item')
 
                 print 'Unknown exception crawl item :', e
                 traceback.print_exc()
-                time.sleep(random.uniform(10,30))
+                time.sleep((_data[0]+1)*random.uniform(10,30))
 
 if __name__ == '__main__':
     pass

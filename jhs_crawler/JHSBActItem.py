@@ -14,7 +14,7 @@ import base.Config as Config
 from base.TBCrawler import TBCrawler
 
 class JHSBActItem():
-    '''A class of brand Item'''
+    '''A class of brand activity Item'''
     def __init__(self):
         # 品牌团抓取设置
         self.crawler    = TBCrawler()

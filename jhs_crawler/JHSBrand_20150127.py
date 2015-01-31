@@ -19,7 +19,7 @@ from JHSItem import JHSItem
 from JHSItemM import JHSItemM
 
 class JHSBrand():
-    '''A class of brand Item'''
+    '''A class of brand'''
     def __init__(self):
         # mysql
         self.mysqlAccess = MysqlAccess()

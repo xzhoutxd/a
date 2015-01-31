@@ -7,7 +7,7 @@ import base.Config as Config
 #from db.RedisAccess import RedisAccess
 
 class Item():
-    '''A class of item'''
+    '''A class of item parser'''
     def __init__(self):
         self.shop_type       = '1' # 店铺类型
 

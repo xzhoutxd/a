@@ -18,7 +18,7 @@ from db.MysqlAccess import MysqlAccess
 from JHSCrawlerM import JHSCrawlerM
 
 class JHSBrand():
-    '''A class of brand Item'''
+    '''A class of brand'''
     def __init__(self):
         # mysql
         self.mysqlAccess = MysqlAccess()

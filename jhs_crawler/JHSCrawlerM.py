@@ -19,7 +19,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class JHSCrawlerM(MyThread):
-    '''A class of jhs item thread manager'''
+    '''A class of jhs crawler thread manager'''
     def __init__(self, jhs_type, thread_num = 10):
         # parent construct
         MyThread.__init__(self, thread_num)
@@ -34,7 +34,7 @@ class JHSCrawlerM(MyThread):
         self.items      = []
 
         # dial client
-        self.dial_client = DialClient()
+        #self.dial_client = DialClient()
 
         # local ip
         #self._ip = Common.local_ip()
@@ -111,15 +111,16 @@ class JHSCrawlerM(MyThread):
             except Exception as e:
                 self.crawlRetry(_data)
                 # 重新拨号
-                if self.jhs_type == 1:
-                    self.dialRouter(4, 'chn')
-                else:
-                    self.dialRouter(4, 'item')
-                #time.sleep(random.uniform(10,30))
+                #if self.jhs_type == 1:
+                #    self.dialRouter(4, 'chn')
+                #else:
+                #    self.dialRouter(4, 'item')
+                time.sleep(random.uniform(10,30))
 
                 print 'Unknown exception crawl item :', e
                 traceback.print_exc()
-                time.sleep(random.uniform(10,30))
+                time.sleep(1)
+                #time.sleep(random.uniform(10,30))
 
 if __name__ == '__main__':
     pass

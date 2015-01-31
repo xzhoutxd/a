@@ -14,7 +14,7 @@ from base.TBCrawler import TBCrawler
 from JHSBrandComing import JHSBrandComing
 
 class JHSMainComing():
-    '''A class of Juhuasuan Main Site'''
+    '''A class of Juhuasuan Main for coming soon'''
     def __init__(self):
         # 抓取设置
         self.crawler    = TBCrawler()

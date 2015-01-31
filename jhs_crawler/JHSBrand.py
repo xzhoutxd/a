@@ -19,7 +19,7 @@ from JHSCrawlerM import JHSCrawlerM
 from JHSHomeBrand import JHSHomeBrand
 
 class JHSBrand():
-    '''A class of brand Item'''
+    '''A class of brand'''
     def __init__(self):
         # mysql
         self.mysqlAccess = MysqlAccess()
@@ -69,83 +69,12 @@ class JHSBrand():
             hb.antPage(page)
             self.home_brands = hb.home_brands
             #print self.home_brands
-            #self.homeBrandAct(page) 
 
             # 获取品牌团列表页数据
             page = self.crawler.getData(self.brand_url, self.ju_home_url)
             self.activityList(page) 
         except Exception as e:
             print '# exception err in antPage info:',e
-
-    # 首页的品牌团
-    def homeBrandAct(self, page):
-        if not page or page == '': raise Common.InvalidPageException("# homeBrandAct: not get JHS home.")
-
-        print '首页品牌团'
-        print '# ju home brand start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        self.ju_home_page = page
-
-        m = re.search(r'<ul id="brandList" class="clearfix">(.+?)</ul>', page, flags=re.S)
-        if m:
-            brandact_content = m.group(1)
-            p = re.compile(r'<li class="brand-mid-v2".+?>(.+?)</li>', flags=re.S)
-            i = 0
-            for brand_act in p.finditer(brandact_content):
-                i += 1
-                m = re.search(r'<a class="link-box hover-avil" href="(.+?)".+?>.+?<span class="title">(.+?)</span>.+?</a>', brand_act.group(1), flags=re.S)
-                if m:
-                    brand_act_id, brand_act_url, brand_act_name = '', '', ''
-                    brand_act_url, brand_act_name = m.group(1), m.group(2)
-                    m = re.search(r'act_sign_id=(\d+)', brand_act_url, flags=re.S)
-                    if m:
-                        brand_act_id = str(m.group(1))
-                        self.home_brands[brand_act_id] = {'name':brand_act_name,'url':brand_act_url,'position':i}
-                    else:
-                        m = re.search(r'minisiteId=(\d+)', brand_act_url, flags=re.S)
-                        if m:
-                            brand_act_id = str(m.group(1))
-                            self.home_brands[brand_act_id] = {'name':brand_act_name,'url':brand_act_url,'position':i}
-                        else:
-                            key = brand_act_url.split('?')[0]
-                            if key.find('brand_items.htm') == -1:
-                                self.home_brands[key] = {'name':brand_act_name,'url':brand_act_url,'position':i}
-                            else:
-                                print '# home brand not find info: url:%s'%brand_act_url
-
-                    self.home_brands_list.append({'id':brand_act_id,'name':brand_act_name,'url':brand_act_url,'position':i})
-                    print i, brand_act_id, brand_act_url, brand_act_name
-        else:
-            m = re.search(r'<script>\s+window.shangouData = \[(.+?)\];\s+</script>', page, flags=re.S)
-            if m:
-                home_shangou = m.group(1)
-                result = json.loads(home_shangou)
-                brandId_list = []
-                #print result
-                if result.has_key('indexShanGouVO'):
-                    index = result['indexShanGouVO']
-                    if index.has_key('hotBrands'):
-                        print '# hot brands:', len(index['hotBrands'])
-                        for hotbrand in index['hotBrands']:
-                            brandId_list.append(hotbrand['baseInfo']['activityId'])
-                            #print hotbrand
-                    if index.has_key('lastBrands'):
-                        print '# last brands:', len(index['lastBrands'])
-                        for lastbrand in index['lastBrands']:
-                            brandId_list.append(lastbrand['baseInfo']['activityId'])
-                        #    print lastbrand
-                    if index.has_key('newBrands'):
-                        print '# new brands:', len(index['newBrands'])
-                        for newbrand in index['newBrands']:
-                            brandId_list.append(newbrand['baseInfo']['activityId'])
-                        #    print newbrand
-                    if index.has_key('newNum'):
-                        print '# new brand:', index['newNum']
-                    if index.has_key('onlineNum'):
-                        print '# online brand:', index['onlineNum']
-                    if index.has_key('totalNum'):
-                        print '# totalNum:', index['totalNum']
-                    print '# brand Id list sort:', sorted(brandId_list)
-        print '# ju home brand end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
     # 品牌团列表
     def activityList(self, page):
@@ -211,9 +140,6 @@ class JHSBrand():
     def activityListTemp2(self, page):
         # 获取数据接口的URL
         url_valList = []
-        #<div id="265000" class="l-floor J_Floor placeholder ju-wrapper" data-ajax="http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?page=1&btypes=1,2&showType=0&frontCatIds=265000">
-        #    <div class="l-f-title">
-        #        <div class="l-f-tbox">内衣配饰</div>
         p = re.compile(r'<div id="(\d+)" class="l-floor J_Floor placeholder ju-wrapper" data-ajax="(.+?)">\s+<div class="l-f-title">\s+<div class="l-f-tbox">(.+?)</div>', flags=re.S)
         for floor in p.finditer(page):
             f_name, f_catid, f_url, f_activitySignId = '', '', '', ''
