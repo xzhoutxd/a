@@ -168,12 +168,10 @@ class JHSItem():
                 self.item_discount = m.group(1)
 
             # 商品关注人数, 商品销售数量, 商品库存
-            self.itemDynamic(page)
+            self.itemDynamic(i_page)
 
     # 每天获取的商品信息
     def itemDynamic(self, page):
-        self.item_juPage = page
-        self.item_pages['item-home'] = (self.item_ju_url, page)
         # 商品关注人数, 商品销售数量, 商品库存
         i_getdata_url = ''
         ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
@@ -268,7 +266,7 @@ class JHSItem():
             raise Common.InvalidPageException("# antPage: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
             #traceback.print_exc()
 
-    # 每天一次
+    # Day
     def antPageDay(self, val):
         try:
             #self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice,self.crawling_beginDate,self.crawling_beginHour = val
@@ -276,12 +274,28 @@ class JHSItem():
             # 聚划算商品页信息
             page = self.crawler.getData(self.item_ju_url, self.item_act_url)
             if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+            self.item_juPage = page
+            self.item_pages['item-home-day'] = (self.item_ju_url, page)
             # 商品关注人数, 商品销售数量, 商品库存
             self.itemDynamic(page)
 
         except Exception as e:
             raise Common.InvalidPageException("# antPageDay: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
 
+    # Hour
+    def antPageHour(self, val):
+        try:
+            self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice = val
+            # 聚划算商品页信息
+            page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+            if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+            self.item_juPage = page
+            self.item_pages['item-home-hour'] = (self.item_ju_url, page)
+            # 商品关注人数, 商品销售数量, 商品库存
+            self.itemDynamic(page)
+
+        except Exception as e:
+            raise Common.InvalidPageException("# antPageHour: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
 
     # 输出SQL
     def outSql(self):
@@ -297,7 +311,7 @@ class JHSItem():
 
     # 更新每小时SQL
     def outUpdateSqlForHour(self):
-        return (str(self.item_soldCount),Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId))
+        return (str(self.item_soldCount),str(self.item_juId),str(self.item_actId))
 
     # 输出Tuple
     def outTuple(self):
@@ -311,7 +325,7 @@ class JHSItem():
         return sql
 
     # 输出更新每小时Tuple
-    def outTupleHour():
+    def outUpdateTupleHour(self):
         sql = self.outUpdateSqlForHour()
         return sql
 

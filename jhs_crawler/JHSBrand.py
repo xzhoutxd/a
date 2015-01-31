@@ -275,8 +275,8 @@ class JHSBrand():
                 m_itemsObj = JHSCrawlerM(2, self.item_max_th)
             else: 
                 m_itemsObj = JHSCrawlerM(2, len(item_valTuple))
-            m_itemsObj.putItems(item_valTuple)
             m_itemsObj.createthread()
+            m_itemsObj.putItems(item_valTuple)
             m_itemsObj.run()
 
             while True:

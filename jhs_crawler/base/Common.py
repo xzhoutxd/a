@@ -152,8 +152,6 @@ def add_hours_D(ts, n=0, fmt='%Y-%m-%d'):
     return dt.strftime(fmt)
 
 def subTS_hours(ts1, ts2):
-    #t1 = datetime.datetime.fromtimestamp(ts1)
-    #t2 = datetime.datetime.fromtimestamp(ts2)
     return (ts1 - ts2)/3600
 
 import HTMLParser

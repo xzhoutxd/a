@@ -96,11 +96,11 @@ class JHSItemM(MyThread):
                     self.push_back(item.outTupleDay())
                 else:
                     # 每小时一次商品实例
-                    # _crawl_time,_juid,act_id,_juname,_ju_url = _val
+                    # _juid,act_id,act_name,act_url,_juname,_ju_url,_id,_url,_oriprice,_actprice = _val
                     item.antPageHour(_val)
-                    print '# Hour To crawl activity item val : ', Common.now_s(), _val[1], _val[2], _val[3]
+                    print '# Hour To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
                     # 汇聚
-                    self.push_back(item.outTupleHour())
+                    self.push_back(item.outUpdateTupleHour())
 
                 # 通知queue, task结束
                 self.queue.task_done()

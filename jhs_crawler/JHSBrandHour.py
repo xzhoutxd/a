@@ -41,41 +41,45 @@ class JHSBrandHour():
         self.max_hourslot = -24 # 最大时间段
 
     def antPage(self):
-        # 得到需要的时间段
-        val = (Common.add_hours(self.crawling_time, self.min_hourslot), Common.add_hours(self.crawling_time, self.max_hourslot))
-        print '# hour crawler time:',val
-        # 删除已经结束的活动
-        #self.mysqlAccess.deleteJhsActHouralive(val)
-        # 查找需要每小时统计的活动列表
-        act_results = self.mysqlAccess.selectJhsActHouralive(val)
-        print '# hour act num:',len(act_results)
-        
-        # 商品默认信息列表
-        crawler_val_list = []
-        for act_r in act_results:
-            # 按照活动Id找出商品信息
-            item_results = self.mysqlAccess.selectJhsItemsHouralive((act_r[0]))
-            print "# act id:%s name:%s starttime:%s endtime:%s Items num:%s"%(str(act_r[0]),str(act_r[1]),str(act_r[3]),str(act_r[4]),str(len(item_results)))
-            if len(item_results) > 0:
-                crawler_val_list.append((act_r[0],act_r[1],item_results))
+        try:
+            # 得到需要的时间段
+            val = (Common.add_hours(self.crawling_time, self.min_hourslot), Common.add_hours(self.crawling_time, self.max_hourslot))
+            print '# hour crawler time:',val
+            # 删除已经超过时间段的活动
+            #self.mysqlAccess.deleteJhsActHouralive(val)
+            # 查找需要每小时统计的活动列表
+            act_results = self.mysqlAccess.selectJhsActHouralive(val)
+            print '# hour act num:',len(act_results)
+            
+            # 商品默认信息列表
+            crawler_val_list = []
+            for act_r in act_results:
+                starttime_TS = time.mktime(time.strptime(str(act_r[3]), "%Y-%m-%d %H:%M:%S"))
+                index = int(Common.subTS_hours(self.crawling_time, starttime_TS))
+                soldcount_name = 'item_soldcount_h%d'%index
+                # 按照活动Id找出商品信息
+                item_results = self.mysqlAccess.selectJhsItemsHouralive((act_r[0]))
+                print "# act id:%s name:%s starttime:%s endtime:%s Items num:%s soldcountName:%s"%(str(act_r[0]),str(act_r[1]),str(act_r[3]),str(act_r[4]),str(len(item_results)),soldcount_name)
+                if len(item_results) > 0:
+                    crawler_val_list.append((soldcount_name,act_r[0],act_r[1],item_results))
 
-        # 多线程抓商品
-        #self.run_brandItems(crawler_val_list)
+            # 多线程抓商品
+            self.run_brandItems(crawler_val_list)
+        except Exception as e:
+            print '# exception err in antPage info:',e
 
     # 多线程抓去品牌团商品
     def run_brandItems(self, crawler_val_list):
         for crawler_val in crawler_val_list:
-            brandact_id, brandact_name, item_valTuple = crawler_val
+            soldcount_name, brandact_id, brandact_name, item_valTuple = crawler_val
             print '# hour activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
             # 多线程 控制并发的线程数
             if len(item_valTuple) > self.item_max_th:
                 m_itemsObj = JHSItemM(2, self.item_max_th)
             else:
                 m_itemsObj = JHSItemM(2, len(item_valTuple))
-            #item_valTuple = item_valTuple + (self.begin_date,self.begin_hour)
-            #print item_valTuple
-            m_itemsObj.putItems(item_valTuple)
             m_itemsObj.createthread()
+            m_itemsObj.putItems(item_valTuple)
             m_itemsObj.run()
 
             while True:
@@ -84,13 +88,12 @@ class JHSBrandHour():
                     if m_itemsObj.empty_q():
                         item_list = m_itemsObj.items
                         for item in item_list:
-                            #item = item + (self.begin_date,self.begin_hour)
-                            self.mysqlAccess.updateJhsItemSoldcountForHour(item)
-                            #print item
-                        print '# hour activity Items crawler end: actId:%s, actName:%s'%(brandact_id, brandact_name)
+                            val = (soldcount_name,) + item
+                            self.mysqlAccess.updateJhsItemSoldcountForHour(val)
+                        print '# hour activity Items update end: actId:%s, actName:%s'%(brandact_id, brandact_name)
                         break
                 except Exception as e:
-                    print '# exception error item result :', e
+                    print '# exception error item for hour result :', e
                     traceback.print_exc()
                     break
 

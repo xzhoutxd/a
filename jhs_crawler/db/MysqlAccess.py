@@ -138,8 +138,8 @@ class MysqlAccess():
     # 更新每小时商品销量
     def updateJhsItemSoldcountForHour(self, args):
         try:
-            sql = 'update nd_jhs_parser_item_hour set %s=%s where crawl_time = %s and item_juid = %s and act_id = %s'
-            self.jhs_db.execute(sql, args)
+            sql = 'update nd_jhs_parser_item_hour set %s=%s where item_juid = %s and act_id = %s'%args
+            self.jhs_db.execute(sql)
         except Exception, e:
             print '# update Jhs Item for hour exception:', e
 

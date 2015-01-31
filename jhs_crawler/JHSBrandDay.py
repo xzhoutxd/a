@@ -36,26 +36,29 @@ class JHSBrandDay():
         self.item_max_th = 40 # 商品抓取时的最大线程
 
     def antPage(self):
-        # 当前时刻减去24小时
-        val = (Common.add_hours(self.crawling_time, -24))
-        print '# day crawler time:',val
-        # 删除已经结束的活动
-        self.mysqlAccess.deleteJhsActDayalive(val)
-        # 查找需要每天统计的活动列表
-        act_results = self.mysqlAccess.selectJhsActDayalive(val)
-        print '# day act num:',len(act_results)
-        
-        # 商品默认信息列表
-        crawler_val_list = []
-        for act_r in act_results:
-            # 按照活动Id找出商品信息
-            item_results = self.mysqlAccess.selectJhsItemsDayalive((act_r[0]))
-            print "# act id:%s name:%s Items num:%s"%(str(act_r[0]),str(act_r[1]),str(len(item_results)))
-            if len(item_results) > 0:
-                crawler_val_list.append((act_r[0],act_r[1],item_results))
+        try:
+            # 当前时刻减去24小时
+            val = (Common.add_hours(self.crawling_time, -24))
+            print '# day crawler time:',val
+            # 删除已经结束的活动
+            self.mysqlAccess.deleteJhsActDayalive(val)
+            # 查找需要每天统计的活动列表
+            act_results = self.mysqlAccess.selectJhsActDayalive(val)
+            print '# day act num:',len(act_results)
+            
+            # 商品默认信息列表
+            crawler_val_list = []
+            for act_r in act_results:
+                # 按照活动Id找出商品信息
+                item_results = self.mysqlAccess.selectJhsItemsDayalive((act_r[0]))
+                print "# act id:%s name:%s Items num:%s"%(str(act_r[0]),str(act_r[1]),str(len(item_results)))
+                if len(item_results) > 0:
+                    crawler_val_list.append((act_r[0],act_r[1],item_results))
 
-        # 多线程抓商品
-        self.run_brandItems(crawler_val_list)
+            # 多线程抓商品
+            self.run_brandItems(crawler_val_list)
+        except Exception as e:
+            print '# exception err in antPage info:',e
 
     # 多线程抓去品牌团商品
     def run_brandItems(self, crawler_val_list):
@@ -69,8 +72,8 @@ class JHSBrandDay():
                 m_itemsObj = JHSItemM(1, len(item_valTuple))
             #item_valTuple = item_valTuple + (self.begin_date,self.begin_hour)
             #print item_valTuple
-            m_itemsObj.putItems(item_valTuple)
             m_itemsObj.createthread()
+            m_itemsObj.putItems(item_valTuple)
             m_itemsObj.run()
 
             while True:
@@ -85,7 +88,7 @@ class JHSBrandDay():
                         print '# day activity Items crawler end: actId:%s, actName:%s'%(brandact_id, brandact_name)
                         break
                 except Exception as e:
-                    print 'Unknown exception item result :', e
+                    print 'Unknown exception item for day result :', e
                     traceback.print_exc()
                     break
 
