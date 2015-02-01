@@ -115,7 +115,14 @@ class JHSBrandHour():
                         break
                 except Exception as e:
                     print '# exception error item for hour result :', e
-                    traceback.print_exc()
+                    #traceback.print_exc()
+                    print '#####--Traceback Start--#####'
+                    tp,val,td = sys.exc_info()
+                    for file, lineno, function, text in traceback.extract_tb(td):
+                        print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
+                        print text
+                    print "exception traceback err:%s,%s,%s"%(tp,val,td))
+                    print '#####--Traceback End--#####'
                     break
             """
 

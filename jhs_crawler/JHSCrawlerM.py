@@ -115,12 +115,18 @@ class JHSCrawlerM(MyThread):
                     self.dialRouter(4, 'chn')
                 else:
                     self.dialRouter(4, 'item')
-                time.sleep(random.uniform(10,30))
+                #time.sleep(random.uniform(10,30))
 
                 print 'Unknown exception crawl item :', e
-                traceback.print_exc()
+                #traceback.print_exc()
+                print '#####--Traceback Start--#####'
+                tp,val,td = sys.exc_info()
+                for file, lineno, function, text in traceback.extract_tb(td):
+                    print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
+                    print text
+                print "exception traceback err:%s,%s,%s"%(tp,val,td))
+                print '#####--Traceback End--#####'
                 time.sleep(1)
-                #time.sleep(random.uniform(10,30))
 
 if __name__ == '__main__':
     pass

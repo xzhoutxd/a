@@ -253,7 +253,14 @@ class JHSBrand():
                     break
             except Exception as e:
                 print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e 
-                traceback.print_exc()
+                #traceback.print_exc()
+                print '#####--Traceback Start--#####'
+                tp,val,td = sys.exc_info()
+                for file, lineno, function, text in traceback.extract_tb(td):
+                    print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
+                    print text
+                print "exception traceback err:%s,%s,%s"%(tp,val,td))
+                print '#####--Traceback End--#####'
                 break
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# All brand activity num:', len(act_valList)
@@ -293,7 +300,14 @@ class JHSBrand():
                 except Exception as e:
                     print '# exception err crawl item: ', e
                     print '# crawler_val:', crawler_val
-                    traceback.print_exc()
+                    print '#####--Traceback Start--#####'
+                    tp,val,td = sys.exc_info()
+                    for file, lineno, function, text in traceback.extract_tb(td):
+                        print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
+                        print text
+                    print "exception traceback err:%s,%s,%s"%(tp,val,td))
+                    print '#####--Traceback End--#####'
+                    #traceback.print_exc()
                     break
 
         """
