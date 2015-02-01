@@ -38,7 +38,7 @@ class JHSBrandDay():
     def antPage(self):
         try:
             # 当前时刻减去24小时
-            val = (Common.add_hours(self.crawling_time, -24))
+            val = (Common.add_hours(self.crawling_time, -24),)
             print '# day crawler time:',val
             # 删除已经结束的活动
             self.mysqlAccess.deleteJhsActDayalive(val)
@@ -54,7 +54,7 @@ class JHSBrandDay():
             crawler_val_list = []
             for act_r in act_results:
                 # 按照活动Id找出商品信息
-                item_results = self.mysqlAccess.selectJhsItemsDayalive(str(act_r[0]))
+                item_results = self.mysqlAccess.selectJhsItemsDayalive((str(act_r[0]),))
                 if item_results:
                     print "# act id:%s name:%s Items num:%s"%(str(act_r[0]),str(act_r[1]),str(len(item_results)))
                     if len(item_results) > 0:
