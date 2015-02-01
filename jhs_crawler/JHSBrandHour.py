@@ -64,7 +64,7 @@ class JHSBrandHour():
                 index = int(Common.subTS_hours(self.crawling_time, starttime_TS))
                 soldcount_name = 'item_soldcount_h%d'%index
                 # 按照活动Id找出商品信息
-                item_results = self.mysqlAccess.selectJhsItemsHouralive((act_r[0]))
+                item_results = self.mysqlAccess.selectJhsItemsHouralive(str(act_r[0]))
                 if item_results:
                     print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s soldcountName:%s'%(str(act_r[0]),str(act_r[1]),str(act_r[3]),str(act_r[4]),str(len(item_results)),soldcount_name)
                     if len(item_results) > 0:

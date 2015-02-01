@@ -54,7 +54,7 @@ class JHSBrandDay():
             crawler_val_list = []
             for act_r in act_results:
                 # 按照活动Id找出商品信息
-                item_results = self.mysqlAccess.selectJhsItemsDayalive((act_r[0]))
+                item_results = self.mysqlAccess.selectJhsItemsDayalive(str(act_r[0]))
                 if item_results:
                     print "# act id:%s name:%s Items num:%s"%(str(act_r[0]),str(act_r[1]),str(len(item_results)))
                     if len(item_results) > 0:
