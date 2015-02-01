@@ -4,6 +4,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+import os
 import re
 import random
 import json
@@ -492,6 +493,9 @@ class JHSBActItem():
         else:
             self.crawling_confirm = 2
 
+        # 保存html文件
+        self.writeLog()
+
     # 即将上线的品牌团信息
     def antPageComing(self, val):
         page, catId, catName, position, begin_date, begin_hour = val
@@ -499,14 +503,27 @@ class JHSBActItem():
         self.itemConfig()
         self.brandActConpons()
 
+    # 写html文件
+    def writeLog(self):
+        pages = self.outItemLog()
+        for page in pages:
+            filepath = Config.pagePath + page[2]
+            Config.createPath(filepath)
+            #if not os.path.exists(filepath):
+            #    os.mkdir(filepath)
+            filename = filepath + page[0]
+            fout = open(filename, 'w')
+            fout.write(page[3])
+            fout.close()
+
     # 输出抓取的网页log
     def outItemLog(self):
         pages = []
         for p_tag in self.brandact_pages.keys():
-            p_url, p_content = p_val
+            p_url, p_content = self.brandact_pages[p_tag]
 
             # 网页文件名
-            f_path = '%s_item/' %(self.brandact_id)
+            f_path = '%s_act/' %(self.brandact_id)
             f_name = '%s-%s_%d.htm' %(self.brandact_id, p_tag, self.crawling_time)
 
             # 网页文件内容
