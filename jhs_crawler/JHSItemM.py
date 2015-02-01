@@ -117,7 +117,7 @@ class JHSItemM(MyThread):
                 for file, lineno, function, text in traceback.extract_tb(td):
                     print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
                     print text
-                print "exception traceback err:%s,%s,%s"%(tp,val,td))
+                print "exception traceback err:%s,%s,%s"%(tp,val,td)
                 print '#####--Traceback End--#####'
                 #time.sleep((_data[0]+1)*random.uniform(10,30))
 

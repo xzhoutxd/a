@@ -193,7 +193,7 @@ class JHSBrandComing():
                     for file, lineno, function, text in traceback.extract_tb(td):
                         print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
                         print text
-                    print "exception traceback err:%s,%s,%s"%(tp,val,td))
+                    print "exception traceback err:%s,%s,%s"%(tp,val,td)
                     print '#####--Traceback End--#####'
                     break
         else:

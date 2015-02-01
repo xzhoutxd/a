@@ -259,7 +259,7 @@ class JHSBrand():
                 for file, lineno, function, text in traceback.extract_tb(td):
                     print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
                     print text
-                print "exception traceback err:%s,%s,%s"%(tp,val,td))
+                print "exception traceback err:%s,%s,%s"%(tp,val,td)
                 print '#####--Traceback End--#####'
                 break
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
@@ -305,7 +305,7 @@ class JHSBrand():
                     for file, lineno, function, text in traceback.extract_tb(td):
                         print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
                         print text
-                    print "exception traceback err:%s,%s,%s"%(tp,val,td))
+                    print "exception traceback err:%s,%s,%s"%(tp,val,td)
                     print '#####--Traceback End--#####'
                     #traceback.print_exc()
                     break
