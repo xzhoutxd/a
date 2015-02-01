@@ -15,6 +15,8 @@ import base.Config as Config
 from base.TBCrawler import TBCrawler
 from db.MysqlAccess import MysqlAccess
 from JHSItemM import JHSItemM
+from multiprocessing.dummy import Pool as ThreadPool
+from JHSItem import JHSItem
 
 class JHSBrandHour():
     '''A class of brand for every hour'''
@@ -73,6 +75,25 @@ class JHSBrandHour():
         for crawler_val in crawler_val_list:
             soldcount_name, brandact_id, brandact_name, item_valTuple = crawler_val
             print '# hour activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
+            pool = ThreadPool(50)
+            item_list = pool.map(self.run,item_valTuple)
+            pool.close()
+            pool.join()
+            
+            #for item in item_list:
+            #    val = (soldcount_name,) + item
+            #    print val
+
+            try:
+                print '# hour item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
+                for item in item_list:
+                    val = (soldcount_name,) + item
+                    self.mysqlAccess.updateJhsItemSoldcountForHour(val)
+                print '# hour activity Items update end: actId:%s, actName:%s'%(brandact_id, brandact_name)
+            except Exception as e:
+                print '# exception error item for hour result :', e
+                traceback.print_exc()
+            """
             # 多线程 控制并发的线程数
             if len(item_valTuple) > self.item_max_th:
                 m_itemsObj = JHSItemM(2, self.item_max_th)
@@ -96,9 +117,18 @@ class JHSBrandHour():
                     print '# exception error item for hour result :', e
                     traceback.print_exc()
                     break
+            """
+
+    def run(self, val):
+        item = JHSItem()
+        item.antPageHour(val)
+        return item.outUpdateTupleHour()
+
 
 
 if __name__ == '__main__':
+    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     b = JHSBrandHour()
     b.antPage()
+    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
