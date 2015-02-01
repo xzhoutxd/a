@@ -38,11 +38,19 @@ class JHSBrandDay():
     def antPage(self):
         try:
             # 当前时刻减去24小时
-            val = (Common.add_hours(self.crawling_time, -24),)
-            print '# day crawler time:',val
+            val = (Common.add_hours(self.crawling_time, -24),) 
+            print '# day need delete time:',val
             # 删除已经结束的活动
+            delete_results  = self.mysqlAccess.selectDeleteJhsActDayalive(val)
+            if delete_results:
+                print '# day need delete act num: ',len(delete_results)
+                for delete_r in delete_results:
+                    print '# day need delete act: id:%s,name:%s'%(str(delete_r[0]),str(delete_r[1]))
+            else:
+                print '# day need delete act num is null...'
             self.mysqlAccess.deleteJhsActDayalive(val)
             # 查找需要每天统计的活动列表
+            print '# day crawler time:',val
             act_results = self.mysqlAccess.selectJhsActDayalive(val)
             if act_results:
                 print '# day act num:',len(act_results)

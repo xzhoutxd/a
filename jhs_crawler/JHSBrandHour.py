@@ -44,12 +44,22 @@ class JHSBrandHour():
 
     def antPage(self):
         try:
+            # 得到需要删除的时间点
+            val = (Common.add_hours(self.crawling_time, self.max_hourslot),)
+            print '# hour need delete time:',val
+            # 删除已经超过时间段的活动
+            delete_results = self.mysqlAccess.selectDeleteJhsActHouralive(val)
+            if delete_results:
+                print '# hour need delete act num: ',len(delete_results)
+                for delete_r in delete_results:
+                    print '# hour need delete act: id:%s,name:%s'%(str(delete_r[0]),str(delete_r[1]))
+            else:
+                print '# hour need delete act is null...'
+            self.mysqlAccess.deleteJhsActHouralive(val)
+            # 查找需要每小时统计的活动列表
             # 得到需要的时间段
             val = (Common.add_hours(self.crawling_time, self.min_hourslot), Common.add_hours(self.crawling_time, self.max_hourslot))
             print '# hour crawler time:',val
-            # 删除已经超过时间段的活动
-            #self.mysqlAccess.deleteJhsActHouralive(val)
-            # 查找需要每小时统计的活动列表
             act_results = self.mysqlAccess.selectJhsActHouralive(val)
             if act_results:
                 print '# hour act num:',len(act_results)
@@ -82,15 +92,15 @@ class JHSBrandHour():
         for crawler_val in crawler_val_list:
             soldcount_name, brandact_id, brandact_name, item_valTuple = crawler_val
             print '# hour activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
+
+            """
+            # 多线程方式(1)
+            # multiprocessing.dummy Pool
             pool = ThreadPool(50)
             item_list = pool.map(self.run,item_valTuple)
             pool.close()
             pool.join()
             
-            #for item in item_list:
-            #    val = (soldcount_name,) + item
-            #    print val
-
             try:
                 print '# hour item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
                 for item in item_list:
@@ -131,7 +141,6 @@ class JHSBrandHour():
                     print "exception traceback err:%s,%s,%s"%(tp,val,td)
                     print '#####--Traceback End--#####'
                     break
-            """
 
     def run(self, val):
         item = JHSItem()

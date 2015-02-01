@@ -60,12 +60,21 @@ class MysqlAccess():
     # 查找需要每天抓取的活动
     def selectJhsActDayalive(self, args):
         # 非俪人购
-        # 当前时间减一天小于结束时间 大于开始时间，需要每天抓取
+        # 当前时间减一天小于结束时间，需要每天抓取
         try:
             sql = 'select * from nd_jhs_parser_activity_alive_day where _end_time >= %s'
             return self.jhs_db.select(sql, args)
         except Exception, e:
             print '# select Jhs alive act for day exception:', e
+
+    # 从每天抓取表中查找需要删除已经结束的活动
+    def selectDeleteJhsActDayalive(self, args):
+        # 当前时间减一天大于结束时间，需要删除
+        try:
+            sql = 'select * from nd_jhs_parser_activity_alive_day where _end_time < %s'
+            return self.jhs_db.select(sql, args)
+        except Exception, e:
+            print '# select need delete Jhs alive act for day exception:', e
 
     # 从每天抓取表中删除已经结束的活动
     def deleteJhsActDayalive(self, args):
@@ -95,14 +104,23 @@ class MysqlAccess():
     # 查找需要小时抓取的活动
     def selectJhsActHouralive(self, args):
         # 非俪人购
-        # 当前时间减去最大时间段小于开始时间，当前时间减去最小时间段大于开始时间，需要每小时抓取
+        # (当前时间减去最小时间段大于开始时间, 当前时间减去最大时间段小于开始时间) 需要每小时抓取
         try:
             sql = 'select * from nd_jhs_parser_activity_alive_hour where _start_time <= %s and _start_time >= %s'
             return self.jhs_db.select(sql, args)
         except Exception, e:
             print '# select Jhs alive act for hour exception:', e
 
-    # 从每小时抓取表中删除已经不需要统计的活动
+    # 从每小时抓取表中查找需要删除已经超过统计时段的活动
+    def selectDeleteJhsActHouralive(self, args):
+        # 当前时间减去最大时间段大于开始时间，需要删除
+        try:
+            sql = 'select * from nd_jhs_parser_activity_alive_hour where _start_time < %s'
+            return self.jhs_db.select(sql, args)
+        except Exception, e:
+            print '# select need delete Jhs alive act for hour exception:', e
+
+    # 从每小时抓取表中删除已经超过统计时段的活动
     def deleteJhsActHouralive(self, args):
         # 当前时间减去最大时间段大于开始时间，需要删除
         try:
