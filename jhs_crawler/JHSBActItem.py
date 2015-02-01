@@ -274,10 +274,12 @@ class JHSBActItem():
         # other floor
         # 其他层数据
         p = re.compile(r'<div class="l-floor J_Floor J_ItemList" .+? data-url="(.+?)">', flags=re.S)
+        i = 0
         for floor_url in p.finditer(page):
+            i += 1
             f_url = (floor_url.group(1)).replace('&amp;','&')
             print f_url
-            self.getItemDataFromInterface(f_url, position)
+            position = self.getItemDataFromInterface(f_url, position, i)
 
     # 品牌团页面格式(2)
     def brandActType2(self, page):
@@ -303,9 +305,11 @@ class JHSBActItem():
         # 接口数据
         getdata_url = "http://ju.taobao.com/json/tg/ajaxGetItems.htm?stype=ids&styleType=small&includeForecast=true"
         p = re.compile(r'<div class=".+?J_jupicker" data-item="(.+?)">', flags=re.S)
+        i = 0
         for floor_url in p.finditer(page):
+            i += 1
             f_url = getdata_url + '&juIds=' + floor_url.group(1)
-            self.getItemDataFromInterface(f_url, position)
+            position = self.getItemDataFromInterface(f_url, position, i)
 
 
     # 品牌团页面格式(3)
@@ -322,11 +326,15 @@ class JHSBActItem():
         position = 0
         # 请求接口数据
         p = re.compile(r'<div class="l-floor J_Floor .+? data-ajaxurl="(.+?)"', flags=re.S)
+        i = 0
         for floor_url in p.finditer(page):
+            i += 1
             ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
             f_url = (floor_url.group(1)).replace('&amp;','&') + '&_ksTS=%s'%ts
             print f_url
             f_page = self.crawler.getData(f_url, self.brandact_url)
+            pageKey = 'act-home-floor-%d'%i
+            self.brandact_pages[pageKey] = (f_url, f_page)
             m = re.search(r'^{.+?\"itemList\":\[.+?\].+?}$', f_page, flags=re.S)
             if m:
                 result = json.loads(f_page)
@@ -374,16 +382,20 @@ class JHSBActItem():
         # 接口数据
         getdata_url = "http://ju.taobao.com/json/tg/ajaxGetItems.htm?stype=ids&styleType=small&includeForecast=true"
         p = re.compile(r'<div class=".+?J_jupicker" data-item="(.+?)">', flags=re.S)
+        i = 0
         for floor_url in p.finditer(page):
+            i += 1
             f_url = getdata_url + '&juIds=' + floor_url.group(1)
-            self.getItemDataFromInterface(f_url, position)
+            position = self.getItemDataFromInterface(f_url, position, i)
 
     # 从接口获取商品数据列表
-    def getItemDataFromInterface(self, url, position):
+    def getItemDataFromInterface(self, url, position, floor_num=0):
         ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
         f_url = url + '&_ksTS=%s'%ts
         #print f_url
         f_page = self.crawler.getData(f_url, self.brandact_url)
+        pageKey = 'act-home-floor-%d'%floor_num
+        self.brandact_pages[pageKey] = (f_url, f_page)
         m = re.search(r'html\":\'(.+?)\'', f_page, flags=re.S)
         if m:
             f_html = m.group(1)
@@ -392,6 +404,7 @@ class JHSBActItem():
                 position += 1
                 val = self.itemByBrandPageType1(itemdata.group(1), position)
                 self.brandact_itemVal_list.append(val)
+        return position
 
     # 获取商品信息类型1
     def itemByBrandPageType1(self, itemdata, position):

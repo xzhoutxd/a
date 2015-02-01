@@ -205,6 +205,12 @@ class JHSBrand():
     
     # 多线程抓去品牌团活动
     def run_brandAct(self, act_valList):
+        # Test 只测前来两个
+        #act_test = []
+        #act_test.append(act_valList[0])
+        #act_test.append(act_valList[1])
+        #act_valList = act_test
+
         newact_num = 0
         ladygo_num = 0
         allitem_num = 0
@@ -231,7 +237,7 @@ class JHSBrand():
                             self.mysqlAccess.insertJhsAct(sql)
                             self.mysqlAccess.insertJhsActDayalive(daySql)
                             self.mysqlAccess.insertJhsActHouralive(hourSql)
-                            #print sql
+                            #print sql,daySql,hourSql
                             # 只抓取非俪人购商品
                             if int(brandact_sign) != 3:
                                 # Activity Items
