@@ -12,7 +12,6 @@ import Queue
 import traceback
 import base.Common as Common
 import base.Config as Config
-from memory_profiler import profile
 from base.TBCrawler import TBCrawler
 from db.MysqlAccess import MysqlAccess
 from JHSCrawlerM import JHSCrawlerM
