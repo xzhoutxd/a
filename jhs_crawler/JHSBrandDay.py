@@ -44,16 +44,23 @@ class JHSBrandDay():
             self.mysqlAccess.deleteJhsActDayalive(val)
             # 查找需要每天统计的活动列表
             act_results = self.mysqlAccess.selectJhsActDayalive(val)
-            print '# day act num:',len(act_results)
+            if act_results:
+                print '# day act num:',len(act_results)
+            else:
+                print '# day act not found..'
+                return None
             
             # 商品默认信息列表
             crawler_val_list = []
             for act_r in act_results:
                 # 按照活动Id找出商品信息
                 item_results = self.mysqlAccess.selectJhsItemsDayalive((act_r[0]))
-                print "# act id:%s name:%s Items num:%s"%(str(act_r[0]),str(act_r[1]),str(len(item_results)))
-                if len(item_results) > 0:
-                    crawler_val_list.append((act_r[0],act_r[1],item_results))
+                if item_results:
+                    print "# act id:%s name:%s Items num:%s"%(str(act_r[0]),str(act_r[1]),str(len(item_results)))
+                    if len(item_results) > 0:
+                        crawler_val_list.append((act_r[0],act_r[1],item_results))
+                else:
+                    print '# day act id:%s name:%s not find items...'%(str(act_r[0]),str(act_r[1]))
 
             # 多线程抓商品
             self.run_brandItems(crawler_val_list)
