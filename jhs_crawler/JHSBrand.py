@@ -159,7 +159,9 @@ class JHSBrand():
             f_catid, f_url, f_name = floor.group(1), floor.group(2), floor.group(3)
             if f_url != '':
                 print '# brand activity floor:', f_name, f_catid, f_url
-                url_valList.append((f_url, f_name, f_catid))
+                # 只抓时尚女士,精品男士
+                if int(f_catid) == 261000 or int(f_catid) == 262000:
+                    url_valList.append((f_url, f_name, f_catid))
         return url_valList
 
     # 通过数据接口获取每一页的数据

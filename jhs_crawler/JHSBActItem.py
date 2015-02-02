@@ -546,11 +546,11 @@ class JHSBActItem():
 
     # 每天抓取
     def outSqlForDay(self):
-        return (str(self.brandact_id),self.brandact_name,self.brandact_url,Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
+        return (str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,self.brandact_name,self.brandact_url,Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
 
     # 每小时抓取
     def outSqlForHour(self):
-        return (str(self.brandact_id),self.brandact_name,self.brandact_url,Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
+        return (str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,self.brandact_name,self.brandact_url,Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
 
     # 输出元组
     def outTuple(self):

@@ -52,7 +52,7 @@ class MysqlAccess():
     # 需要每天抓取的活动
     def insertJhsActDayalive(self, args):
         try:
-            sql = 'replace into nd_jhs_parser_activity_alive_day(act_id,act_name,act_url,_start_time,_end_time,c_begindate,c_beginhour) values(%s,%s,%s,%s,%s,%s,%s)'
+            sql = 'replace into nd_jhs_parser_activity_alive_day(act_id,category_id,category_name,act_name,act_url,_start_time,_end_time,c_begindate,c_beginhour) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
             self.jhs_db.execute(sql, args)
         except Exception, e:
             print '# insert Jhs alive act for day exception:', e
@@ -96,7 +96,7 @@ class MysqlAccess():
     # 需要小时抓取的活动
     def insertJhsActHouralive(self, args):
         try:
-            sql = 'replace into nd_jhs_parser_activity_alive_hour(act_id,act_name,act_url,_start_time,_end_time,c_begindate,c_beginhour) values(%s,%s,%s,%s,%s,%s,%s)'
+            sql = 'replace into nd_jhs_parser_activity_alive_hour(act_id,category_id,category_name,act_name,act_url,_start_time,_end_time,c_begindate,c_beginhour) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
             self.jhs_db.execute(sql, args)
         except Exception, e:
             print '# insert Jhs alive act for hour exception:', e
