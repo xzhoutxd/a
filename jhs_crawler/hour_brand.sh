@@ -2,4 +2,6 @@
 
 DATESTR=`date +"%Y%m%d%H"`
 
-/usr/bin/python /usr/local/ju_spider/jhs_crawler/JHSBrandHour.py > /usr/local/ju_spider/jhs_crawler/log/brand_hour/add_hourBrands_${DATESTR}.log
+DIR=/usr/local/ju_spider/jhs_crawler
+cd $DIR
+/usr/bin/python $DIR/JHSBrandHour.py > $DIR/log/brand_hour/add_hourBrands_${DATESTR}.log

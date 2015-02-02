@@ -34,6 +34,7 @@ class JHSBrandHour():
         self.crawling_time = Common.now() # 当前爬取时间
         self.begin_date = Common.today_s()
         self.begin_hour = Common.nowhour_s()
+        self.page_datepath = time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
 
         # 并发线程值
         self.item_max_th = 40 # 商品抓取时的最大线程

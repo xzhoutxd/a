@@ -490,11 +490,11 @@ class JHSBActItem():
             # 不抓俪人购的商品
             if self.brandact_sign != 3:
                 self.brandActItems()
+            # 保存html文件
+            page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
+            self.writeLog(page_datepath)
         else:
             self.crawling_confirm = 2
-
-        # 保存html文件
-        self.writeLog()
 
     # 即将上线的品牌团信息
     def antPageComing(self, val):
@@ -502,12 +502,16 @@ class JHSBActItem():
         self.initItemComing(page, catId, catName, position, begin_date, begin_hour)
         self.itemConfig()
         self.brandActConpons()
+        # 保存html文件
+        page_datepath = 'act/coming/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
+        self.writeLog(page_datepath)
 
     # 写html文件
-    def writeLog(self):
+    def writeLog(self, time_path):
         pages = self.outItemLog()
         for page in pages:
-            filepath = Config.pagePath + page[2]
+            filepath = Config.pagePath + time_path + page[2]
+            print filepath
             Config.createPath(filepath)
             #if not os.path.exists(filepath):
             #    os.mkdir(filepath)

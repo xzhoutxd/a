@@ -6,7 +6,7 @@ import Common
 
 ######################## 环境变量  ########################
 configPath= '../../config/'
-pagePath = '../../jhsdata/act/'
+pagePath = '../../jhsdata/page/'
 dataPath = '../../data/jhs/'
 imagePath = '../../image/qzj/'
 delim    = '\x01'

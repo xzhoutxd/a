@@ -262,6 +262,8 @@ class JHSItem():
             self.itemConfig()
             self.itemPromotiton()
             #self.getFromTMTBPage()
+            page_datepath = 'item/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
+            self.writeLog(page_datepath)
         except Exception as e:
             raise Common.InvalidPageException("# antPage: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
             #traceback.print_exc()
@@ -278,6 +280,8 @@ class JHSItem():
             self.item_pages['item-home-day'] = (self.item_ju_url, page)
             # 商品关注人数, 商品销售数量, 商品库存
             self.itemDynamic(page)
+            page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/", time.localtime(self.crawling_time))
+            self.writeLog(page_datepath)
 
         except Exception as e:
             raise Common.InvalidPageException("# antPageDay: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
@@ -293,6 +297,8 @@ class JHSItem():
             self.item_pages['item-home-hour'] = (self.item_ju_url, page)
             # 商品关注人数, 商品销售数量, 商品库存
             self.itemDynamic(page)
+            page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
+            self.writeLog(page_datepath)
 
         except Exception as e:
             raise Common.InvalidPageException("# antPageHour: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
@@ -329,14 +335,27 @@ class JHSItem():
         sql = self.outUpdateSqlForHour()
         return sql
 
+    # 写html文件
+    def writeLog(self,time_path):
+        pages = self.outItemLog()
+        for page in pages:
+            filepath = Config.pagePath + time_path + page[2]
+            Config.createPath(filepath)
+            #if not os.path.exists(filepath):
+            #    os.mkdir(filepath)
+            filename = filepath + page[0]
+            fout = open(filename, 'w')
+            fout.write(page[3])
+            fout.close()
+
     # 输出抓取的网页log
     def outItemLog(self):
         pages = []
         for p_tag in self.item_pages.keys():
-            p_url, p_content = p_val
+            p_url, p_content = self.item_pages[p_tag]
 
             # 网页文件名
-            f_path = '%s_item/%s' %(self.item_actId, self.item_juId)
+            f_path = '%s_item/%s/' %(self.item_actId, self.item_juId)
             f_name = '%s-%s_%s_%d.htm' %(self.item_actId, self.item_juId, p_tag, self.crawling_time)
 
             # 网页文件内容
