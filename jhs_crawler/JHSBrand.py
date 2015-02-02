@@ -137,6 +137,20 @@ class JHSBrand():
 
     # 品牌团页面模板2
     def activityListTemp2(self, page):
+        # 推荐
+        m = re.search(r'<div id="todayBrand".+?>.+?<div class="ju-itemlist">\s+<ul class="clearfix J_BrandList" data-spm="floor1">(.+?)</ul>', page, flags=re.S)
+        if m:
+            brand_list = m.group(1)
+            today_i = 0
+            p = re.compile(r'<li class="brand-mid-v2".+?>.+?<a.+?href="(.+?)".+?>.+?</li>', flags=re.S)
+            for act in p.finditer(brand_list):
+                act_url = act.group(1)
+                act_id = ''
+                today_i += 1
+                m = re.search(r'act_sign_id=(\d+)', act_url, flags=re.S)
+                if m:
+                    act_id = m.group(1)
+                print '# today brand: position:%s,id:%s,url:%s'%(str(today_i),str(act_id),act_url)
         # 获取数据接口的URL
         url_valList = []
         p = re.compile(r'<div id="(\d+)" class="l-floor J_Floor placeholder ju-wrapper" data-ajax="(.+?)">\s+<div class="l-f-title">\s+<div class="l-f-tbox">(.+?)</div>', flags=re.S)
@@ -205,7 +219,7 @@ class JHSBrand():
     
     # 多线程抓去品牌团活动
     def run_brandAct(self, act_valList):
-        # Test 只测前来两个
+        # Test 只测前两个
         #act_test = []
         #act_test.append(act_valList[0])
         #act_test.append(act_valList[1])
@@ -229,7 +243,7 @@ class JHSBrand():
                         brandact_itemVal_list = []
                         brandact_itemVal_list, sql, daySql, hourSql, crawling_confirm = b
                         brandact_id, brandact_name, brandact_url, brandact_sign = sql[1], sql[7], sql[8], sql[13]
-                        # 判断本活动是否需要爬取
+                        # 判断本活动是不是即将开团
                         if crawling_confirm == 1:
                             newact_num += 1
                             #print sql

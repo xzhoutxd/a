@@ -119,6 +119,7 @@ class JHSItemM(MyThread):
                     print text
                 print "exception traceback err:%s,%s,%s"%(tp,val,td)
                 print '#####--Traceback End--#####'
+                time.sleep(1)
                 #time.sleep((_data[0]+1)*random.uniform(10,30))
 
 if __name__ == '__main__':

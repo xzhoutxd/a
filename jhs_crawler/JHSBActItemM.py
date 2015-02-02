@@ -115,6 +115,7 @@ class JHSBActItemM(MyThread):
                     print text
                 print "exception traceback err:%s,%s,%s"%(tp,val,td)
                 print '#####--Traceback End--#####'
+                time.sleep(1)
 
 if __name__ == '__main__':
     pass
