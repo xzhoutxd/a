@@ -37,7 +37,7 @@ class JHSBrandHour():
         self.page_datepath = time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
 
         # 并发线程值
-        self.item_max_th = 40 # 商品抓取时的最大线程
+        self.item_max_th = 10 # 商品抓取时的最大线程
 
         # 每小时抓取的时间区间
         self.min_hourslot = -1 # 最小时间段
@@ -71,17 +71,19 @@ class JHSBrandHour():
             # 商品默认信息列表
             crawler_val_list = []
             for act_r in act_results:
-                starttime_TS = time.mktime(time.strptime(str(act_r[3]), "%Y-%m-%d %H:%M:%S"))
-                index = int(Common.subTS_hours(self.crawling_time, starttime_TS))
-                soldcount_name = 'item_soldcount_h%d'%index
-                # 按照活动Id找出商品信息
-                item_results = self.mysqlAccess.selectJhsItemsHouralive((str(act_r[0]),))
-                if item_results:
-                    print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s soldcountName:%s'%(str(act_r[0]),str(act_r[1]),str(act_r[3]),str(act_r[4]),str(len(item_results)),soldcount_name)
-                    if len(item_results) > 0:
-                        crawler_val_list.append((soldcount_name,act_r[0],act_r[1],item_results))
-                else:
-                    print '# hour act id:%s name:%s not find items...'%(str(act_r[0]),str(act_r[1]))
+                # 只抓时尚女士,精品男士
+                if int(act_r[1]) == 261000 or int(act_r[1]) == 262000:
+                    starttime_TS = time.mktime(time.strptime(str(act_r[5]), "%Y-%m-%d %H:%M:%S"))
+                    index = int(Common.subTS_hours(self.crawling_time, starttime_TS))
+                    soldcount_name = 'item_soldcount_h%d'%index
+                    # 按照活动Id找出商品信息
+                    item_results = self.mysqlAccess.selectJhsItemsHouralive((str(act_r[0]),))
+                    if item_results:
+                        print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s soldcountName:%s'%(str(act_r[0]),str(act_r[3]),str(act_r[5]),str(act_r[6]),str(len(item_results)),soldcount_name)
+                        if len(item_results) > 0:
+                            crawler_val_list.append((soldcount_name,act_r[0],act_r[3],item_results))
+                    else:
+                        print '# hour act id:%s name:%s not find items...'%(str(act_r[0]),str(act_r[3]))
 
             # 多线程抓商品
             self.run_brandItems(crawler_val_list)
