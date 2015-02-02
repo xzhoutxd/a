@@ -57,7 +57,7 @@ class JHSBrand():
 
         # 并发线程值
         self.act_max_th = 5 # 活动抓取时的最大线程
-        self.item_max_th = 30 # 商品抓取时的最大线程
+        self.item_max_th = 10 # 商品抓取时的最大线程
         
 
     def antPage(self):
