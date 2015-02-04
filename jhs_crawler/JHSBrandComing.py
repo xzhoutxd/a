@@ -44,6 +44,9 @@ class JHSBrandComing():
         # 页面信息
         self.ju_brand_page = '' # 聚划算品牌团页面
 
+        # 并发线程值
+        self.act_max_th = 10 # 活动抓取时的最大线程
+
         # 抓取开始时间
         self.begin_date = Common.today_s()
         self.begin_hour = Common.nowhour_s()
@@ -172,7 +175,7 @@ class JHSBrandComing():
 
         if len(act_valList) > 0:
             # 多线程爬取即将上线活动
-            m_Obj = JHSBActItemM(1)
+            m_Obj = JHSBActItemM(1, self.act_max_th)
             m_Obj.putItems(act_valList)
             m_Obj.createthread()
             m_Obj.run()
