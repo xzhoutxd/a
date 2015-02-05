@@ -79,6 +79,14 @@ class JHSBrandDay():
         except Exception as e:
             print '# exception err in antPage info:',e
 
+    def antPageForGiveup(self, crawler_val_list):
+        try:
+            # 多线程抓商品
+            self.run_brandItems(crawler_val_list)
+        except Exception as e:
+            print '# exception err in antPage info:',e
+
+
     # 多线程抓去品牌团商品
     def run_brandItems(self, crawler_val_list):
         for crawler_val in crawler_val_list:
@@ -105,6 +113,12 @@ class JHSBrandDay():
                             self.mysqlAccess.insertJhsItemForDay(item)
                             #print item
                         print '# day activity Items crawler end: actId:%s, actName:%s'%(brandact_id, brandact_name)
+
+                        # 重试次数太多没有抓下来的商品
+                        giveup_item_list = m_itemsObj.giveup_items
+                        print '# Give up items num:', len(giveup_item_list)
+                        if len(giveup_item_list) > 0:
+                            print '###give up###','actId:%s,actName:%s,'%(brandact_id, brandact_name),giveup_item_list,'###give up###'
                         break
                 except Exception as e:
                     print 'Unknown exception item for day result :', e

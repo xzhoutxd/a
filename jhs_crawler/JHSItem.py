@@ -170,7 +170,6 @@ class JHSItem():
             # 商品关注人数, 商品销售数量, 商品库存
             self.itemDynamic(i_page)
 
-    # 每天获取的商品信息
     def itemDynamic(self, page):
         # 商品关注人数, 商品销售数量, 商品库存
         i_getdata_url = ''
@@ -201,6 +200,13 @@ class JHSItem():
 
                 if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
                     self.item_isSoldout = 1
+        # 补充抓取想买人数
+        #if (self.item_remindNum == '' or int(self.item_remindNum) == 0) and self.item_pageData != '':
+        #    p = re.compile(r'<li class="item-small-v3">.+?<a href="(.+?)".+?>.+?<span class="sold-num">\s+<em class="J_soldnum">(.+?)</em>人想买\s*</span>.+?</li>', flags=re.S)
+        #    for item_g in p.finditer(self.item_pageData):
+        #        remindNum = item_g.group(1)
+        #        if remindNum != '' and int(remindNum) != 0:
+        #            self.item_remindNum = remindNum
 
     # 商品其他优惠信息
     def itemPromotiton(self):
@@ -280,10 +286,11 @@ class JHSItem():
             self.item_pages['item-home-day'] = (self.item_ju_url, page)
             # 商品关注人数, 商品销售数量, 商品库存
             self.itemDynamic(page)
-            page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/", time.localtime(self.crawling_time))
+            page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
             self.writeLog(page_datepath)
 
         except Exception as e:
+            print val
             raise Common.InvalidPageException("# antPageDay: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
 
     # Hour

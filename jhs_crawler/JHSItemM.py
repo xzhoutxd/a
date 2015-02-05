@@ -42,6 +42,9 @@ class JHSItemM(MyThread):
         # router tag
         self._tag = 'ikuai'
 
+        # give up item, retry too many times
+        self.giveup_items = []
+
     # To dial router
     def dialRouter(self, _type, _obj):
         try:
@@ -50,10 +53,9 @@ class JHSItemM(MyThread):
         except Exception as e:
             print '# To dial router exception :', e
 
-    def push_back(self, v):
+    def push_back(self, L, v):
         if self.mutex.acquire(1):
-            #L.append(v)
-            self.items.append(v)
+            L.append(v)
             self.mutex.release()
 
     def putItem(self, _item):
@@ -70,6 +72,7 @@ class JHSItemM(MyThread):
             _data = (_retry, _val)
             self.put_q(_data)
         else:
+            self.push_back(self.giveup_items, _val)
             print "# retry too many times, no get item:", _val
 
     # To crawl item
@@ -93,14 +96,14 @@ class JHSItemM(MyThread):
                     item.antPageDay(_val)
                     print '# Day To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
                     # 汇聚
-                    self.push_back(item.outTupleDay())
+                    self.push_back(self.items, item.outTupleDay())
                 else:
                     # 每小时一次商品实例
                     # _juid,act_id,act_name,act_url,_juname,_ju_url,_id,_url,_oriprice,_actprice = _val
                     item.antPageHour(_val)
                     print '# Hour To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
                     # 汇聚
-                    self.push_back(item.outUpdateTupleHour())
+                    self.push_back(self.items, item.outUpdateTupleHour())
 
                 # 通知queue, task结束
                 self.queue.task_done()
