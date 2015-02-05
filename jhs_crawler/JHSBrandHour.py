@@ -41,7 +41,7 @@ class JHSBrandHour():
 
         # 每小时抓取的时间区间
         self.min_hourslot = -1 # 最小时间段
-        self.max_hourslot = -24 # 最大时间段
+        self.max_hourslot = -25 # 最大时间段
 
     def antPage(self):
         try:

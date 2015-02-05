@@ -318,6 +318,10 @@ class JHSItem():
     def outSqlForHour(self):
         return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice))
 
+    # 输出每小时SQL
+    def outSqlForHourStock(self):
+        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice))
+
     # 每天的SQL
     def outSqlForDay(self):
         return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice),str(self.item_soldCount),str(self.item_stock))
@@ -325,6 +329,10 @@ class JHSItem():
     # 更新每小时SQL
     def outUpdateSqlForHour(self):
         return (str(self.item_soldCount),str(self.item_juId),str(self.item_actId))
+
+    # 更新每小时库存SQL
+    def outUpdateSqlForHourStock(self):
+        return (str(self.item_stock),str(self.item_juId),str(self.item_actId))
 
     # 输出Tuple
     def outTuple(self):
