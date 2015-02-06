@@ -76,12 +76,13 @@ class JHSBrandHour():
                     starttime_TS = time.mktime(time.strptime(str(act_r[5]), "%Y-%m-%d %H:%M:%S"))
                     index = int(Common.subTS_hours(self.crawling_time, starttime_TS))
                     soldcount_name = 'item_soldcount_h%d'%index
+                    hour_index = str(index)
                     # 按照活动Id找出商品信息
                     item_results = self.mysqlAccess.selectJhsItemsHouralive((str(act_r[0]),))
                     if item_results:
-                        print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s soldcountName:%s'%(str(act_r[0]),str(act_r[3]),str(act_r[5]),str(act_r[6]),str(len(item_results)),soldcount_name)
+                        print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s hour_index:%s'%(str(act_r[0]),str(act_r[3]),str(act_r[5]),str(act_r[6]),str(len(item_results)),hour_index)
                         if len(item_results) > 0:
-                            crawler_val_list.append((soldcount_name,act_r[0],act_r[3],item_results))
+                            crawler_val_list.append((hour_index,act_r[0],act_r[3],item_results))
                     else:
                         print '# hour act id:%s name:%s not find items...'%(str(act_r[0]),str(act_r[3]))
 
@@ -93,7 +94,7 @@ class JHSBrandHour():
     # 多线程抓去品牌团商品
     def run_brandItems(self, crawler_val_list):
         for crawler_val in crawler_val_list:
-            soldcount_name, brandact_id, brandact_name, item_valTuple = crawler_val
+            hour_index, brandact_id, brandact_name, item_valTuple = crawler_val
             print '# hour activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
 
             """
@@ -107,6 +108,7 @@ class JHSBrandHour():
             try:
                 print '# hour item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
                 for item in item_list:
+                    soldcount_name = 'item_soldcount_h%s'%hour_index
                     val = (soldcount_name,) + item
                     self.mysqlAccess.updateJhsItemSoldcountForHour(val)
                 print '# hour activity Items update end: actId:%s, actName:%s'%(brandact_id, brandact_name)
@@ -129,8 +131,13 @@ class JHSBrandHour():
                     if m_itemsObj.empty_q():
                         item_list = m_itemsObj.items
                         for item in item_list:
-                            val = (soldcount_name,) + item
-                            self.mysqlAccess.updateJhsItemSoldcountForHour(val)
+                            item_sold, item_stock = item
+                            soldcount_name = 'item_soldcount_h%s'%hour_index
+                            stock_name = 'item_stock_h%s'%hour_index
+                            soldcount_val = (soldcount_name,) + item_sold
+                            stock_val = (stock_name,) + item_stock
+                            self.mysqlAccess.updateJhsItemSoldcountForHour(soldcount_val)
+                            self.mysqlAccess.updateJhsItemStockForHour(stock_val)
                         print '# hour activity Items update end: actId:%s, actName:%s'%(brandact_id, brandact_name)
                         break
                 except Exception as e:

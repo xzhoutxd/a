@@ -313,10 +313,11 @@ class JHSBrand():
                     if m_itemsObj.empty_q():
                         item_list = m_itemsObj.items
                         for item in item_list:
-                            sql, hourSql = item
-                            #print sql,hourSql
+                            sql, hourSql, stockSql = item
+                            #print sql,hourSql,stockSql
                             self.mysqlAccess.insertJhsItem(sql)
                             self.mysqlAccess.insertJhsItemForHour(hourSql)
+                            self.mysqlAccess.insertJhsItemStockForHour(stockSql)
                         print '# Activity Item List End: actId:%s, actName:%s'%(brandact_id, brandact_name)
                         break
                 except Exception as e:

@@ -145,7 +145,7 @@ class MysqlAccess():
         except Exception, e:
             print '# insert Jhs Item for day exception:', e
 
-    # 每小时抓取商品
+    # 每小时抓取商品销量
     def insertJhsItemForHour(self, args):
         try:
             sql = 'replace into nd_jhs_parser_item_hour(crawl_time,item_juid,act_id,act_name,act_url,item_juname,item_ju_url,item_id,item_url,item_oriprice,item_actprice) value(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
@@ -159,7 +159,23 @@ class MysqlAccess():
             sql = 'update nd_jhs_parser_item_hour set %s=%s where item_juid = %s and act_id = %s'%args
             self.jhs_db.execute(sql)
         except Exception, e:
-            print '# update Jhs Item for hour exception:', e
+            print '# update Jhs Item sales for hour exception:', e
+
+    # 每小时抓取商品库存
+    def insertJhsItemStockForHour(self, args):
+        try:
+            sql = 'replace into nd_jhs_parser_item_stock_h(crawl_time,item_juid,act_id,act_name,act_url,item_juname,item_ju_url,item_id,item_url,item_oriprice,item_actprice) value(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            self.jhs_db.execute(sql, args)
+        except Exception, e:
+            print '# insert Jhs Item stock for hour exception:', e
+
+    # 更新每小时商品库存
+    def updateJhsItemStockForHour(self, args):
+        try:
+            sql = 'update nd_jhs_parser_item_stock_h set %s=%s where item_juid = %s and act_id = %s'%args
+            self.jhs_db.execute(sql)
+        except Exception, e:
+            print '# update Jhs Item stock for hour exception:', e
 
 if __name__ == '__main__':
     my = MysqlAccess()
