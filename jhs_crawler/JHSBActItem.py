@@ -496,6 +496,26 @@ class JHSBActItem():
         else:
             self.crawling_confirm = 2
 
+    # 品牌团页面所有商品
+    def antPageHourcheck(self, val):
+        #page, catId, catName, position, begin_date, begin_hour, home_brands = val
+        try:
+            self.brandact_id, self.brandact_name, self.brandact_url = val
+            # 品牌团页面html
+            if self.brandact_url != '':
+                data = self.crawler.getData(self.brandact_url, Config.ju_brand_home)
+                if not data and data == '': raise Common.InvalidPageException("# antPageHourcheck:not find act page,actid:%s,act_url:%s"%(str(self.brandact_id), self.brandact_url))
+                if data and data != '':
+                    self.brandact_page = data
+                    self.brandact_pages['act-home'] = (self.brandact_url, data)
+
+                    self.brandActItems()
+            # 保存html文件
+            page_datepath = 'act/hourcheck/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
+            self.writeLog(page_datepath)
+        except Exception as e:
+            raise Common.InvalidPageException("# antPageHourcheck: actid:%s,actname:%s,act_url:%s,info:%s"%(str(self.brandact_id), self.brandact_name, self.brandact_url, e))
+
     # 即将上线的品牌团信息
     def antPageComing(self, val):
         page, catId, catName, position, begin_date, begin_hour = val
@@ -558,6 +578,10 @@ class JHSBActItem():
         day_sql = self.outSqlForDay()
         hour_sql = self.outSqlForHour()
         return (self.brandact_itemVal_list, main_sql, day_sql, hour_sql, self.crawling_confirm)
+
+    # 输出每小时检查活动的元组
+    def outTupleForHourcheck(self):
+        return (self.brandact_id, self.brandact_name, self.brandact_url, self.brandact_itemVal_list)
 
     def outItem(self):
         print 'self.brandact_platform,self.brandact_channel,self.crawling_time,self.brandact_catgoryId,self.brandact_catgoryName,self.brandact_position,self.brandact_id,self.brandact_url,self.brandact_name,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_starttime,self.brandact_endtime,self.brandact_status,self.brandact_sign,self.brandact_other_ids,self.brandact_sellerId,self.brandact_sellerName,self.brandact_shopId,self.brandact_shopName,self.brandact_soldCount,self.brandact_remindNum,self.brandact_discount,self.brandact_coupon,self.brandact_coupons'

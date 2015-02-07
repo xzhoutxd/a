@@ -183,8 +183,9 @@ class JHSBrandComing():
                 try:
                     if m_Obj.empty_q():
                         item_list = m_Obj.items
-                        for item in item_list:
-                            self.mysqlAccess.insertJhsActComing(item.outSqlForComing())
+                        for itemsql in item_list:
+                            #self.mysqlAccess.insertJhsActComing(item.outSqlForComing())
+                            self.mysqlAccess.insertJhsActComing(itemsql)
                             #print item.outSqlForComing()
                         print '# Coming Activity List End'
                         break

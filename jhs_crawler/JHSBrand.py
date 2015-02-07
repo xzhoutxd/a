@@ -276,13 +276,7 @@ class JHSBrand():
             except Exception as e:
                 print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e 
                 #traceback.print_exc()
-                print '#####--Traceback Start--#####'
-                tp,val,td = sys.exc_info()
-                for file, lineno, function, text in traceback.extract_tb(td):
-                    print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
-                    print text
-                print "exception traceback err:%s,%s,%s"%(tp,val,td)
-                print '#####--Traceback End--#####'
+                self.traceback_log()
                 break
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# All brand activity num:', len(act_valList)
@@ -312,6 +306,7 @@ class JHSBrand():
                     print '# Item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
                     if m_itemsObj.empty_q():
                         item_list = m_itemsObj.items
+                        print '# Activity Items num:', len(item_list)
                         for item in item_list:
                             sql, hourSql, stockSql = item
                             #print sql,hourSql,stockSql
@@ -323,49 +318,19 @@ class JHSBrand():
                 except Exception as e:
                     print '# exception err crawl item: ', e
                     print '# crawler_val:', crawler_val
-                    print '#####--Traceback Start--#####'
-                    tp,val,td = sys.exc_info()
-                    for file, lineno, function, text in traceback.extract_tb(td):
-                        print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
-                        print text
-                    print "exception traceback err:%s,%s,%s"%(tp,val,td)
-                    print '#####--Traceback End--#####'
                     #traceback.print_exc()
+                    self.traceback_log()
                     break
 
-        """
-            self.itemcrawler_queue.put((brandact_id, brandact_name, m_itemsObj))
-            m_itemsObj.putItems(item_valTuple)
-            m_itemsObj.createthread()
-            m_itemsObj.run()
-            i += 1
-            if i % self.gap_num == 0 or i == len(crawler_val_list):
-                while True:
-                    try:
-                        #print 'item queue'
-                        # 队列为空，退出
-                        if self.itemcrawler_queue.empty(): break
-                        _item = self.itemcrawler_queue.get()
-                        actid, actname, obj = _item
-                        print '# Item Check: actId:%s, actName:%s'%(actid, actname)
-                        if obj.empty_q():
-                            item_list = obj.items
-                            for item in item_list:
-                                sql, hourSql = item
-                                #self.mysqlAccess.insertJhsItem(item.outSql())
-                                self.mysqlAccess.insertJhsItem(sql)
-                                self.mysqlAccess.insertJhsItemForHour(hourSql)
-                            #del obj
-                            #del item_list
-                            print '# Activity Item List End: actId:%s, actName:%s'%(actid, actname)
-                            break
-                        else:
-                            self.itemcrawler_queue.put(_item)
-                    except Exception as e:
-                        print '# exception err crawl item: ', e
-                        traceback.print_exc()
-                        break
-        """
+    def traceback_log(self):
+        print '#####--Traceback Start--#####'
+        tp,val,td = sys.exc_info()
+        for file, lineno, function, text in traceback.extract_tb(td):
+            print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
+            print text
+        print "exception traceback err:%s,%s,%s"%(tp,val,td)
+        print '#####--Traceback End--#####'
+
 
 if __name__ == '__main__':
     pass

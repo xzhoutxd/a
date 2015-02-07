@@ -42,12 +42,29 @@ class MysqlAccess():
         except Exception, e:
             print '# insert Jhs Act for Coming soon exception:', e
 
+    # 按照活动Id查找商品Id
+    def selectJhsItemIdsOfActId(self, args):
+        try:
+            sql = 'select item_juid from nd_jhs_parser_item where act_id = %s'
+            return self.jhs_db.select(sql, args)
+        except Exception, e:
+            print '# select act items exception:', e
+
     # 执行SQL
     def executeSql(self, sql):
         try:
             self.jhs_db.execute(sql)
         except Exception, e:
             print '# execute Sql exception:', e
+
+    # 查找还没有结束的活动
+    def selectJhsActAlive(self, args):
+        # 非俪人购
+        try:
+            sql = 'select * from nd_jhs_parser_activity where end_time > %s and start_time < %s and act_sign != 3' 
+            return self.jhs_db.select(sql, args)
+        except Exception, e:
+            print '# select Jhs alive act exception:', e
 
     # 需要每天抓取的活动
     def insertJhsActDayalive(self, args):

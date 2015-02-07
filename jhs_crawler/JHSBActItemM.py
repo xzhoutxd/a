@@ -28,7 +28,7 @@ class JHSBActItemM(MyThread):
         self.mutex      = threading.Lock()
 
         # jhs queue type
-        self.jhs_type   = jhs_type # 1:即将上线品牌团频道页
+        self.jhs_type   = jhs_type # 1:即将上线品牌团频道页,2:检查每天还没结束的活动
         
         # activity items
         self.items      = []
@@ -51,9 +51,10 @@ class JHSBActItemM(MyThread):
         except Exception as e:
             print '# To dial router exception :', e
 
-    def push_back(self, v):
+    def push_back(self, L, v):
         if self.mutex.acquire(1):
-            self.items.append(v)
+            #self.items.append(v)
+            L.append(v)
             self.mutex.release()
 
     def putItem(self, _item):
@@ -90,10 +91,21 @@ class JHSBActItemM(MyThread):
                     # 信息处理
                     _val  = _data[1]
                     item.antPageComing(_val)
-                    time.sleep(1)
                     print '# To crawl coming activity val : ', Common.now_s(), _val[1], _val[2]
                     # 汇聚
-                    self.push_back(item)
+                    self.push_back(self.items, item.outSqlForComing())
+                elif self.jhs_type == 2:
+                    # 品牌团实例
+                    # _catid, _catname, _caturl = _val
+                    item = JHSBActItem()
+
+                    # 信息处理
+                    _val  = _data[1]
+                    item.antPageHourcheck(_val)
+                    print '# To check activity val : ', Common.now_s(), _val[0], _val[1]
+                    # 汇聚
+                    self.push_back(self.items, item.outTupleForHourcheck())
+                
                     
                 # 通知queue, task结束
                 self.queue.task_done()
@@ -102,7 +114,7 @@ class JHSBActItemM(MyThread):
             except Exception as e:
                 self.crawlRetry(_data)
                 # 重新拨号
-                if self.jhs_type == 1:
+                if self.jhs_type == 1 or self.jhs_type == 2:
                     self.dialRouter(4, 'chn')
                 #time.sleep(random.uniform(10,30))
 
