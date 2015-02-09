@@ -40,10 +40,13 @@ class JHSBrandCheck():
         # 需要检查的活动
         self.act_dict = {}
 
+        # 即将开团的最小时间
+        self.min_hourslot = 1 # 最小时间段
+
     def antPage(self):
         try:
             # 得到需要的时间段
-            val = (Common.time_s(self.crawling_time),Common.time_s(self.crawling_time))
+            val = (Common.time_s(self.crawling_time),Common.add_hours(self.crawling_time, self.min_hourslot))
             print '# hour need check activity time:',val
             act_results = self.mysqlAccess.selectJhsActAlive(val)
             if act_results:
