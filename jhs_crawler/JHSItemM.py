@@ -109,6 +109,9 @@ class JHSItemM(MyThread):
                 self.queue.task_done()
 
             except Exception as e:
+                # 通知queue, task结束
+                self.queue.task_done()
+
                 self.crawlRetry(_data)
                 # 重新拨号
                 self.dialRouter(4, 'item')

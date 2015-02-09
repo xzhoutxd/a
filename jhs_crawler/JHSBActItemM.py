@@ -112,6 +112,9 @@ class JHSBActItemM(MyThread):
 
                 time.sleep(1)
             except Exception as e:
+                # 通知queue, task结束
+                self.queue.task_done()
+
                 self.crawlRetry(_data)
                 # 重新拨号
                 if self.jhs_type == 1 or self.jhs_type == 2:
