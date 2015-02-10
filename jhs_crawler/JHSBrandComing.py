@@ -174,11 +174,14 @@ class JHSBrandComing():
                     act_valList.append((activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self.begin_hour))
 
         if len(act_valList) > 0:
-            # 多线程爬取即将上线活动
-            m_Obj = JHSBActItemM(1, self.act_max_th)
-            m_Obj.putItems(act_valList)
-            m_Obj.createthread()
-            m_Obj.run()
+            try:
+                # 多线程爬取即将上线活动
+                m_Obj = JHSBActItemM(1, self.act_max_th)
+                m_Obj.putItems(act_valList)
+                m_Obj.createthread()
+                m_Obj.run()
+            except Exception as e:
+                print '# exception err brand coming :', e
             while True:
                 try:
                     if m_Obj.empty_q():
