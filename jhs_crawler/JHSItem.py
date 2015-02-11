@@ -130,37 +130,52 @@ class JHSItem():
                     self.item_url = m.group(1)
 
             # 商品卖家Id, 商品卖家Name
-            m = re.search(r'<div class="con inf-seller">\s+<a href=".+?user_number_id=(.+?)".+?>(.+?)</a>\s+</div>', i_page, flags=re.S)
+            m = re.search(r'<a class="sellername" href=".+?user_number_id=(.+?)".+?>(.+?)</a>', i_page, flags=re.S)
             if m:
                 self.item_sellerId, self.item_sellerName = m.group(1), m.group(2)
+            else:
+                m = re.search(r'<a href=".+?user_number_id=(.+?)".+?>(.+?)</a>', i_page, flags=re.S)
+                if m:
+                    self.item_sellerId, self.item_sellerName = m.group(1), m.group(2)
 
             # 商品聚划算Name
-            m = re.search(r'<h2 class="name">(.+?)</h2>', i_page, flags=re.S)
+            m = re.search(r'<h2 class="[name|title]+">(.+?)</h2>', i_page, flags=re.S)
             if m:
                 self.item_juName = m.group(1).strip()
+            else:
+                m = re.search(r'data-shortName="(.+?)"', i_page, flags=re.S)
+                if m:
+                    self.item_juName = m.group(1)
+                else:
+                    m = re.search(r'<title>(.+?)-(.+?)</title>', i_page, flags=re.S)
+                    if m:
+                        self.item_juName = m.group(1)
 
             # 商品聚划算说明
             m = re.search(r'<div class="description">(.+?)</div>', i_page, flags=re.S)
             if m:
-                self.item_juDesc = m.group(1).strip()
+                description = Common.htmlContent(m.group(1).strip())
+                self.item_juDesc = ' '.join(description.split())
 
             # 商品原价
-            m = re.search(r'<del class="originPrice">(.+?)</del>', i_page, flags=re.S)
+            m = re.search(r'<.+? class="originPrice">(.+?)</.+?>', i_page, flags=re.S)
             if m:
                 self.item_oriPrice = m.group(1).strip()
                 if self.item_oriPrice.find(';') != -1:
                     self.item_oriPrice = self.item_oriPrice.split(';')[1]
             else:
-                m = re.search(r'<span class="originPrice">(.+?)</span>', i_page, flags=re.S)
+                m = re.search(r'data-originalprice="(.+?)"', i_page, flags=re.S)
                 if m:
-                    self.item_oriPrice = m.group(1).strip()
-                    if self.item_oriPrice.find(';') != -1:
-                        self.item_oriPrice = self.item_oriPrice.split(';')[1]
+                    self.item_oriPrice = m.group(1)
 
             # 商品活动价
-            m = re.search(r'<span class="currentPrice.+?>.+?</small>(.+?)</span>', i_page, flags=re.S)
+            m = re.search(r'<.+? class="currentPrice.+?>.+?</small>(.+?)</.+?>', i_page, flags=re.S)
             if m:
                 self.item_actPrice = m.group(1).strip()
+            else:
+                m = re.search(r'data-itemprice="(.+?)"', i_page, flags=re.S)
+                if m:
+                    self.item_actPrice = m.group(1)
 
             # 商品打折
             m = re.search(r'data-polldiscount="(.+?)"', i_page, flags=re.S)
