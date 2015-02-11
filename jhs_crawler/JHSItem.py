@@ -139,17 +139,18 @@ class JHSItem():
                     self.item_sellerId, self.item_sellerName = m.group(1), m.group(2)
 
             # 商品聚划算Name
-            m = re.search(r'<h2 class="[name|title]+">(.+?)</h2>', i_page, flags=re.S)
+
+            m = re.search(r'<title>(.+?)-(.+?)</title>', i_page, flags=re.S)
             if m:
-                self.item_juName = m.group(1).strip()
+                self.item_juName = m.group(1)
             else:
                 m = re.search(r'data-shortName="(.+?)"', i_page, flags=re.S)
                 if m:
                     self.item_juName = m.group(1)
                 else:
-                    m = re.search(r'<title>(.+?)-(.+?)</title>', i_page, flags=re.S)
+                    m = re.search(r'<h2 class="[name|title]+">(.+?)</h2>', i_page, flags=re.S)
                     if m:
-                        self.item_juName = m.group(1)
+                        self.item_juName = m.group(1).strip()
 
             # 商品聚划算说明
             m = re.search(r'<div class="description">(.+?)</div>', i_page, flags=re.S)
