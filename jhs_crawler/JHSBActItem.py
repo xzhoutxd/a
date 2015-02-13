@@ -505,6 +505,7 @@ class JHSBActItem():
         self.brandact_id, self.brandact_name, self.brandact_url = val
         # 品牌团页面html
         self.brandPage()
+        self.brandActItems()
         # 保存html文件
         page_datepath = 'act/hourcheck/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
         self.writeLog(page_datepath)
