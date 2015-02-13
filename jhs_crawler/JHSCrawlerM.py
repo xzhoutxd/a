@@ -108,6 +108,28 @@ class JHSCrawlerM(MyThread):
                 # 通知queue, task结束
                 self.queue.task_done()
 
+            except Common.NoActivityException as e:
+                # 通知queue, task结束
+                self.queue.task_done()
+                print 'Not activity exception :', e
+
+            except Common.NoItemException as e:
+                # 通知queue, task结束
+                self.queue.task_done()
+                print 'Not item exception :', e
+
+            except Common.NoPageException as e:
+                # 通知queue, task结束
+                self.queue.task_done()
+                print 'Not page exception :', e
+
+            except Common.InvalidPageException as e:
+                # 通知queue, task结束
+                self.queue.task_done()
+
+                self.crawlRetry(_data)
+                print 'Invalid page exception :', e
+
             except Exception as e:
                 # 通知queue, task结束
                 self.queue.task_done()
@@ -121,7 +143,6 @@ class JHSCrawlerM(MyThread):
                 #time.sleep(random.uniform(10,30))
 
                 print 'Unknown exception crawl item :', e
-                #traceback.print_exc()
                 print '#####--Traceback Start--#####'
                 tp,val,td = sys.exc_info()
                 for file, lineno, function, text in traceback.extract_tb(td):

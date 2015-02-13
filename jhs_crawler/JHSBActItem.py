@@ -194,8 +194,12 @@ class JHSBActItem():
             elif self.home_brands.has_key(key2):
                 self.brandact_inJuHome = 1
                 self.brandact_juHome_position = self.home_brands[key2]['position']
-        
+
         # 品牌团页面html
+        self.brandPage()
+
+    # 品牌团页面html
+    def brandPage(self):
         if self.brandact_url != '':
             data = self.crawler.getData(self.brandact_url, Config.ju_brand_home)
             if not data and data == '': raise Common.InvalidPageException("# itemConfig:not find act page,actid:%s,act_url:%s"%(str(self.brandact_id), self.brandact_url))
@@ -480,71 +484,57 @@ class JHSBActItem():
 
     # 品牌团信息和其中商品基本信息
     def antPage(self, val):
-        try:
-            page, catId, catName, position, begin_date, begin_hour, home_brands = val
-            self.initItem(page, catId, catName, position, begin_date, begin_hour, home_brands)
-            self.itemConfig()
-            # 只爬一段时间内要开团的活动
-            time_gap = Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time)
-            if self.beginH_gap > time_gap and 0 <= time_gap:
-                self.brandActConpons()
-                # 不抓俪人购的商品
-                if self.brandact_sign != 3:
-                    self.brandActItems()
-                # 保存html文件
-                page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-                self.writeLog(page_datepath)
-            else:
-                self.crawling_confirm = 2
-        except Exception as e:
-            raise Common.InvalidPageException("# antPage: actid:%s,actname:%s,act_url:%s,info:%s"%(str(self.brandact_id), self.brandact_name, self.brandact_url, e))
+        page, catId, catName, position, begin_date, begin_hour, home_brands = val
+        self.initItem(page, catId, catName, position, begin_date, begin_hour, home_brands)
+        self.itemConfig()
+        # 只爬一段时间内要开团的活动
+        time_gap = Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time)
+        if self.beginH_gap > time_gap and 0 <= time_gap:
+            self.brandActConpons()
+            # 不抓俪人购的商品
+            if self.brandact_sign != 3:
+                self.brandActItems()
+            # 保存html文件
+            page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
+            self.writeLog(page_datepath)
+        else:
+            self.crawling_confirm = 2
 
     # 品牌团页面所有商品
     def antPageHourcheck(self, val):
-        #page, catId, catName, position, begin_date, begin_hour, home_brands = val
-        try:
-            self.brandact_id, self.brandact_name, self.brandact_url = val
-            # 品牌团页面html
-            if self.brandact_url != '':
-                data = self.crawler.getData(self.brandact_url, Config.ju_brand_home)
-                if not data and data == '': raise Common.InvalidPageException("# antPageHourcheck:not find act page,actid:%s,act_url:%s"%(str(self.brandact_id), self.brandact_url))
-                if data and data != '':
-                    self.brandact_page = data
-                    self.brandact_pages['act-home'] = (self.brandact_url, data)
-
-                    self.brandActItems()
-            # 保存html文件
-            page_datepath = 'act/hourcheck/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-            self.writeLog(page_datepath)
-        except Exception as e:
-            raise Common.InvalidPageException("# antPageHourcheck: actid:%s,actname:%s,act_url:%s,info:%s"%(str(self.brandact_id), self.brandact_name, self.brandact_url, e))
+        self.brandact_id, self.brandact_name, self.brandact_url = val
+        # 品牌团页面html
+        self.brandPage()
+        # 保存html文件
+        page_datepath = 'act/hourcheck/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
+        self.writeLog(page_datepath)
 
     # 即将上线的品牌团信息
     def antPageComing(self, val):
-        try:
-            page, catId, catName, position, begin_date, begin_hour = val
-            self.initItemComing(page, catId, catName, position, begin_date, begin_hour)
-            self.itemConfig()
-            self.brandActConpons()
-            # 保存html文件
-            page_datepath = 'act/coming/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-            self.writeLog(page_datepath)
-        except Exception as e:
-            raise Common.InvalidPageException("# antPageComing: actid:%s,actname:%s,act_url:%s,info:%s"%(str(self.brandact_id), self.brandact_name, self.brandact_url, e))
+        page, catId, catName, position, begin_date, begin_hour = val
+        self.initItemComing(page, catId, catName, position, begin_date, begin_hour)
+        self.itemConfig()
+        self.brandActConpons()
+        # 保存html文件
+        page_datepath = 'act/coming/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
+        self.writeLog(page_datepath)
 
     # 写html文件
     def writeLog(self, time_path):
-        pages = self.outItemLog()
-        for page in pages:
-            filepath = Config.pagePath + time_path + page[2]
-            print filepath
-            Config.createPath(filepath)
-            #if not os.path.exists(filepath):
-            #    os.mkdir(filepath)
-            filename = filepath + page[0]
-            fout = open(filename, 'w')
-            fout.write(page[3])
-            fout.close()
+        try:
+            pages = self.outItemLog()
+            for page in pages:
+                filepath = Config.pagePath + time_path + page[2]
+                print filepath
+                Config.createPath(filepath)
+                #if not os.path.exists(filepath):
+                #    os.mkdir(filepath)
+                filename = filepath + page[0]
+                fout = open(filename, 'w')
+                fout.write(page[3])
+                fout.close()
+        except Exception as e:
+            print '# exception err in writeLog info:',e
 
     # 输出抓取的网页log
     def outItemLog(self):

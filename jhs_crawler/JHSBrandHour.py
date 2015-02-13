@@ -27,9 +27,6 @@ class JHSBrandHour():
         # 抓取设置
         self.crawler    = TBCrawler()
 
-        # 商品抓取队列
-        self.itemcrawler_queue = Queue.Queue()
-
         # 抓取开始时间
         self.crawling_time = Common.now() # 当前爬取时间
         self.begin_date = Common.today_s()
@@ -40,7 +37,7 @@ class JHSBrandHour():
         self.item_max_th = 10 # 商品抓取时的最大线程
 
         # 每小时抓取的时间区间
-        self.min_hourslot = -1 # 最小时间段
+        self.min_hourslot = 0 # 最小时间段
         self.max_hourslot = -25 # 最大时间段
 
     def antPage(self):
@@ -133,11 +130,17 @@ class JHSBrandHour():
                         for item in item_list:
                             item_sold, item_stock = item
                             soldcount_name = 'item_soldcount_h%s'%hour_index
-                            stock_name = 'item_stock_h%s'%hour_index
                             soldcount_val = (soldcount_name,) + item_sold
+                            if item_sold[0]:
+                                self.mysqlAccess.updateJhsItemSoldcountForHour(soldcount_val)
+                            else:
+                                print '# hour item sold count is none: ',soldcount_val
+                            stock_name = 'item_stock_h%s'%hour_index
                             stock_val = (stock_name,) + item_stock
-                            self.mysqlAccess.updateJhsItemSoldcountForHour(soldcount_val)
-                            self.mysqlAccess.updateJhsItemStockForHour(stock_val)
+                            if item_stock[0]:
+                                self.mysqlAccess.updateJhsItemStockForHour(stock_val)
+                            else:
+                                print '# hour item stock is none: ',stock_val
                         print '# hour activity Items update end: actId:%s, actName:%s'%(brandact_id, brandact_name)
                         break
                 except Exception as e:

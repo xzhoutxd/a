@@ -96,95 +96,103 @@ class JHSItem():
         # 聚划算商品页信息
         page = self.crawler.getData(self.item_ju_url, self.item_act_url)
         if not page or page == '': raise Common.InvalidPageException("# itemConfig: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-        if page and page != '':
-            self.item_juPage = page
-            self.item_pages['item-home'] = (self.item_ju_url, page)
-            m = re.search(r'<div id="content" class="detail">(.+?)</div> <!-- /content -->', page, flags=re.S)
+
+        if re.search(r'<title>【聚划算】无所不能聚</title>', page, flags=re.S):
+            raise Common.InvalidPageException("# itemConfig: not find ju item page, redirecting to juhuasuan home,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+        elif type(crawler.history) is list and re.search(r'302',self.crawler.history[0]):
+            raise Common.InvalidPageException("# itemConfig: not find ju item page, redirecting to other page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+
+
+        self.item_juPage = page
+        self.item_pages['item-home'] = (self.item_ju_url, page)
+        m = re.search(r'<div id="content" class="detail">(.+?)</div> <!-- /content -->', page, flags=re.S)
+        if m:
+            i_page = m.group(1)
+        else:
+            i_page = page
+
+        # 商品Id, 商品聚划算Id, 商品店铺类型 
+        m = re.search(r'JU_DETAIL_DYNAMIC = {(.+?)};', i_page, flags=re.S)
+        if m:
+            m = re.search(r'"item_id": "(.+?)",.+?"id": "(.+?)",.+?"shopType": (.+?)\s+', i_page, flags=re.S)
             if m:
-                i_page = m.group(1)
+                self.item_id, self.item_juId, self.item_shopType = m.group(1), m.group(2), m.group(3)
+
+        # 商品图片
+        if self.item_juPic_url == '':
+            m = re.search(r'<div class="item-pic-wrap">.+?<img.+?src="(.+?)".+?/>', i_page, flags=re.S)
+            if m:
+                self.item_juPic_url = m.group(1)
             else:
-                i_page = page
-            # 商品Id, 商品聚划算Id, 商品店铺类型 
-            m = re.search(r'JU_DETAIL_DYNAMIC = {(.+?)};', i_page, flags=re.S)
-            if m:
-                m = re.search(r'"item_id": "(.+?)",.+?"id": "(.+?)",.+?"shopType": (.+?)\s+', i_page, flags=re.S)
-                if m:
-                    self.item_id, self.item_juId, self.item_shopType = m.group(1), m.group(2), m.group(3)
-            # 商品图片
-            if self.item_juPic_url == '':
-                m = re.search(r'<div class="item-pic-wrap">.+?<img.+?src="(.+?)".+?/>', i_page, flags=re.S)
+                m = re.search(r'<div class="normal-pic.+?<img.+?data-ks-imagezoom="(.+?)".+?/>', i_page, flags=re.S)
                 if m:
                     self.item_juPic_url = m.group(1)
-                else:
-                    m = re.search(r'<div class="normal-pic.+?<img.+?data-ks-imagezoom="(.+?)".+?/>', i_page, flags=re.S)
-                    if m:
-                        self.item_juPic_url = m.group(1)
 
-            # 商品链接
-            m = re.search(r'<div class="normal-pic.+?<a href="(.+?)".+?>', i_page, flags=re.S)
+        # 商品链接
+        m = re.search(r'<div class="normal-pic.+?<a href="(.+?)".+?>', i_page, flags=re.S)
+        if m:
+            self.item_url = m.group(1)
+        else:
+            m = re.search(r'<div class="pic-box soldout".+?<a href="(.+?)".+?>', i_page, flags=re.S)
             if m:
                 self.item_url = m.group(1)
-            else:
-                m = re.search(r'<div class="pic-box soldout".+?<a href="(.+?)".+?>', i_page, flags=re.S)
-                if m:
-                    self.item_url = m.group(1)
 
-            # 商品卖家Id, 商品卖家Name
-            m = re.search(r'<a class="sellername" href=".+?user_number_id=(.+?)".+?>(.+?)</a>', i_page, flags=re.S)
+        # 商品卖家Id, 商品卖家Name
+        m = re.search(r'<a class="sellername" href=".+?user_number_id=(.+?)".+?>(.+?)</a>', i_page, flags=re.S)
+        if m:
+            self.item_sellerId, self.item_sellerName = m.group(1), m.group(2)
+        else:
+            m = re.search(r'<a href=".+?user_number_id=(.+?)".+?>(.+?)</a>', i_page, flags=re.S)
             if m:
                 self.item_sellerId, self.item_sellerName = m.group(1), m.group(2)
-            else:
-                m = re.search(r'<a href=".+?user_number_id=(.+?)".+?>(.+?)</a>', i_page, flags=re.S)
-                if m:
-                    self.item_sellerId, self.item_sellerName = m.group(1), m.group(2)
 
-            # 商品聚划算Name
-
-            m = re.search(r'<title>(.+?)-(.+?)</title>', i_page, flags=re.S)
+        # 商品聚划算Name
+        m = re.search(r'<title>(.+?)-(.+?)</title>', i_page, flags=re.S)
+        if m:
+            self.item_juName = m.group(1)
+        else:
+            m = re.search(r'data-shortName="(.+?)"', i_page, flags=re.S)
             if m:
                 self.item_juName = m.group(1)
             else:
-                m = re.search(r'data-shortName="(.+?)"', i_page, flags=re.S)
+                m = re.search(r'<h2 class="[name|title]+">(.+?)</h2>', i_page, flags=re.S)
                 if m:
-                    self.item_juName = m.group(1)
-                else:
-                    m = re.search(r'<h2 class="[name|title]+">(.+?)</h2>', i_page, flags=re.S)
-                    if m:
-                        self.item_juName = m.group(1).strip()
+                    self.item_juName = m.group(1).strip()
 
-            # 商品聚划算说明
-            m = re.search(r'<div class="description">(.+?)</div>', i_page, flags=re.S)
+        # 商品聚划算说明
+        m = re.search(r'<div class="description">(.+?)</div>', i_page, flags=re.S)
+        if m:
+            description = Common.htmlContent(m.group(1).strip())
+            self.item_juDesc = ' '.join(description.split())
+
+        # 商品原价
+        m = re.search(r'<.+? class="originPrice">(.+?)</.+?>', i_page, flags=re.S)
+        if m:
+            self.item_oriPrice = m.group(1).strip()
+            if self.item_oriPrice.find(';') != -1:
+                self.item_oriPrice = self.item_oriPrice.split(';')[1]
+        else:
+            m = re.search(r'data-originalprice="(.+?)"', i_page, flags=re.S)
             if m:
-                description = Common.htmlContent(m.group(1).strip())
-                self.item_juDesc = ' '.join(description.split())
+                self.item_oriPrice = m.group(1)
 
-            # 商品原价
-            m = re.search(r'<.+? class="originPrice">(.+?)</.+?>', i_page, flags=re.S)
+        # 商品活动价
+        m = re.search(r'<.+? class="currentPrice.+?>.+?</small>(.+?)</.+?>', i_page, flags=re.S)
+        if m:
+            self.item_actPrice = m.group(1).strip()
+        else:
+            m = re.search(r'data-itemprice="(.+?)"', i_page, flags=re.S)
             if m:
-                self.item_oriPrice = m.group(1).strip()
-                if self.item_oriPrice.find(';') != -1:
-                    self.item_oriPrice = self.item_oriPrice.split(';')[1]
-            else:
-                m = re.search(r'data-originalprice="(.+?)"', i_page, flags=re.S)
-                if m:
-                    self.item_oriPrice = m.group(1)
+                self.item_actPrice = m.group(1)
 
-            # 商品活动价
-            m = re.search(r'<.+? class="currentPrice.+?>.+?</small>(.+?)</.+?>', i_page, flags=re.S)
-            if m:
-                self.item_actPrice = m.group(1).strip()
-            else:
-                m = re.search(r'data-itemprice="(.+?)"', i_page, flags=re.S)
-                if m:
-                    self.item_actPrice = m.group(1)
+        # 商品打折
+        m = re.search(r'data-polldiscount="(.+?)"', i_page, flags=re.S)
+        if m:
+            self.item_discount = m.group(1)
 
-            # 商品打折
-            m = re.search(r'data-polldiscount="(.+?)"', i_page, flags=re.S)
-            if m:
-                self.item_discount = m.group(1)
-
-            # 商品关注人数, 商品销售数量, 商品库存
-            self.itemDynamic(i_page)
+        if self.item_id == '' or self.item_juId == '' or self.item_url == '' or self.item_actPrice == '': raise Common.InvalidPageException("# itemConfig: not find ju item params,juid:%s,item_ju_url:%s,%s,%s,%s,%s,%s"%(str(self.item_juId), self.item_ju_url,self.item_id,self.item_juId,self.item_url,self.item_actPrice,self.item_discount))
+        # 商品关注人数, 商品销售数量, 商品库存
+        self.itemDynamic(i_page)
 
     def itemDynamic(self, page):
         # 商品关注人数, 商品销售数量, 商品库存
@@ -198,6 +206,7 @@ class JHSItem():
 
         if i_getdata_url:
             json_str = self.crawler.getData(i_getdata_url, self.item_ju_url)
+            if not json_str or json_str == '': raise Common.InvalidPageException("# itemDynamic: not find ju item dynamic page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
             self.item_pages['item-dynamic'] = (i_getdata_url, json_str)
             if json_str and json_str != '':
                 m = re.search(r'"soldCount":\s*"(.+?)",', json_str, flags=re.S)
@@ -216,6 +225,8 @@ class JHSItem():
 
                 if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
                     self.item_isSoldout = 1
+        #if self.item_soldCount == '' or self.item_remindNum == '' or self.item_stock == '': raise Common.InvalidPageException("# itemConfig: not find ju item sold remind stock num,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+
         # 补充抓取想买人数
         #if (self.item_remindNum == '' or int(self.item_remindNum) == 0) and self.item_pageData != '':
         #    p = re.compile(r'<li class="item-small-v3">.+?<a href="(.+?)".+?>.+?<span class="sold-num">\s+<em class="J_soldnum">(.+?)</em>人想买\s*</span>.+?</li>', flags=re.S)
@@ -278,53 +289,39 @@ class JHSItem():
     # 执行
     #def antPage(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):
     def antPage(self, val):
-        try:
-            page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url = val
-            self.initItem(page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url)
-            self.itemConfig()
-            self.itemPromotiton()
-            #self.getFromTMTBPage()
-            page_datepath = 'item/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-            self.writeLog(page_datepath)
-        except Exception as e:
-            raise Common.InvalidPageException("# antPage: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
-            #traceback.print_exc()
+        page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url = val
+        self.initItem(page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url)
+        self.itemConfig()
+        self.itemPromotiton()
+        #self.getFromTMTBPage()
+        page_datepath = 'item/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
+        self.writeLog(page_datepath)
 
     # Day
     def antPageDay(self, val):
-        try:
-            #self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice,self.crawling_beginDate,self.crawling_beginHour = val
-            self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice = val
-            # 聚划算商品页信息
-            page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-            if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-            self.item_juPage = page
-            self.item_pages['item-home-day'] = (self.item_ju_url, page)
-            # 商品关注人数, 商品销售数量, 商品库存
-            self.itemDynamic(page)
-            page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-            self.writeLog(page_datepath)
-
-        except Exception as e:
-            print val
-            raise Common.InvalidPageException("# antPageDay: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
+        self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice = val
+        # 聚划算商品页信息
+        page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+        if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+        self.item_juPage = page
+        self.item_pages['item-home-day'] = (self.item_ju_url, page)
+        # 商品关注人数, 商品销售数量, 商品库存
+        self.itemDynamic(page)
+        page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
+        self.writeLog(page_datepath)
 
     # Hour
     def antPageHour(self, val):
-        try:
-            self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice = val
-            # 聚划算商品页信息
-            page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-            if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-            self.item_juPage = page
-            self.item_pages['item-home-hour'] = (self.item_ju_url, page)
-            # 商品关注人数, 商品销售数量, 商品库存
-            self.itemDynamic(page)
-            page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-            self.writeLog(page_datepath)
-
-        except Exception as e:
-            raise Common.InvalidPageException("# antPageHour: juid:%s,item_ju_url:%s,info:%s"%(str(self.item_juId), self.item_ju_url, e))
+        self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice = val
+        # 聚划算商品页信息
+        page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+        if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+        self.item_juPage = page
+        self.item_pages['item-home-hour'] = (self.item_ju_url, page)
+        # 商品关注人数, 商品销售数量, 商品库存
+        self.itemDynamic(page)
+        page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
+        self.writeLog(page_datepath)
 
     # 输出SQL
     def outSql(self):
@@ -370,16 +367,19 @@ class JHSItem():
 
     # 写html文件
     def writeLog(self,time_path):
-        pages = self.outItemLog()
-        for page in pages:
-            filepath = Config.pagePath + time_path + page[2]
-            Config.createPath(filepath)
-            #if not os.path.exists(filepath):
-            #    os.mkdir(filepath)
-            filename = filepath + page[0]
-            fout = open(filename, 'w')
-            fout.write(page[3])
-            fout.close()
+        try:
+            pages = self.outItemLog()
+            for page in pages:
+                filepath = Config.pagePath + time_path + page[2]
+                Config.createPath(filepath)
+                #if not os.path.exists(filepath):
+                #    os.mkdir(filepath)
+                filename = filepath + page[0]
+                fout = open(filename, 'w')
+                fout.write(page[3])
+                fout.close()
+        except Exception as e:
+            print '# exception err in writeLog info:',e
 
     # 输出抓取的网页log
     def outItemLog(self):

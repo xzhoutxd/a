@@ -10,7 +10,7 @@ class MyThread():
     '''A class of my thread'''
     def __init__(self, thread_num = 10):
         # 线程堆栈设置，防止占用大量内存
-        stack_size(1024*512)
+        stack_size(1024*1024)
         self.threadList = []
 
         self.threadNum = thread_num

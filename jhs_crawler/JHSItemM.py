@@ -108,6 +108,23 @@ class JHSItemM(MyThread):
                 # 通知queue, task结束
                 self.queue.task_done()
 
+            except Common.NoItemException as e:
+                # 通知queue, task结束
+                self.queue.task_done()
+                print 'Not item exception :', e
+
+            except Common.NoPageException as e:
+                # 通知queue, task结束
+                self.queue.task_done()
+                print 'Not page exception :', e
+
+            except Common.InvalidPageException as e:
+                # 通知queue, task结束
+                self.queue.task_done()
+
+                self.crawlRetry(_data)
+                print 'Invalid page exception :', e
+
             except Exception as e:
                 # 通知queue, task结束
                 self.queue.task_done()

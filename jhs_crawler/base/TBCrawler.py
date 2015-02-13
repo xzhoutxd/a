@@ -17,6 +17,8 @@ class TBCrawler(Crawler):
         Crawler.__init__(self)
 
         self.crawl_cookie = {}
+        self.status_code = ''
+        self.history = ''
 
     def getData(self, url, refers='', decode=True, terminal='1'):
         # when null url, exit function
@@ -49,6 +51,10 @@ class TBCrawler(Crawler):
 
         # check http code
         if not r.ok: r.close(); raise Common.InvalidPageException("Invalid crawl page occurs, url=%s" %url)
+
+        # 网页返回码
+        self.status_code = r.status_code
+        self.history = r.history
 
         # 网页内容
         data = ''

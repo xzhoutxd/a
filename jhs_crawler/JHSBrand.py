@@ -27,7 +27,7 @@ class JHSBrand():
         self.crawler    = TBCrawler()
 
         # 商品抓取队列
-        self.itemcrawler_queue = Queue.Queue()
+        #self.itemcrawler_queue = Queue.Queue()
 
         # 首页
         self.ju_home_url   = 'http://ju.taobao.com'
@@ -150,7 +150,7 @@ class JHSBrand():
                 m = re.search(r'act_sign_id=(\d+)', act_url, flags=re.S)
                 if m:
                     act_id = m.group(1)
-                print '# today brand: position:%s,id:%s,url:%s'%(str(today_i),str(act_id),act_url)
+                print '# top brand: position:%s,id:%s,url:%s'%(str(today_i),str(act_id),act_url)
         # 获取数据接口的URL
         url_valList = []
         p = re.compile(r'<div id="(\d+)" class="l-floor J_Floor placeholder ju-wrapper" data-ajax="(.+?)">\s+<div class="l-f-title">\s+<div class="l-f-tbox">(.+?)</div>', flags=re.S)

@@ -25,9 +25,6 @@ class JHSBrandDay():
         # 抓取设置
         self.crawler    = TBCrawler()
 
-        # 商品抓取队列
-        self.itemcrawler_queue = Queue.Queue()
-
         # 抓取开始时间
         self.crawling_time = Common.now() # 当前爬取时间
         self.begin_date = Common.today_s()
