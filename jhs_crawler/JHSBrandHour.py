@@ -38,7 +38,7 @@ class JHSBrandHour():
 
         # 每小时抓取的时间区间
         self.min_hourslot = 0 # 最小时间段
-        self.max_hourslot = -25 # 最大时间段
+        self.max_hourslot = -24 # 最大时间段
 
     def antPage(self):
         try:
@@ -71,7 +71,7 @@ class JHSBrandHour():
                 # 只抓时尚女士,精品男士
                 if int(act_r[1]) == 261000 or int(act_r[1]) == 262000:
                     starttime_TS = time.mktime(time.strptime(str(act_r[5]), "%Y-%m-%d %H:%M:%S"))
-                    index = int(Common.subTS_hours(self.crawling_time, starttime_TS))
+                    index = int(Common.subTS_hours(self.crawling_time, starttime_TS)) + 1
                     soldcount_name = 'item_soldcount_h%d'%index
                     hour_index = str(index)
                     # 按照活动Id找出商品信息
