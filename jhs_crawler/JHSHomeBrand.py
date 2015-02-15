@@ -40,7 +40,7 @@ class JHSHomeBrand():
 
     # 首页的品牌团
     def homeBrandAct(self, page):
-        if not page or page == '': raise Common.InvalidPageException("# homeBrandAct: not get JHS home.")
+        #if not page or page == '': raise Common.InvalidPageException("# homeBrandAct: not get JHS home.")
         print '首页品牌团'
         print '# ju home brand start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         self.ju_home_page = page

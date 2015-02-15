@@ -17,8 +17,8 @@ from db.MysqlAccess import MysqlAccess
 from JHSCrawlerM import JHSCrawlerM
 from JHSHomeBrand import JHSHomeBrand
 
-class JHSBrand():
-    '''A class of brand'''
+class JHSBrandMarketing():
+    '''A class of brand marketing'''
     def __init__(self):
         # mysql
         self.mysqlAccess = MysqlAccess()
@@ -35,7 +35,9 @@ class JHSBrand():
 
         # 首页的品牌团列表
         self.home_brands = {}
-        self.home_brands_list = []
+
+        # 品牌团页面的最上面推广位
+        self.top_brands = {}
 
         # 品牌团页面
         # 模板1 数据接口URL
@@ -54,23 +56,52 @@ class JHSBrand():
 
         # 并发线程值
         self.act_max_th = 5 # 活动抓取时的最大线程
-        self.item_max_th = 10 # 商品抓取时的最大线程
-        
 
     def antPage(self):
-        try:
-            # 获取首页的品牌团
-            page = self.crawler.getData(self.ju_home_url, self.refers)
-            hb = JHSHomeBrand()
-            hb.antPage(page)
-            self.home_brands = hb.home_brands
-            #print self.home_brands
+        retry = 0
+        while True:
+            try:
+                # 获取首页的品牌团
+                page = self.crawler.getData(self.ju_home_url, self.refers)
+                hb = JHSHomeBrand()
+                hb.antPage(page)
+                self.home_brands = hb.home_brands
+                break
+            except Common.InvalidPageException as e:
+                if retry >= Config.home_crawl_retry:
+                    break
+                retry += 1
+                print '# Invalid page exception:',e
+            except Common.DenypageException as e:
+                if retry >= Config.home_crawl_retry:
+                    break
+                retry += 1
+                print '# Deny page exception:',e
+            except Exception as e:
+                print '# exception err in antPage info:',e
+                break
+        print '# home activities:', self.home_brands
 
-            # 获取品牌团列表页数据
-            page = self.crawler.getData(self.brand_url, self.ju_home_url)
-            self.activityList(page) 
-        except Exception as e:
-            print '# exception err in antPage info:',e
+        retry = 0
+        while True:
+            try:
+                # 获取品牌团列表页数据
+                page = self.crawler.getData(self.brand_url, self.ju_home_url)
+                self.activityList(page) 
+                break
+            except Common.InvalidPageException as e:
+                if retry >= Config.home_crawl_retry:
+                    break
+                retry += 1
+                print '# Invalid page exception:',e
+            except Common.DenypageException as e:
+                if retry >= Config.home_crawl_retry:
+                    break
+                retry += 1
+                print '# Deny page exception:',e
+            except Exception as e:
+                print '# exception err in antPage info:',e
+                break
 
     # 品牌团列表
     def activityList(self, page):
@@ -94,12 +125,14 @@ class JHSBrand():
             # 从接口中获取的数据列表
             bResult_list = []
             for b_url_val in b_url_valList:
-                # 只抓时尚女士,精品男士
-                if int(b_url_val[2]) == 261000 or int(b_url_val[2]) == 262000:
-                    bResult_list += self.get_jsonData(b_url_val)
+                bResult_list += self.get_jsonData(b_url_val)
 
+            activity_list = []
             if bResult_list and bResult_list != []:
-                self.parser_activities(bResult_list)
+                activity_list = self.parser_activities(bResult_list)
+
+            print '# top activities:', self.top_brands
+            print '# all activities:', activity_list
         else:
             print '# err: not find activity json data URL list.'
 
@@ -122,26 +155,29 @@ class JHSBrand():
             m = re.search(r'data-activitySignId=\"(.+?)\"$', floor_info, flags=re.S)
             if m:
                 f_activitySignId = m.group(1)
-            print '# activity floor:', f_name, f_catid, f_activitySignId
 
             begin_page = 1
             if f_activitySignId != '':
                 f_url = self.brand_page_url + '&page=%d'%begin_page + '&activitySignId=%s'%f_activitySignId.replace(',','%2C') + '&stype=ids'
                 print '# brand activity floor: %s activitySignIds: %s, url: %s'%(f_name, f_activitySignId, f_url)
+                act_ids = f_activitySignId.split(',')
+                i = 1
+                for act_id in act_ids:
+                    if not self.top_brands.has_key(str(act_id)):
+                        self.top_brands[str(act_id)] = {'position':i,'datatype':f_name}
+                    i += 1
             else:
                 f_url = self.brand_page_url + '&page=%d'%begin_page + '&frontCatIds=%s'%f_catid
                 print '# brand activity floor:', f_name, f_catid, f_url
-                # 只抓时尚女士,精品男士
-                #if int(f_catid) == 261000 or int(f_catid) == 262000:
                 url_valList.append((f_url, f_name, f_catid))
         return url_valList
 
     # 品牌团页面模板2
     def activityListTemp2(self, page):
         # 推荐
-        m = re.search(r'<div id="todayBrand".+?>.+?<div class="ju-itemlist">\s+<ul class="clearfix J_BrandList" data-spm="floor1">(.+?)</ul>', page, flags=re.S)
+        m = re.search(r'<div id="todayBrand".+?>\s+<div class="l-f-title">\s+<div class="l-f-tbox">(.+?)</div>.+?<div class="ju-itemlist">\s+<ul class="clearfix J_BrandList" data-spm="floor1">(.+?)</ul>', page, flags=re.S)
         if m:
-            brand_list = m.group(1)
+            f_name, brand_list = m.group(1), m.group(2)
             today_i = 0
             p = re.compile(r'<li class="brand-mid-v2".+?>.+?<a.+?href="(.+?)".+?>.+?</li>', flags=re.S)
             for act in p.finditer(brand_list):
@@ -152,6 +188,8 @@ class JHSBrand():
                 if m:
                     act_id = m.group(1)
                 print '# top brand: position:%s,id:%s,url:%s'%(str(today_i),str(act_id),act_url)
+                if not self.top_brands.has_key(str(act_id)):
+                    self.top_brands[str(act_id)] = {'position':today_i,'url':act_url,'datatype':f_name}
         # 获取数据接口的URL
         url_valList = []
         p = re.compile(r'<div id="(\d+)" class="l-floor J_Floor placeholder ju-wrapper" data-ajax="(.+?)">\s+<div class="l-f-title">\s+<div class="l-f-tbox">(.+?)</div>', flags=re.S)
@@ -160,8 +198,6 @@ class JHSBrand():
             f_catid, f_url, f_name = floor.group(1), floor.group(2), floor.group(3)
             if f_url != '':
                 print '# brand activity floor:', f_name, f_catid, f_url
-                # 只抓时尚女士,精品男士
-                #if int(f_catid) == 261000 or int(f_catid) == 262000:
                 url_valList.append((f_url, f_name, f_catid))
         return url_valList
 
@@ -213,115 +249,10 @@ class JHSBrand():
                 print '# brand every page num:',len(activities)
                 for i in range(0,len(activities)):
                     activity = activities[i]
-                    val = (activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self.begin_hour, self.home_brands)
+                    val = (activity, page[2], page[1], (b_position_start+i+1))
                     act_valList.append(val)
-        if len(act_valList) > 0:
-            self.run_brandAct(act_valList)
-        else:
-            print '# err: not find activity crawling val list'
-    
-    # 多线程抓去品牌团活动
-    def run_brandAct(self, act_valList):
-        # Test 只测前两个
-        #act_test = []
-        #act_test.append(act_valList[0])
-        #act_test.append(act_valList[1])
-        #act_valList = act_test
 
-        newact_num = 0
-        ladygo_num = 0
-        allitem_num = 0
-        crawler_val_list = []
-        print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        m_Obj = JHSCrawlerM(1, self.act_max_th)
-        m_Obj.putItems(act_valList)
-        m_Obj.createthread()
-        m_Obj.run()
-        while True:
-            try:
-                if m_Obj.empty_q():
-                    item_list = m_Obj.items
-                    for b in item_list:
-                        print '#####A activity start#####'
-                        brandact_itemVal_list = []
-                        brandact_itemVal_list, sql, daySql, hourSql, crawling_confirm = b
-                        brandact_id, brandact_name, brandact_url, brandact_sign = sql[1], sql[7], sql[8], sql[13]
-                        # 判断本活动是不是即将开团
-                        if crawling_confirm == 1:
-                            newact_num += 1
-                            #print sql
-                            # 品牌团活动入库
-                            self.mysqlAccess.insertJhsAct(sql)
-                            self.mysqlAccess.insertJhsActDayalive(daySql)
-                            self.mysqlAccess.insertJhsActHouralive(hourSql)
-                            #print sql,daySql,hourSql
-                            # 只抓取非俪人购商品
-                            if int(brandact_sign) != 3:
-                                # Activity Items
-                                # item init val list
-                                if brandact_itemVal_list and len(brandact_itemVal_list) > 0:
-                                    crawler_val_list.append((brandact_id,brandact_name,brandact_itemVal_list))
-                                    allitem_num = allitem_num + len(brandact_itemVal_list)
-                                    print '# activity id:%s name:%s url:%s'%(brandact_id, brandact_name, brandact_url)
-                                    print '# activity items num:', len(brandact_itemVal_list)
-                            else:
-                                ladygo_num += 1
-                            print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                            print '#####A activity end#####'
-                            #time.sleep(1)
-                        else:
-                            print '# Not New activity, id:%s name:%s url:%s'%(brandact_id, brandact_name, brandact_url)
-                    #del item_list
-                    #del m_Obj
-                    break
-            except Exception as e:
-                print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e 
-                #traceback.print_exc()
-                self.traceback_log()
-                break
-        print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        print '# All brand activity num:', len(act_valList)
-        print '# New add brand activity num:', newact_num
-        print '# New add brand activity(ladygo) num:', ladygo_num
-        print '# New add brand activity items num:', allitem_num
-
-        self.run_brandItems(crawler_val_list)
-
-    # 多线程抓去品牌团商品
-    def run_brandItems(self, crawler_val_list):
-        i = 0
-        for crawler_val in crawler_val_list:
-            brandact_id, brandact_name, item_valTuple = crawler_val
-            print '# activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
-            # 多线程 控制并发的线程数
-            if len(item_valTuple) > self.item_max_th:
-                m_itemsObj = JHSCrawlerM(2, self.item_max_th)
-            else: 
-                m_itemsObj = JHSCrawlerM(2, len(item_valTuple))
-            m_itemsObj.createthread()
-            m_itemsObj.putItems(item_valTuple)
-            m_itemsObj.run()
-
-            while True:
-                try:
-                    print '# Item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
-                    if m_itemsObj.empty_q():
-                        item_list = m_itemsObj.items
-                        print '# Activity Items num:', len(item_list)
-                        for item in item_list:
-                            sql, hourSql, stockSql = item
-                            #print sql,hourSql,stockSql
-                            self.mysqlAccess.insertJhsItem(sql)
-                            self.mysqlAccess.insertJhsItemForHour(hourSql)
-                            self.mysqlAccess.insertJhsItemStockForHour(stockSql)
-                        print '# Activity Item List End: actId:%s, actName:%s'%(brandact_id, brandact_name)
-                        break
-                except Exception as e:
-                    print '# exception err crawl item: ', e
-                    print '# crawler_val:', crawler_val
-                    #traceback.print_exc()
-                    self.traceback_log()
-                    break
+        return act_valList
 
     def traceback_log(self):
         print '#####--Traceback Start--#####'
@@ -332,14 +263,34 @@ class JHSBrand():
         print "exception traceback err:%s,%s,%s"%(tp,val,td)
         print '#####--Traceback End--#####'
 
+    def crawler_data(self,url,refer):
+        retry = 0
+        while True:
+            try:
+                page = self.crawler.getData(url, refer)
+                break
+            except Common.InvalidPageException as e:
+                if retry >= Config.home_crawl_retry:
+                    break
+                retry += 1
+                print '# Invalid page exception:',e
+                time.sleep(2)
+            except Common.DenypageException as e:
+                if retry >= Config.home_crawl_retry:
+                    break
+                retry += 1
+                print '# Deny page exception:',e
+                time.sleep(2)
+            except Exception as e:
+                print '# exception err in crawler_data info:',e
+                break
+        return page
+
 
 if __name__ == '__main__':
-    pass
-    """
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    b = JHSBrand()
+    b = JHSBrandMarketing()
     b.antPage()
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    """
 
 
