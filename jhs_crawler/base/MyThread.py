@@ -22,10 +22,10 @@ class MyThread():
             self.threadList.append(thread)
 
     def put_q(self, _data):
-        self.queue.put(_data)
+        self.queue.put(_data,block=False)
 
     def get_q(self):
-        return self.queue.get()
+        return self.queue.get(block=False)
 
     def empty_q(self):
         return self.queue.empty()

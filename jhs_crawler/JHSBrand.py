@@ -173,6 +173,7 @@ class JHSBrand():
             ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
             b_url = b_url + '&_ksTS=%s'%ts
             b_page = self.crawler.getData(b_url, Config.ju_brand_home)
+            if not b_page or b_page == '': raise Common.InvalidPageException("# brand get_jsonData: not get jsondata url:%s,floorname:%s,floorid:%s."%(b_url, f_name, f_catid))
             result = json.loads(b_page)
             #print b_url
             bResult_list.append([result,f_name,f_catid])
@@ -183,6 +184,7 @@ class JHSBrand():
                     b_url = re.sub('&page=\d+&', '&page=%d&'%page_i, b_url)
                     b_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, b_url)
                     b_page = self.crawler.getData(b_url, Config.ju_brand_home)
+                    if not b_page or b_page == '': raise Common.InvalidPageException("# brand get_jsonData: not get jsondata url:%s,floorname:%s,floorid:%s."%(b_url, f_name, f_catid))
                     result = json.loads(b_page)
                     #print b_url
                     bResult_list.append([result, f_name, f_catid])

@@ -50,7 +50,7 @@ class JHSBrandHour():
             if delete_results:
                 print '# hour need delete act num: ',len(delete_results)
                 for delete_r in delete_results:
-                    print '# hour need delete act: id:%s,name:%s'%(str(delete_r[0]),str(delete_r[1]))
+                    print '# hour need delete act: id:%s,name:%s'%(str(delete_r[0]),str(delete_r[3]))
             else:
                 print '# hour need delete act is null...'
             self.mysqlAccess.deleteJhsActHouralive(val)

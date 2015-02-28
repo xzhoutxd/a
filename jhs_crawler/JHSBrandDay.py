@@ -44,7 +44,7 @@ class JHSBrandDay():
             if delete_results:
                 print '# day need delete act num: ',len(delete_results)
                 for delete_r in delete_results:
-                    print '# day need delete act: id:%s,name:%s'%(str(delete_r[0]),str(delete_r[1]))
+                    print '# day need delete act: id:%s,name:%s'%(str(delete_r[0]),str(delete_r[3]))
             else:
                 print '# day need delete act num is null...'
             self.mysqlAccess.deleteJhsActDayalive(val)

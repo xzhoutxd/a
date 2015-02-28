@@ -526,7 +526,7 @@ class JHSBActItem():
             pages = self.outItemLog()
             for page in pages:
                 filepath = Config.pagePath + time_path + page[2]
-                print filepath
+                #print filepath
                 Config.createPath(filepath)
                 #if not os.path.exists(filepath):
                 #    os.mkdir(filepath)

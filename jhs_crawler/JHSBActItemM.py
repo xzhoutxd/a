@@ -65,6 +65,7 @@ class JHSBActItemM(MyThread):
 
     # To crawl retry
     def crawlRetry(self, _data):
+        if not _data: return
         _retry, _val = _data
         _retry += 1
         if _retry < Config.crawl_retry:
@@ -76,12 +77,15 @@ class JHSBActItemM(MyThread):
     # To crawl item
     def crawl(self):
         while True:
+            _data = None
             try:
-                # 队列为空，退出
-                if self.empty_q(): break
-
-                # 取队列消息
-                _data = self.get_q()
+                try:
+                    # 取队列消息
+                    _data = self.get_q()
+                except Empty as e:
+                    # 队列为空，退出
+                    #print '# queue is empty', e
+                    break
 
                 if self.jhs_type == 1:
                     # 品牌团实例
