@@ -9,6 +9,7 @@ import random
 import json
 import time
 import Queue
+from Queue import Empty
 import traceback
 import base.Common as Common
 import base.Config as Config
@@ -19,6 +20,59 @@ class Jsonpage():
     def __init__(self):
         # 抓取设置
         self.crawler = TBCrawler()
+        self.val_queue = Queue.Queue()
+
+    def putVal(self, _val):
+        self.val_queue.put((0,_val),block=False)
+
+    def putVals(self, _vals):
+        for _val in _vals: self.val_queue.put((0, _val),block=False)
+
+    # To crawl retry
+    def crawlRetry(self, _data):
+        if not _data: return
+        _retry, _val = _data
+        _retry += 1
+        if _retry < Config.json_crawl_retry:
+            _data = (_retry, _val)
+            self.val_queue.put(_data,block=False)
+        else:
+            print "# retry too many times, no get json:", _val
+
+    def get_json(self, json_valList):
+        bResult_list = []
+        if json_valList and json_valList != []:
+            self.putVals(json_valList)
+            while True:
+                _data = None
+                try:
+                    try:
+                        # 取队列消息
+                        _data = self.val_queue.get(block=False)
+                    except Empty as e:
+                        break
+                    _val = _data[1]
+                    b_url, refers, a_val = _val
+                    bResult_list += self.get_jsonPage(b_url,refers,a_val)
+                    # 通知queue, task结束
+                    self.val_queue.task_done()
+                except Common.InvalidPageException as e:
+                    print '# Invalid page exception:',e
+                    # 通知queue, task结束
+                    self.val_queue.task_done()
+                    self.crawlRetry(_data)
+                except Common.DenypageException as e:
+                    print '# Deny page exception:',e
+                    # 通知queue, task结束
+                    self.val_queue.task_done()
+                    self.crawlRetry(_data)
+                    time.sleep(60)
+                except Common.SystemBusyException as e:
+                    print '# System busy exception:',e
+                    # 通知queue, task结束
+                    self.val_queue.task_done()
+                    self.crawlRetry(_data)
+        return bResult_list
 
     # 通过数据接口获取每一页的数据
     def get_jsonPage(self, url, refers='', a_val=()):
@@ -54,9 +108,6 @@ class Jsonpage():
         b_page = self.crawler.getData(url, refers)
         if not b_page or b_page == '': raise Common.InvalidPageException("# Jsonpage get_jsonData: not get jsondata url:%s."%(url))
         try:
-            m = re.search(r'\^\]',b_page,flags=re.S)
-            if m:
-                print '###########m##############'
             b_page = re.sub('^]', '', b_page)
             result = json.loads(b_page)
         except Exception as e:
@@ -122,10 +173,4 @@ class Jsonpage():
 
 if __name__ == '__main__':
     pass
-    """
-    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    b = Jsonpage()
-    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    """
-
 

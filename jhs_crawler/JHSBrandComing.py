@@ -72,12 +72,15 @@ class JHSBrandComing():
         if b_url_valList != []:
             # 从接口中获取的数据列表
             bResult_list = []
+            json_valList = []
             for b_url_val in b_url_valList:
                 #bResult_list += self.get_jsonData(b_url_val)
                 b_url, f_name, f_catid = b_url_val
                 a_val = (f_name,f_catid)
-                bResult_list += self.jsonpage.get_jsonPage(b_url,Config.ju_brand_home,a_val)
-
+                json_valList.append((b_url,Config.ju_brand_home,a_val))
+                #bResult_list += self.jsonpage.get_jsonPage(b_url,Config.ju_brand_home,a_val)
+            bResult_list = self.jsonpage.get_json(json_valList)
+            
             act_valList = []
             if bResult_list and bResult_list != []:
                 #self.parser_activities(bResult_list)
