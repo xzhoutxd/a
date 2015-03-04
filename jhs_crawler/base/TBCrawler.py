@@ -95,5 +95,9 @@ class TBCrawler(Crawler):
             m = re.search(r'<title>对不起，您访问的页面不存在！</title>', data)
             if m: raise Common.NoPageException("No page occurs!")
 
+            # 异常处理5: 系统繁忙
+            m = re.search(r'<title>【聚划算】聚划算 - 系统繁忙</title>', data)
+            if m: raise Common.SystemBusyException("System busy occurs!")
+
         # 返回抓取结果
         return data

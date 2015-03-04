@@ -45,6 +45,10 @@ class NoItemException(Exception):
 class NoShopItemException(Exception):
     pass
 
+# system busy exception
+class SystemBusyException(Exception):
+    pass
+
 # 全局变量
 template_str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 template_low = 'abcdefghijklmnopqrstuvwxyz0123456789'

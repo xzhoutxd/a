@@ -18,8 +18,9 @@ class JHSBActItem():
     '''A class of brand activity Item'''
     def __init__(self):
         # 品牌团抓取设置
-        self.crawler    = TBCrawler()
-        self.crawling_time   = Common.now() # 当前爬取时间
+        self.crawler = TBCrawler()
+        self.crawling_time = Common.now() # 当前爬取时间
+        self.crawling_begintime = '' # 本次抓取开始时间
         self.crawling_beginDate = '' # 本次爬取日期
         self.crawling_beginHour = '' # 本次爬取小时
         self.crawling_confirm = 1 # 本活动是否需要爬取 1:是 2:否
@@ -76,7 +77,7 @@ class JHSBActItem():
         self.brandact_pages = {} # 品牌页面内请求数据列表
 
     # 品牌团初始化
-    def initItem(self, page, catId, catName, position, begin_date, begin_hour, home_brands):
+    def initItem(self, page, catId, catName, position, begin_time, home_brands):
         # 品牌团所在数据项内容
         self.brandact_pagedata = page
         self.brandact_pages['act-init'] = ('', page)
@@ -86,15 +87,17 @@ class JHSBActItem():
         self.brandact_catgoryName = catName
         # 品牌团所在类别位置
         self.brandact_position = position
+        # 本次抓取开始时间
+        self.crawling_begintime = begin_time
         # 本次抓取开始日期
-        self.crawling_beginDate = begin_date
+        self.crawling_beginDate = time.strftime("%Y-%m-%d", time.localtime(self.crawling_begintime))
         # 本次抓取开始小时
-        self.crawling_beginHour = begin_hour
+        self.crawling_beginHour = time.strftime("%H", time.localtime(self.crawling_begintime))
         # 首页品牌团信息
         self.home_brands = home_brands
 
     # 品牌团初始化
-    def initItemComing(self, page, catId, catName, position, begin_date, begin_hour):
+    def initItemComing(self, page, catId, catName, position, begin_time):
         # 品牌团所在数据项内容
         self.brandact_pagedata = page
         self.brandact_pages['act-init'] = ('', page)
@@ -104,16 +107,59 @@ class JHSBActItem():
         self.brandact_catgoryName = catName
         # 品牌团所在类别位置
         self.brandact_position = position
+        # 本次抓取开始时间
+        self.crawling_begintime = begin_time
         # 本次抓取开始日期
-        self.crawling_beginDate = begin_date
+        self.crawling_beginDate = time.strftime("%Y-%m-%d", time.localtime(self.crawling_begintime))
+        #self.crawling_beginDate = begin_date
         # 本次抓取开始小时
-        self.crawling_beginHour = begin_hour
+        self.crawling_beginHour = time.strftime("%H", time.localtime(self.crawling_begintime))
+        #self.crawling_beginHour = begin_hour
 
     # Configuration
     def itemConfig(self):
         # 基本信息
+        if type(self.brandact_pagedata) is str:
+            try:
+                self.brandact_pagedata = json.loads(self.brandact_pagedata)
+                self.itemDict()
+            except Exception as e:
+                print '# brand itemConfig json loads error:',self.brandact_pagedata
+                self.itemString()
+        else:
+            self.itemDict()
+
+        # 判断是否在首页推广
+        if self.home_brands != {} and self.brandact_id != '' and self.brandact_url != '':
+            key1, key2 = str(self.brandact_id), self.brandact_url.split('?')[0]
+            if self.home_brands.has_key(key1):
+                self.brandact_inJuHome = 1
+                self.brandact_juHome_position = self.home_brands[key1]['position']
+            elif self.home_brands.has_key(key2):
+                self.brandact_inJuHome = 1
+                self.brandact_juHome_position = self.home_brands[key2]['position']
+
+        # 品牌团页面html
+        self.brandPage()
+
+    # Json dict
+    def itemDict(self):
         if self.brandact_pagedata and self.brandact_pagedata.has_key('baseInfo'):
             b_baseInfo = self.brandact_pagedata['baseInfo']
+            self.item_baseInfoDict(b_baseInfo)
+        if self.brandact_pagedata.has_key('materials'):
+            b_materials = self.brandact_pagedata['materials']
+            self.item_materialsDict(b_materials)
+        if self.brandact_pagedata.has_key('remind'):
+            b_remind = self.brandact_pagedata['remind']
+            self.item_remindDict(b_remind)
+        if self.brandact_pagedata.has_key('price'):
+            b_price = self.brandact_pagedata['price']
+            self.item_priceDict(b_price)
+
+    # Json dict baseInfo
+    def item_baseInfoDict(self, b_baseInfo):
+        if b_baseInfo:
             if b_baseInfo.has_key('activityId') and b_baseInfo['activityId']:
                 # 品牌团Id
                 self.brandact_id = b_baseInfo['activityId']
@@ -147,9 +193,13 @@ class JHSBActItem():
             if b_baseInfo.has_key('brandId') and b_baseInfo['brandId']:
                 # 品牌团Id
                 self.brandact_brandId = b_baseInfo['brandId']
+            if b_baseInfo.has_key('sgFrontCatId') and b_baseInfo['sgFrontCatId']:
+                # 品牌团所在类别Id
+                self.brandact_catgoryId = b_baseInfo['sgFrontCatId']
 
-        if self.brandact_pagedata.has_key('materials'):
-            b_materials = self.brandact_pagedata['materials']
+    # Json dict materials
+    def item_materialsDict(self, b_materials):
+        if b_materials:
             if b_materials.has_key('brandLogoUrl') and b_materials['brandLogoUrl']:
                 # 品牌团Logo图片链接
                 self.brandact_logopic_url = b_materials['brandLogoUrl']
@@ -166,8 +216,9 @@ class JHSBActItem():
                 # 品牌团展示图片链接
                 self.brandact_enterpic_url = b_materials['brandEnterImgUrl']
 
-        if self.brandact_pagedata.has_key('remind'):
-            b_remind = self.brandact_pagedata['remind']
+    # Json dict remind
+    def item_remindDict(self, b_remind):
+        if b_remind:
             if b_remind.has_key('soldCount') and b_remind['soldCount']:
                 # 品牌团成交数
                 self.brandact_soldCount = b_remind['soldCount']
@@ -175,8 +226,9 @@ class JHSBActItem():
                 # 品牌团想买人数
                 self.brandact_remindNum = b_remind['remindNum']
 
-        if self.brandact_pagedata.has_key('price'):
-            b_price = self.brandact_pagedata['price']
+    # Json dict price
+    def item_priceDict(self, b_price):
+        if b_price:
             if b_price.has_key('discount') and b_price['discount']:
                 # 品牌团打折
                 self.brandact_discount = b_price['discount']
@@ -185,18 +237,155 @@ class JHSBActItem():
                   # 品牌团优惠券 有优惠券
                   self.brandact_coupon = 1
 
-        # 判断是否在首页推广
-        if self.home_brands != {} and self.brandact_id != '' and self.brandact_url != '':
-            key1, key2 = str(self.brandact_id), self.brandact_url.split('?')[0]
-            if self.home_brands.has_key(key1):
-                self.brandact_inJuHome = 1
-                self.brandact_juHome_position = self.home_brands[key1]['position']
-            elif self.home_brands.has_key(key2):
-                self.brandact_inJuHome = 1
-                self.brandact_juHome_position = self.home_brands[key2]['position']
+    # Json string
+    def itemString(self):
+        baseInfo = ''
+        m = re.search(r'("baseInfo":{.+?}),"debugStr"', self.brandact_pagedata, flags=re.S)
+        if m:
+            baseInfo = m.group(1)
+        else:
+            m = re.search(r'("baseInfo":{.+?})', self.brandact_pagedata, flags=re.S)
+            if m:
+                baseInfo = m.group(1)
 
-        # 品牌团页面html
-        self.brandPage()
+        if baseInfo != '':
+            try:
+                b_baseInfo = json.loads(baseInfo)
+                self.item_baseInfoDict(b_baseInfo)
+            except Exception as e:
+                self.item_baseInfoString(baseInfo)
+
+        m = re.search(r'("materials":{.+?}),"price":', self.brandact_pagedata, flags=re.S)
+        if m:
+            materials = m.group(1)
+            try:
+                b_materials = json.loads(materials)
+                self.item_materialsDict(b_materials)
+            except Exception as e:
+                self.item_materialsString(materials)
+
+        m = re.search(r'("remind":{.+?})', self.brandact_pagedata, flags=re.S)
+        if m:
+            remind = m.group(1)
+            try:
+                b_remind = json.loads(remind)
+                self.item_remindDict(b_remind)
+            except Exception as e:
+                self.item_remindString(remind)
+
+        m = re.search(r'("price":{.+?}),"remind":', self.brandact_pagedata, flags=re.S)
+        if m:
+            price = m.group(1)
+            try:
+                b_price = json.loads(price)
+                self.item_priceDict(b_price)
+            except Exception as e:
+                self.item_priceString(price)
+
+    # Json string baseInfo
+    def item_baseInfoString(self, b_baseInfo): 
+        if b_baseInfo != '':
+            m = re.search(r'"activityId":(.+?),', b_baseInfo, flags=re.S)
+            if m:
+                # 品牌团Id
+                self.brandact_id = m.group(1)
+            m = re.search(r'"activityUrl":"(.+?)",', b_baseInfo, flags=re.S)
+            if m:
+                # 品牌团链接
+                self.brandact_url = m.group(1)
+                if self.brandact_url.find('ladygo.tmall.com') != -1:
+                    # 品牌团标识
+                    self.brandact_sign = 3
+            m = re.search(r'"ostime":(.+?),', b_baseInfo, flags=re.S)
+            if m:
+                # 品牌团开团时间
+                self.brandact_starttime = m.group(1)
+                self.brandact_startdate = Common.add_hours_D(int(float(self.brandact_starttime)/1000), 1)
+            m = re.search(r'"oetime":(.+?),', b_baseInfo, flags=re.S)
+            if m:
+                # 品牌团结束时间
+                self.brandact_endtime = m.group(1)
+            m = re.search(r'"activityStatus":"(.+?)",', b_baseInfo, flags=re.S)
+            if m:
+                # 品牌团状态
+                self.brandact_status = m.group(1)
+            m = re.search(r'"sellerId":(.+?),', b_baseInfo, flags=re.S)
+            if m:
+                # 品牌团卖家Id
+                self.brandact_sellerId = m.group(1)
+            m = re.search(r'"otherActivityIdList":\[(.+?)\],', b_baseInfo, flags=re.S)
+            if m:
+                otherActivityIdList = m.group(1)
+                # 如果是拼团, 其他团的ID
+                self.brandact_other_ids = str(self.brandact_id) + ',' + otherActivityIdList.replace('"','')
+                # 品牌团标识
+                self.brandact_sign = 2
+            else:
+                self.brandact_other_ids = str(self.brandact_id)
+            m = re.search(r'"brandId":(.+?),', b_baseInfo, flags=re.S)
+            if m:
+                # 品牌团Id
+                self.brandact_brandId = m.group(1)
+            m = re.search(r'"sgFrontCatId":(\d+)', b_baseInfo, flags=re.S)
+            if m:
+                # 品牌团所在类别Id
+                self.brandact_catgoryId = m.group(1)
+
+    # Json string materials
+    def item_materialsString(self, b_materials):
+        if b_materials != '':
+            m = re.search(r'"brandLogoUrl":"(.+?)"', b_materials, flags=re.S)
+            if m:
+                # 品牌团Logo图片链接
+                self.brandact_logopic_url = m.group(1)
+            m = re.search(r'"logoText":"(.+?)"', b_materials, flags=re.S)
+            if m:
+                # 品牌团Name
+                self.brandact_name = m.group(1)
+            m = re.search(r'"brandDesc":"(.+?)"', b_materials, flags=re.S)
+            if m:
+                # 品牌团描述
+                self.brandact_desc = m.group(1)
+            m = re.search(r'"newBrandEnterImgUrl":"(.+?)"', b_materials, flags=re.S)
+            if m:
+                # 品牌团展示图片链接
+                self.brandact_enterpic_url = m.group(1)
+            else:
+                m = re.search(r'"brandEnterImgUrl":"(.+?)"', b_materials, flags=re.S)
+                if m:
+                    # 品牌团展示图片链接
+                    self.brandact_enterpic_url = m.group(1)
+
+    # Json string remind
+    def item_remindString(self, b_remind):
+        if b_remind != '':
+            m = re.search(r'"soldCount":(.+?),', b_remind, flags=re.S)
+            if m:
+                # 品牌团成交数
+                self.brandact_soldCount = m.group(1)
+            m = re.search(r'"remindNum":(.+?),', b_remind, flags=re.S)
+            if m:
+                # 品牌团想买人数
+                self.brandact_remindNum = m.group(1)
+
+    # Json string price
+    def item_priceString(self, b_price):
+        if b_price != '':
+            m = re.search(r'"discount":"(.+?)",', b_price, flags=re.S)
+            if m:
+                self.brandact_discount = m.group(1)
+            brandact_coupon = ''
+            m = re.search(r'"hasCoupon":(.+?)}', b_price, flags=re.S)
+            if m:
+                brandact_coupon = m.group(1)
+            else:
+                m = re.search(r'"hasCoupon":(.+?),', b_price, flags=re.S)
+                if m:
+                    brandact_coupon = m.group(1)
+            if brandact_coupon != '':
+                if brandact_coupon == 'true':
+                    # 品牌团优惠券 有优惠券
+                    self.brandact_coupon = 1
 
     # 品牌团页面html
     def brandPage(self):
@@ -226,7 +415,7 @@ class JHSBActItem():
             if m:
                 i_coupons = i_coupons + m.group(1)
             else:
-                i_coupons = i_coupons + ''.join(price.spilt())
+                i_coupons = i_coupons + ''.join(price.split())
 
             m = re.search(r'<em>(.+?)</em>(.+?)$', title, flags=re.S)
             if m:
@@ -379,7 +568,7 @@ class JHSBActItem():
                     item_ju_url = 'http://detail.ju.taobao.com/home.htm?item_id=%s'%item_id
                     
                 if item_ju_url != '':
-                    val = (item_ju_url, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, '')
+                    val = (item_ju_url, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, '', self.crawling_begintime)
                     self.brandact_itemVal_list.append(val)
                     items[key] = {'itemid':item_id,'itemjuid':item_juId}
         
@@ -444,7 +633,7 @@ class JHSBActItem():
                     item_juPic_url = m.group(1)
 
         # 解析聚划算商品
-        return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url)
+        return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url, self.crawling_begintime)
 
     # 获取商品信息类型2
     def itemByBrandPageType2(self, itemdata, position):
@@ -480,12 +669,12 @@ class JHSBActItem():
                             item_juId = ids.split('=')[1]
 
         # 解析聚划算商品
-        return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url)
+        return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url, self.crawling_begintime)
 
     # 品牌团信息和其中商品基本信息
     def antPage(self, val):
-        page, catId, catName, position, begin_date, begin_hour, home_brands = val
-        self.initItem(page, catId, catName, position, begin_date, begin_hour, home_brands)
+        page, catId, catName, position, begin_time, home_brands = val
+        self.initItem(page, catId, catName, position, begin_time, home_brands)
         self.itemConfig()
         # 只爬一段时间内要开团的活动
         time_gap = Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time)
@@ -495,30 +684,30 @@ class JHSBActItem():
             if self.brandact_sign != 3:
                 self.brandActItems()
             # 保存html文件
-            page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-            self.writeLog(page_datepath)
+            page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+            #self.writeLog(page_datepath)
         else:
             self.crawling_confirm = 2
 
     # 品牌团页面所有商品
     def antPageHourcheck(self, val):
-        self.brandact_id, self.brandact_name, self.brandact_url = val
+        self.brandact_id, self.brandact_name, self.brandact_url, self.crawling_begintime = val
         # 品牌团页面html
         self.brandPage()
         self.brandActItems()
         # 保存html文件
-        page_datepath = 'act/hourcheck/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-        self.writeLog(page_datepath)
+        page_datepath = 'act/hourcheck/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+        #self.writeLog(page_datepath)
 
     # 即将上线的品牌团信息
     def antPageComing(self, val):
-        page, catId, catName, position, begin_date, begin_hour = val
-        self.initItemComing(page, catId, catName, position, begin_date, begin_hour)
+        page, catId, catName, position, begin_time = val
+        self.initItemComing(page, catId, catName, position, begin_time)
         self.itemConfig()
         self.brandActConpons()
         # 保存html文件
-        page_datepath = 'act/coming/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-        self.writeLog(page_datepath)
+        page_datepath = 'act/coming/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+        #self.writeLog(page_datepath)
 
     # 写html文件
     def writeLog(self, time_path):

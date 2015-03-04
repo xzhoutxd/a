@@ -14,6 +14,7 @@ import base.Common as Common
 import base.Config as Config
 from base.TBCrawler import TBCrawler
 from db.MysqlAccess import MysqlAccess
+from Jsonpage import Jsonpage
 from JHSBActItemM import JHSBActItemM
 
 class JHSBrandComing():
@@ -23,16 +24,19 @@ class JHSBrandComing():
         self.mysqlAccess = MysqlAccess()
 
         # 抓取设置
-        self.crawler    = TBCrawler()
+        self.crawler = TBCrawler()
+
+        # 获取Json数据
+        self.jsonpage = Jsonpage()
 
         # 商品抓取队列
-        self.item_queue = Queue.Queue()
+        #self.item_queue = Queue.Queue()
 
         # 首页
-        self.ju_home_url   = 'http://ju.taobao.com'
+        self.ju_home_url = 'http://ju.taobao.com'
 
         # 品牌团页面
-        self.brand_url  = 'http://ju.taobao.com/tg/brand.htm'
+        self.brand_url = 'http://ju.taobao.com/tg/brand.htm'
 
         # 首页的品牌团列表
         self.home_brands = {}
@@ -44,10 +48,8 @@ class JHSBrandComing():
         # 页面信息
         self.ju_brand_page = '' # 聚划算品牌团页面
 
-        # 并发线程值
-        self.act_max_th = 10 # 活动抓取时的最大线程
-
         # 抓取开始时间
+        self.begin_time = Common.now()
         self.begin_date = Common.today_s()
         self.begin_hour = Common.nowhour_s()
 
@@ -61,10 +63,36 @@ class JHSBrandComing():
 
     def activityListForComing(self, page):
         if not page or page == '': raise Common.InvalidPageException("# activityListForComing: not get JHS brand home.")
-
         self.ju_brand_page = page
         #print page
 
+        # 数据接口URL list
+        b_url_valList = self.activityListForComingTemp(page)
+
+        if b_url_valList != []:
+            # 从接口中获取的数据列表
+            bResult_list = []
+            for b_url_val in b_url_valList:
+                #bResult_list += self.get_jsonData(b_url_val)
+                b_url, f_name, f_catid = b_url_val
+                a_val = (f_name,f_catid)
+                bResult_list += self.jsonpage.get_jsonPage(b_url,Config.ju_brand_home,a_val)
+
+            act_valList = []
+            if bResult_list and bResult_list != []:
+                #self.parser_activities(bResult_list)
+                a_val = (self.begin_time,)
+                act_valList = self.jsonpage.parser_brandjson(bResult_list,a_val)
+
+            if act_valList != []:
+                self.run_brandAct(act_valList)
+            else:
+                print '# err: not get brandjson parser val list.'
+        else:
+            print '# err: not find activity json data URL list.'
+
+    # 页面模板
+    def activityListForComingTemp(self, page):
         # 数据接口URL list
         b_url_valList = []
         # 模板1
@@ -77,18 +105,8 @@ class JHSBrandComing():
             if m:
                 b_url_valList = self.activityListForComingTemp2(page)
             else:
-                print '# err: not matching all templates.'
-
-        if b_url_valList != []:
-            # 从接口中获取的数据列表
-            bResult_list = []
-            for b_url_val in b_url_valList:
-                bResult_list += self.get_jsonData(b_url_val)
-
-            if bResult_list and bResult_list != []:
-                self.parser_activities(bResult_list)
-        else:
-            print '# err: not find activity json data URL list.'
+                print '# err: not matching all templates.' 
+        return b_url_valList
          
     # 品牌团页面模板1
     def activityListForComingTemp1(self, page):
@@ -126,6 +144,7 @@ class JHSBrandComing():
     # 通过数据接口获取每一页的数据
     def get_jsonData(self, val):
         bResult_list = []
+        b_url, b_page = '', ''
         try:
             b_url, f_name, f_catid = val
             ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
@@ -138,7 +157,7 @@ class JHSBrandComing():
             if result.has_key('totalPage') and int(result['totalPage']) > 1:
                 for page_i in range(2, int(result['totalPage'])+1):
                     ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                    b_url = re.sub('&page=\d+&', '&page=%d&'%page_i, b_url)
+                    b_url = re.sub('page=\d+&', 'page=%d&'%page_i, b_url)
                     b_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, b_url)
                     print b_url
                     b_page = self.crawler.getData(b_url, Config.ju_brand_home)
@@ -146,6 +165,8 @@ class JHSBrandComing():
                     bResult_list.append([result, f_name, f_catid])
         except Exception as e:
             print '# exception err in get_jsonData info:',e
+            print b_url
+            print '# get json data:',b_page
 
         return bResult_list
 
@@ -171,40 +192,47 @@ class JHSBrandComing():
                 print '# coming every page num:',len(activities)
                 for i in range(0,len(activities)):
                     activity = activities[i]
-                    act_valList.append((activity, page[2], page[1], (b_position_start+i+1), self.begin_date, self.begin_hour))
+                    act_valList.append((activity, page[2], page[1], (b_position_start+i+1), self.begin_time))
 
         if len(act_valList) > 0:
-            try:
-                # 多线程爬取即将上线活动
-                m_Obj = JHSBActItemM(1, self.act_max_th)
-                m_Obj.putItems(act_valList)
-                m_Obj.createthread()
-                m_Obj.run()
-            except Exception as e:
-                print '# exception err brand coming :', e
-            while True:
-                try:
-                    if m_Obj.empty_q():
-                        item_list = m_Obj.items
-                        for itemsql in item_list:
-                            #self.mysqlAccess.insertJhsActComing(item.outSqlForComing())
-                            self.mysqlAccess.insertJhsActComing(itemsql)
-                            #print item.outSqlForComing()
-                        print '# Coming Activity List End'
-                        break
-                except Exception as e:
-                    print '# exception err crawl item :', e
-                    #traceback.print_exc()
-                    print '#####--Traceback Start--#####'
-                    tp,val,td = sys.exc_info()
-                    for file, lineno, function, text in traceback.extract_tb(td):
-                        print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
-                        print text
-                    print "exception traceback err:%s,%s,%s"%(tp,val,td)
-                    print '#####--Traceback End--#####'
-                    break
+            self.run_brandAct(act_valList)
+            #return act_valList
         else:
             print '# err: not find activity crawling val list'
+
+    # 多线程抓去品牌团活动
+    def run_brandAct(self, act_valList):
+        try:
+            # 多线程爬取即将上线活动
+            #m_Obj = JHSBActItemM(1, Config.act_max_th)
+            m_Obj = JHSBActItemM(1, 5)
+            m_Obj.putItems(act_valList)
+            m_Obj.createthread()
+            m_Obj.run()
+        except Exception as e:
+            print '# exception err brand coming :', e
+        """
+        while True:
+            try:
+                if m_Obj.empty_q():
+                    item_list = m_Obj.items
+                    sql_list = []
+                    for itemsql in item_list:
+                        self.mysqlAccess.insertJhsActComing(itemsql)
+                    print '# Coming Activity List End'
+                    break
+            except Exception as e:
+                print '# exception err crawl item :', e
+                #traceback.print_exc()
+                print '#####--Traceback Start--#####'
+                tp,val,td = sys.exc_info()
+                for file, lineno, function, text in traceback.extract_tb(td):
+                    print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
+                    print text
+                print "exception traceback err:%s,%s,%s"%(tp,val,td)
+                print '#####--Traceback End--#####'
+                break
+        """
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# brand activity coming soon num:', len(act_valList)
 

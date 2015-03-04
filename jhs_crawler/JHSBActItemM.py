@@ -12,8 +12,9 @@ import base.Config as Config
 import base.Common as Common
 from dial.DialClient import DialClient
 from base.MyThread  import MyThread
+from Queue import Empty
+from db.MysqlAccess import MysqlAccess
 from JHSBActItem import JHSBActItem
-from JHSItem import JHSItem
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -27,8 +28,11 @@ class JHSBActItemM(MyThread):
         # thread lock
         self.mutex      = threading.Lock()
 
+        # mysql
+        self.mysqlAccess = MysqlAccess()
+
         # jhs queue type
-        self.jhs_type   = jhs_type # 1:即将上线品牌团频道页,2:检查每天还没结束的活动
+        self.jhs_type   = jhs_type # 1:即将上线品牌团频道页, 2:检查每天还没结束的活动, 3:新增活动
         
         # activity items
         self.items      = []
@@ -74,8 +78,43 @@ class JHSBActItemM(MyThread):
         else:
             print "# retry too many times, no get item:", _val
 
+    # insert act
+    def insertAct(self, actsql_list, f=False):
+        if f or len(actsql_list) >= Config.act_max_arg:
+            if len(actsql_list) > 0:
+                self.mysqlAccess.insertJhsAct(actsql_list)
+            return True
+        return False
+
+    # insert act day
+    def insertActday(self, actdaysql_list, f=False):
+        if f or len(actdaysql_list) >= Config.act_max_arg:
+            if len(actdaysql_list) > 0:   
+                self.mysqlAccess.insertJhsActDayalive(actdaysql_list)
+            return True
+        return False
+
+    # insert act hour
+    def insertActhour(self, acthoursql_list, f=False):
+        if f or len(acthoursql_list) >= Config.act_max_arg:
+            if len(acthoursql_list) > 0:
+                self.mysqlAccess.insertJhsActHouralive(acthoursql_list)
+            return True
+        return False
+
+    # insert act coming
+    def insertActcoming(self, actcomingsql_list, f=False):
+        if f or len(actcomingsql_list) >= Config.act_max_arg:
+            if len(actcomingsql_list) > 0:
+                self.mysqlAccess.insertJhsActComing(actcomingsql_list)
+            return True
+        return False
+
     # To crawl item
     def crawl(self):
+        # sql list
+        #_actsql_list, _actdaysql_list, _acthoursql_list = [], [], []
+        _actcomingsql_list = []
         while True:
             _data = None
             try:
@@ -85,36 +124,69 @@ class JHSBActItemM(MyThread):
                 except Empty as e:
                     # 队列为空，退出
                     #print '# queue is empty', e
+                    """
+                    self.insertAct(_actsql_list, True)
+                    self.insertActday(_actdaysql_list, True)
+                    self.insertActhour(_acthoursql_list, True)
+                    _actsql_list, _actdaysql_list, _acthoursql_list = [], [], []
+                    """
+                    self.insertActcoming(_actcomingsql_list, True)
+                    _actcomingsql_list = []
                     break
 
                 if self.jhs_type == 1:
-                    # 品牌团实例
+                    # 品牌团实例 即将上线
                     # _pageData, _catid, _catname, _position, _begin_date, _begin_hour = _val
                     item = JHSBActItem()
 
                     # 信息处理
                     _val  = _data[1]
                     item.antPageComing(_val)
-                    print '# To crawl coming activity val : ', Common.now_s(), _val[1], _val[2]
+                    print '# To crawl coming activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
                     # 汇聚
-                    self.push_back(self.items, item.outSqlForComing())
+                    #self.push_back(self.items, item.outSqlForComing())
+                    sql = item.outSqlForComing()
+                    # 入库
+                    _actcomingsql_list.append(sql)
+                    if self.insertActcoming(_actcomingsql_list): _actcomingsql_list = []
                 elif self.jhs_type == 2:
-                    # 品牌团实例
+                    # 品牌团实例 每小时检查活动新加商品
                     # _catid, _catname, _caturl = _val
                     item = JHSBActItem()
 
                     # 信息处理
                     _val  = _data[1]
                     item.antPageHourcheck(_val)
-                    print '# To check activity val : ', Common.now_s(), _val[0], _val[1]
+                    #print '# To check activity val : ', Common.now_s(), _val[0], _val[1]
                     # 汇聚
                     self.push_back(self.items, item.outTupleForHourcheck())
-                
+                elif self.jhs_type == 3:
+                    # 品牌团实例
+                    # _pageData, _catid, _catname, _position, _begin_date, _begin_hour = _val
+                    item = JHSBActItem()
+
+                    # 信息处理
+                    _val  = _data[1]
+                    item.antPage(_val)
+                    #print '# To crawl activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
+
+                    # 汇聚
+                    self.push_back(self.items, item.outTuple())
+
+                    """
+                    brandact_itemVal_list, sql, daySql, hourSql, crawling_confirm = item.outTuple()
+                    # 入库
+                    if crawling_confirm == 1:
+                        _actsql_list.append(sql)
+                        if self.insertAct(_actsql_list): _actsql_list = []
+                        _actdaysql_list.append(daySql)
+                        if self.insertActday(_actdaysql_list): _actdaysql_list = []
+                        _acthoursql_list.append(hourSql)
+                        if self.insertActhour(_acthoursql_list): _acthoursql_list = []
+                    """
                     
                 # 通知queue, task结束
                 self.queue.task_done()
-
-                time.sleep(1)
 
             except Common.NoActivityException as e:
                 # 通知queue, task结束
@@ -139,8 +211,7 @@ class JHSBActItemM(MyThread):
 
                 self.crawlRetry(_data)
                 # 重新拨号
-                if self.jhs_type == 1 or self.jhs_type == 2:
-                    self.dialRouter(4, 'chn')
+                self.dialRouter(4, 'chn')
                 #time.sleep(random.uniform(10,30))
 
                 print 'Unknown exception crawl item :', e
