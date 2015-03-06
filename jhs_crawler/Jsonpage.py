@@ -13,6 +13,7 @@ from Queue import Empty
 import traceback
 import base.Common as Common
 import base.Config as Config
+from dial.DialClient import DialClient
 from base.TBCrawler import TBCrawler
 
 class Jsonpage():
@@ -21,6 +22,15 @@ class Jsonpage():
         # 抓取设置
         self.crawler = TBCrawler()
         self.val_queue = Queue.Queue()
+
+        # dial client
+        self.dial_client = DialClient()
+
+        # local ip
+        self._ip = Common.local_ip()
+
+        # router tag
+        self._tag = 'ikuai'
 
     def putVal(self, _val):
         self.val_queue.put((0,_val),block=False)
@@ -38,6 +48,14 @@ class Jsonpage():
             self.val_queue.put(_data,block=False)
         else:
             print "# retry too many times, no get json:", _val
+
+    # To dial router
+    def dialRouter(self, _type, _obj):
+        try:
+            _module = '%s_%s' %(_type, _obj)
+            self.dial_client.send((_module, self._ip, self._tag))
+        except Exception as e:
+            print '# To dial router exception :', e
 
     def get_json(self, json_valList):
         bResult_list = []
@@ -67,11 +85,20 @@ class Jsonpage():
                     self.val_queue.task_done()
                     self.crawlRetry(_data)
                     time.sleep(60)
+                    # 重新拨号
+                    try:
+                        self.dialRouter(4, 'chn')
+                    except Exception as e:
+                        print '# DailClient Exception err:', e
+                        time.sleep(random.uniform(10,30))
+                    time.sleep(random.uniform(10,30))
+
                 except Common.SystemBusyException as e:
                     print '# System busy exception:',e
                     # 通知queue, task结束
                     self.val_queue.task_done()
                     self.crawlRetry(_data)
+                    time.sleep(random.uniform(10,30))
         return bResult_list
 
     # 通过数据接口获取每一页的数据

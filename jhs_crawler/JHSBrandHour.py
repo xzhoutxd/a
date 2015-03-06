@@ -29,12 +29,10 @@ class JHSBrandHour():
 
         # 抓取开始时间
         self.crawling_time = Common.now() # 当前爬取时间
+        self.begin_time = Common.now()
         self.begin_date = Common.today_s()
         self.begin_hour = Common.nowhour_s()
         self.page_datepath = time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-
-        # 并发线程值
-        self.item_max_th = 10 # 商品抓取时的最大线程
 
         # 每小时抓取的时间区间
         self.min_hourslot = 0 # 最小时间段
@@ -79,7 +77,13 @@ class JHSBrandHour():
                     if item_results:
                         print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s hour_index:%s'%(str(act_r[0]),str(act_r[3]),str(act_r[5]),str(act_r[6]),str(len(item_results)),hour_index)
                         if len(item_results) > 0:
-                            crawler_val_list.append((hour_index,act_r[0],act_r[3],item_results))
+                            item_val_list = []
+                            print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                            for item in item_results:
+                                item = item + (self.begin_time,hour_index)
+                                item_val_list.append(item)
+                            print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                            crawler_val_list.append((hour_index,act_r[0],act_r[3],item_val_list))
                     else:
                         print '# hour act id:%s name:%s not find items...'%(str(act_r[0]),str(act_r[3]))
 
@@ -87,6 +91,13 @@ class JHSBrandHour():
             self.run_brandItems(crawler_val_list)
         except Exception as e:
             print '# exception err in antPage info:',e
+            print '#####--Traceback Start--#####'
+            tp,val,td = sys.exc_info()
+            for file, lineno, function, text in traceback.extract_tb(td):
+                print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
+                print text
+            print "exception traceback err:%s,%s,%s"%(tp,val,td)
+            print '#####--Traceback End--#####'
 
     # 多线程抓去品牌团商品
     def run_brandItems(self, crawler_val_list):
@@ -94,34 +105,19 @@ class JHSBrandHour():
             hour_index, brandact_id, brandact_name, item_valTuple = crawler_val
             print '# hour activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
 
-            """
-            # 多线程方式(1)
-            # multiprocessing.dummy Pool
-            pool = ThreadPool(50)
-            item_list = pool.map(self.run,item_valTuple)
-            pool.close()
-            pool.join()
-            
-            try:
-                print '# hour item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
-                for item in item_list:
-                    soldcount_name = 'item_soldcount_h%s'%hour_index
-                    val = (soldcount_name,) + item
-                    self.mysqlAccess.updateJhsItemSoldcountForHour(val)
-                print '# hour activity Items update end: actId:%s, actName:%s'%(brandact_id, brandact_name)
-            except Exception as e:
-                print '# exception error item for hour result :', e
-                traceback.print_exc()
-            """
+            # 附加的信息
+            a_val = (self.begin_time, hour_index)
             # 多线程 控制并发的线程数
-            if len(item_valTuple) > self.item_max_th:
-                m_itemsObj = JHSItemM(2, self.item_max_th)
+            if len(item_valTuple) > Config.item_max_th:
+                m_itemsObj = JHSItemM(3, Config.item_max_th, a_val)
             else:
-                m_itemsObj = JHSItemM(2, len(item_valTuple))
+                m_itemsObj = JHSItemM(3, len(item_valTuple), a_val)
             m_itemsObj.createthread()
             m_itemsObj.putItems(item_valTuple)
             m_itemsObj.run()
+            print '# hour activity Items update end: actId:%s, actName:%s'%(brandact_id, brandact_name)
 
+            """
             while True:
                 try:
                     print '# hour item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
@@ -154,6 +150,7 @@ class JHSBrandHour():
                     print "exception traceback err:%s,%s,%s"%(tp,val,td)
                     print '#####--Traceback End--#####'
                     break
+            """
 
     def run(self, val):
         item = JHSItem()

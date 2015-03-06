@@ -27,12 +27,10 @@ class JHSBrandDay():
 
         # 抓取开始时间
         self.crawling_time = Common.now() # 当前爬取时间
+        self.begin_time = Common.now()
         self.begin_date = Common.today_s()
         self.begin_hour = Common.nowhour_s()
         self.page_datepath = time.strftime("%Y/%m/%d/", time.localtime(self.crawling_time))
-
-        # 并发线程值
-        self.item_max_th = 10 # 商品抓取时的最大线程
 
     def antPage(self):
         try:
@@ -67,7 +65,11 @@ class JHSBrandDay():
                     if item_results:
                         print "# act id:%s name:%s Items num:%s"%(str(act_r[0]),str(act_r[3]),str(len(item_results)))
                         if len(item_results) > 0:
-                            crawler_val_list.append((act_r[0],act_r[3],item_results))
+                            item_val_list = []
+                            for item in item_results:
+                                item = item + (self.begin_time,)
+                                item_val_list.append(item)
+                            crawler_val_list.append((act_r[0],act_r[3],item_val_list))
                     else:
                         print '# day act id:%s name:%s not find items...'%(str(act_r[0]),str(act_r[3]))
 
@@ -90,12 +92,10 @@ class JHSBrandDay():
             brandact_id, brandact_name, item_valTuple = crawler_val
             print '# day activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
             # 多线程 控制并发的线程数
-            if len(item_valTuple) > self.item_max_th:
-                m_itemsObj = JHSItemM(1, self.item_max_th)
+            if len(item_valTuple) > Config.item_max_th:
+                m_itemsObj = JHSItemM(2, Config.item_max_th)
             else:
-                m_itemsObj = JHSItemM(1, len(item_valTuple))
-            #item_valTuple = item_valTuple + (self.begin_date,self.begin_hour)
-            #print item_valTuple
+                m_itemsObj = JHSItemM(2, len(item_valTuple))
             m_itemsObj.createthread()
             m_itemsObj.putItems(item_valTuple)
             m_itemsObj.run()
@@ -104,12 +104,14 @@ class JHSBrandDay():
                 try:
                     print '# day item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
                     if m_itemsObj.empty_q():
+                        """
                         item_list = m_itemsObj.items
                         for item in item_list:
                             item = item + (self.begin_date,self.begin_hour)
                             self.mysqlAccess.insertJhsItemForDay(item)
                             #print item
                         print '# day activity Items crawler end: actId:%s, actName:%s'%(brandact_id, brandact_name)
+                        """
 
                         # 重试次数太多没有抓下来的商品
                         giveup_item_list = m_itemsObj.giveup_items
