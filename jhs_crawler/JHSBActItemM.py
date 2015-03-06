@@ -41,8 +41,7 @@ class JHSBActItemM(MyThread):
         self.dial_client = DialClient()
 
         # local ip
-        #self._ip = Common.local_ip()
-        self._ip = '192.168.1.35'
+        self._ip = Common.local_ip()
 
         # router tag
         self._tag = 'ikuai'
@@ -226,7 +225,11 @@ class JHSBActItemM(MyThread):
                 except Exception as e:
                     print '# DailClient Exception err:', e
                     time.sleep(10)
-                time.sleep(1)
+                #time.sleep(1)
+                try:
+                    time.sleep((_data[0]+1)*random.uniform(10,30))
+                except Exception as e:
+                    time.sleep(random.uniform(10,30))
 
 if __name__ == '__main__':
     pass
