@@ -397,7 +397,6 @@ class JHSBrand():
         print '# New add brand activity(ladygo) num:', ladygo_num
         print '# New add brand activity items num:', allitem_num
 
-        """
         # 品牌团活动入库
         actsql_list, actdaysql_list, acthoursql_list = [], [], []
         for act_sql in act_sql_list:
@@ -420,7 +419,6 @@ class JHSBrand():
             self.mysqlAccess.insertJhsActDayalive(actdaysql_list)
         if len(acthoursql_list) > 0:
             self.mysqlAccess.insertJhsActHouralive(acthoursql_list)
-        """
 
         # 多线程抓商品
         self.run_brandItems(crawler_val_list)
