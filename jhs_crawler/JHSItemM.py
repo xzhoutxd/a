@@ -143,7 +143,8 @@ class JHSItemM(MyThread):
     # To crawl item
     def crawl(self):
         # item sql list
-        _itemsql_list, _itemsalesql_list, _itemstocksql_list, _iteminfosql_list = [], [], []
+        _itemsql_list, _itemsalesql_list, _itemstocksql_list = [], [], []
+        _iteminfosql_list = []
         _itemdaysql_list = []
         while True:
             _data = None
@@ -213,13 +214,14 @@ class JHSItemM(MyThread):
                     # 汇聚
                     self.push_back(self.items, item.outUpdateTupleHour())
 
-                    saleSql, stockSql = item.outUpdateTupleHour()
+                    saleSql, stockSql, salestockSql = item.outUpdateTupleHour()
                     #_itemsalesql_list.append(saleSql)
                     #if self.updateItemsale(_itemsalesql_list): _itemsalesql_list = []
                     #_itemstocksql_list.append(stockSql)
                     #if self.updateItemstock(_itemstocksql_list): _itemstocksql_list = []
                     self.mysqlAccess.updateJhsItemSoldcountForHour(saleSql)
                     self.mysqlAccess.updateJhsItemStockForHour(stockSql)
+                    self.mysqlAccess.updateJhsItemSaleStockForHour(salestockSql)
 
                 # 通知queue, task结束
                 self.queue.task_done()

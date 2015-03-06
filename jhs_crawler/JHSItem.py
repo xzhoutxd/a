@@ -369,6 +369,10 @@ class JHSItem():
         return ('item_stock_h%s'%str(self.hour_index),str(self.item_stock),str(self.item_juId),str(self.item_actId))
         #return (str(self.item_stock),str(self.item_juId),str(self.item_actId))
 
+    # 更新每小时销量和库存SQL
+    def outUpdateSaleStockSqlForHour(self):
+        return ('item_soldcount_h%s'%str(self.hour_index),str(self.item_soldCount),'item_stock_h%s'%str(self.hour_index),str(self.item_stock),str(self.item_juId),str(self.item_actId))
+
     # 输出Tuple
     def outTuple(self):
         sql = self.outSql()
@@ -386,7 +390,8 @@ class JHSItem():
     def outUpdateTupleHour(self):
         salesql = self.outUpdateSaleSqlForHour()
         stocksql = self.outUpdateStockSqlForHour()
-        return (salesql,stocksql)
+        salestock_updatesql = self.outUpdateSaleStockSqlForHour()
+        return (salesql,stocksql,salestock_updatesql)
 
     # 写html文件
     def writeLog(self,time_path):
