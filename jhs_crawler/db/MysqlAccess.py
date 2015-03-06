@@ -36,6 +36,15 @@ class MysqlAccess():
         except Exception, e:
             print '# insert Jhs Item exception:', e
 
+    # 新加商品信息
+    def insertJhsItemInfo(self, args_list):
+        try:
+            sql = 'replace into nd_jhs_parser_item_info(crawl_time,item_juid,act_id,act_name,act_url,item_position,item_ju_url,item_juname,item_judesc,item_jupic_url,item_id,item_url,seller_id,seller_name,shop_type,item_oriprice,item_actprice,discount,item_remindnum,total_stock,item_promotions,act_starttime) value(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            #self.jhs_db.execute(sql, args)
+            self.jhs_db.executemany(sql, args_list)
+        except Exception, e:
+            print '# insert Jhs Item info exception:', e
+
     # 即将上线活动
     def insertJhsActComing(self, args_list):
         try:

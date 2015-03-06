@@ -12,6 +12,8 @@ import base.Config as Config
 import base.Common as Common
 from dial.DialClient import DialClient
 from base.MyThread  import MyThread
+from Queue import Empty
+from db.MysqlAccess import MysqlAccess
 from JHSItem import JHSItem
 
 import warnings
@@ -19,18 +21,24 @@ warnings.filterwarnings("ignore")
 
 class JHSItemM(MyThread):
     '''A class of jhs item thread manager'''
-    def __init__(self, jhs_type, thread_num = 10):
+    def __init__(self, jhs_type, thread_num=10, a_val=None):
         # parent construct
         MyThread.__init__(self, thread_num)
 
         # thread lock
-        self.mutex      = threading.Lock()
+        self.mutex = threading.Lock()
+
+        # mysql
+        self.mysqlAccess = MysqlAccess()
 
         # jhs queue type
-        self.jhs_type   = jhs_type # 1:每天一次的商品, 2:每小时一次的商品
+        self.jhs_type = jhs_type # 1:新增商品, 2:每天一次的商品, 3:每小时一次的商品
+
+        # appendix val
+        self.a_val = a_val
         
         # activity items
-        self.items      = []
+        self.items = []
 
         # dial client
         self.dial_client = DialClient()
@@ -76,8 +84,67 @@ class JHSItemM(MyThread):
             self.push_back(self.giveup_items, _val)
             print "# retry too many times, no get item:", _val
 
+    # insert item
+    def insertItem(self, itemsql_list, f=False):
+        if f or len(itemsql_list) >= Config.item_max_arg:
+            if len(itemsql_list) > 0:
+                self.mysqlAccess.insertJhsItem(itemsql_list)
+            return True
+        return False
+
+    # insert item sale
+    def insertItemsale(self, itemsalesql_list, f=False):
+        if f or len(itemsalesql_list) >= Config.item_max_arg:
+            if len(itemsalesql_list) > 0:
+                self.mysqlAccess.insertJhsItemSaleForHour(itemsalesql_list)
+            return True
+        return False
+
+    # insert item stock
+    def insertItemstock(self, itemstocksql_list, f=False):
+        if f or len(itemstocksql_list) >= Config.item_max_arg:
+            if len(itemstocksql_list) > 0:
+                self.mysqlAccess.insertJhsItemStockForHour(itemstocksql_list)
+            return True
+        return False
+
+    # insert item info
+    def insertIteminfo(self, iteminfosql_list, f=False):
+        if f or len(iteminfosql_list) >= Config.item_max_arg:
+            if len(iteminfosql_list) > 0:
+                self.mysqlAccess.insertJhsItemInfo(iteminfosql_list)
+            return True
+        return False
+
+    # insert item day
+    def insertItemday(self, itemdaysql_list, f=False):
+        if f or len(itemdaysql_list) >= Config.item_max_arg:
+            if len(itemdaysql_list) > 0:
+                 self.mysqlAccess.insertJhsItemForDay(itemdaysql_list)
+            return True
+        return False
+
+    # update item sale
+    def updateItemsale(self, itemsalesql_list, f=False):
+        if f or len(itemsalesql_list) >= Config.item_max_arg:
+            if len(itemsalesql_list) > 0:
+                self.mysqlAccess.updateJhsItemSoldcountForHour(itemsalesql_list)
+            return True
+        return False
+
+    # update item stock
+    def updateItemstock(self, itemstocksql_list, f=False):
+        if f or len(itemstocksql_list) >= Config.item_max_arg:
+            if len(itemstocksql_list) > 0:
+                self.mysqlAccess.updateJhsItemStockForHour(itemstocksql_list)
+            return True
+        return False
+
     # To crawl item
     def crawl(self):
+        # item sql list
+        _itemsql_list, _itemsalesql_list, _itemstocksql_list, _iteminfosql_list = [], [], []
+        _itemdaysql_list = []
         while True:
             _data = None
             try:
@@ -87,27 +154,72 @@ class JHSItemM(MyThread):
                 except Empty as e:
                     # 队列为空，退出
                     #print '# queue is empty', e
+                    #print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                    self.insertItem(_itemsql_list, True)
+                    self.insertItemsale(_itemsalesql_list, True)
+                    self.insertItemstock(_itemstocksql_list, True)
+                    _itemsql_list = []
+                    _itemsalesql_list, _itemstocksql_list = [], []
+                    self.insertIteminfo(_iteminfosql_list, True)
+                    _iteminfosql_list = []
+                    #print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+
+                    self.insertItemday(_itemdaysql_list, True)
+                    _itemdaysql_list = []
+
+                    #self.updateItemsale(_itemsalesql_list, True)
+                    #self.updateItemstock(_itemstocksql_list, True)
+                    #_itemsalesql_list, _itemstocksql_list = [], []
                     break
 
-                # 商品实例
-                item = JHSItem()
-
-                # 信息处理
-                _val  = _data[1]
                 if self.jhs_type == 1:
-                    # 每天一次商品实例
-                    # _juid,act_id,act_name,act_url,_juname,_ju_url,_id,_url,_oriprice,_actprice = _val
-                    item.antPageDay(_val)
-                    print '# Day To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
+                    # 商品实例
+                    item = JHSItem()
+                    _val = _data[1]
+                    item.antPage(_val)
+                    #print '# To crawl activity item val : ', Common.now_s(), _val[2], _val[4], _val[6]
+
                     # 汇聚
-                    self.push_back(self.items, item.outTupleDay())
-                else:
+                    sql, saleSql, stockSql, iteminfoSql = item.outTuple()
+                    self.push_back(self.items, item.outTuple())
+
+                    # 入库
+                    _itemsql_list.append(sql)
+                    if self.insertItem(_itemsql_list): _itemsql_list = []
+                    _itemsalesql_list.append(saleSql)
+                    if self.insertItemsale(_itemsalesql_list): _itemsalesql_list = []
+                    _itemstocksql_list.append(stockSql)
+                    if self.insertItemstock(_itemstocksql_list): _itemstocksql_list = []
+                    _iteminfosql_list.append(iteminfoSql)
+                    if self.insertIteminfo(_iteminfosql_list): _iteminfosql_list = []
+                elif self.jhs_type == 2:
+                    # 每天一次商品实例
+                    item = JHSItem()
+                    _val = _data[1]
+                    item.antPageDay(_val)
+                    #print '# Day To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
+                    # 汇聚
+                    #self.push_back(self.items, item.outTupleDay())
+                    sql = item.outTupleDay()
+                    _itemdaysql_list.append(sql)
+                    if self.insertItemday(_itemdaysql_list): _itemdaysql_list = []
+                elif self.jhs_type == 3:
                     # 每小时一次商品实例
-                    # _juid,act_id,act_name,act_url,_juname,_ju_url,_id,_url,_oriprice,_actprice = _val
+                    item = JHSItem()
+                    _val = _data[1]
+                    #if self.a_val: _val = _val + self.a_val
                     item.antPageHour(_val)
-                    print '# Hour To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
+                    #print '# Hour To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
                     # 汇聚
                     self.push_back(self.items, item.outUpdateTupleHour())
+
+                    saleSql, stockSql = item.outUpdateTupleHour()
+                    #_itemsalesql_list.append(saleSql)
+                    #if self.updateItemsale(_itemsalesql_list): _itemsalesql_list = []
+                    #_itemstocksql_list.append(stockSql)
+                    #if self.updateItemstock(_itemstocksql_list): _itemstocksql_list = []
+                    self.mysqlAccess.updateJhsItemSoldcountForHour(saleSql)
+                    self.mysqlAccess.updateJhsItemStockForHour(stockSql)
 
                 # 通知queue, task结束
                 self.queue.task_done()

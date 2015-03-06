@@ -22,8 +22,9 @@ class JHSItem():
     '''A class of Juhuasuan Item'''
     def __init__(self):
         # 商品页面抓取设置
-        self.crawler    = TBCrawler()
-        self.crawling_time   = Common.now() # 当前爬取时间
+        self.crawler = TBCrawler()
+        self.crawling_time = Common.now() # 当前爬取时间
+        self.crawling_begintime = '' # 本次抓取开始时间
         self.crawling_beginDate = '' # 本次爬取日期
         self.crawling_beginHour = '' # 本次爬取小时
 
@@ -32,6 +33,7 @@ class JHSItem():
         self.item_actName = '' # 商品所属活动Name
         self.item_act_url = '' # 商品所属活动Url
         self.item_position = 0 # 商品所在活动位置
+        self.item_act_starttime = 0.0 # 商品所在活动开团时间
 
         # 商品信息
         self.item_juId = '' # 商品聚划算Id
@@ -69,8 +71,11 @@ class JHSItem():
         self.item_juPage = '' # 商品聚划算页面html内容
         self.item_pages = {} # 商品页面内请求数据列表
 
+        # 每小时
+        self.hour_index = 0 # 每小时的时刻
+
     # 商品初始化
-    def initItem(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):
+    def initItem(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url, begin_time, start_time):
         # 商品所属数据项内容
         self.item_pageData = page
         self.item_pages['item-init'] = ('',page)
@@ -90,6 +95,10 @@ class JHSItem():
         self.item_juId = item_juId
         # 商品活动展示图片Url
         self.item_juPic_url = item_juPic_url
+        # 本次抓取开始时间
+        self.crawling_begintime = begin_time
+        # 商品所在活动的开团时间
+        self.item_act_starttime = start_time
 
     # 聚划算商品页信息
     def itemConfig(self):
@@ -289,17 +298,23 @@ class JHSItem():
     # 执行
     #def antPage(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):
     def antPage(self, val):
-        page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url = val
-        self.initItem(page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url)
+        page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url, begin_time, start_time = val
+        self.initItem(page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url, begin_time, start_time)
         self.itemConfig()
         self.itemPromotiton()
         #self.getFromTMTBPage()
-        page_datepath = 'item/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-        self.writeLog(page_datepath)
+        page_datepath = 'item/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+        #self.writeLog(page_datepath)
 
     # Day
     def antPageDay(self, val):
-        self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice = val
+        self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice,self.crawling_begintime = val
+
+        # 本次抓取开始日期
+        self.crawling_beginDate = time.strftime("%Y-%m-%d", time.localtime(self.crawling_begintime))
+        # 本次抓取开始小时
+        self.crawling_beginHour = time.strftime("%H", time.localtime(self.crawling_begintime))
+
         # 聚划算商品页信息
         page = self.crawler.getData(self.item_ju_url, self.item_act_url)
         if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
@@ -307,12 +322,12 @@ class JHSItem():
         self.item_pages['item-home-day'] = (self.item_ju_url, page)
         # 商品关注人数, 商品销售数量, 商品库存
         self.itemDynamic(page)
-        page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-        self.writeLog(page_datepath)
+        page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+        #self.writeLog(page_datepath)
 
     # Hour
     def antPageHour(self, val):
-        self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice = val
+        self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice,self.crawling_begintime,self.hour_index = val
         # 聚划算商品页信息
         page = self.crawler.getData(self.item_ju_url, self.item_act_url)
         if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
@@ -320,15 +335,20 @@ class JHSItem():
         self.item_pages['item-home-hour'] = (self.item_ju_url, page)
         # 商品关注人数, 商品销售数量, 商品库存
         self.itemDynamic(page)
-        page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
-        self.writeLog(page_datepath)
+        page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+        #self.writeLog(page_datepath)
+
+    # 输出item info SQL
+    def outIteminfoSql(self):
+        #crawl_time,item_juid,act_id,act_name,act_url,item_position,item_ju_url,item_juname,item_judesc,item_jupic_url,item_id,item_url,seller_id,seller_name,shop_type,item_oriprice,item_actprice,discount,item_remindnum,total_stock,item_promotions,act_starttime
+        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,str(self.item_position),self.item_ju_url,self.item_juName,self.item_juDesc,self.item_juPic_url,self.item_id,self.item_url,str(self.item_sellerId),self.item_sellerName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),';'.join(self.item_promotions),self.item_act_starttime)
 
     # 输出SQL
     def outSql(self):
         return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,str(self.item_position),self.item_ju_url,self.item_juName,self.item_juDesc,self.item_juPic_url,self.item_id,self.item_url,str(self.item_sellerId),self.item_sellerName,str(self.item_shopId),self.item_shopName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),str(self.item_soldCount),str(self.item_stock),str(self.item_prepare),str(self.item_favorites),';'.join(self.item_promotions),str(self.item_catId),self.item_brand)
 
     # 输出每小时商品销量SQL
-    def outSqlForHour(self):
+    def outSaleSqlForHour(self):
         return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice))
 
     # 输出每小时商品库存SQL
@@ -337,22 +357,25 @@ class JHSItem():
 
     # 每天的SQL
     def outSqlForDay(self):
-        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice),str(self.item_soldCount),str(self.item_stock))
+        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice),str(self.item_soldCount),str(self.item_stock),self.crawling_beginDate,self.crawling_beginHour)
 
     # 更新每小时销量SQL
-    def outUpdateSqlForHour(self):
-        return (str(self.item_soldCount),str(self.item_juId),str(self.item_actId))
+    def outUpdateSaleSqlForHour(self):
+        return ('item_soldcount_h%s'%str(self.hour_index),str(self.item_soldCount),str(self.item_juId),str(self.item_actId))
+        #return (str(self.item_soldCount),str(self.item_juId),str(self.item_actId))
 
     # 更新每小时库存SQL
     def outUpdateStockSqlForHour(self):
-        return (str(self.item_stock),str(self.item_juId),str(self.item_actId))
+        return ('item_stock_h%s'%str(self.hour_index),str(self.item_stock),str(self.item_juId),str(self.item_actId))
+        #return (str(self.item_stock),str(self.item_juId),str(self.item_actId))
 
     # 输出Tuple
     def outTuple(self):
         sql = self.outSql()
-        hourSql = self.outSqlForHour()
+        saleSql = self.outSaleSqlForHour()
         stockSql = self.outStockSqlForHour()
-        return (sql, hourSql, stockSql)
+        iteminfoSql = self.outIteminfoSql()
+        return (sql, saleSql, stockSql, iteminfoSql)
 
     # 输出每天Tuple
     def outTupleDay(self):
@@ -361,9 +384,9 @@ class JHSItem():
 
     # 输出更新每小时Tuple
     def outUpdateTupleHour(self):
-        sql = self.outUpdateSqlForHour()
+        salesql = self.outUpdateSaleSqlForHour()
         stocksql = self.outUpdateStockSqlForHour()
-        return (sql,stocksql)
+        return (salesql,stocksql)
 
     # 写html文件
     def writeLog(self,time_path):

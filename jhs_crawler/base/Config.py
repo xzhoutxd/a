@@ -105,11 +105,12 @@ g_crawledTime = Common.str2timestamp('2000-01-01 00:00:00')
 #g_TBCreditDict = Common.buyerCredits(configPath + '/taobao_creditlevel.txt')
 
 # 网页最大抓取次数
-crawl_retry   = 50
-home_crawl_retry   = 10
+crawl_retry = 100
+home_crawl_retry = 10
+json_crawl_retry = 10
 
 # 并发线程值
-act_max_th = 6
+act_max_th = 10
 item_max_th = 100
 
 # 同时入库的数据量限制

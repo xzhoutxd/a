@@ -462,8 +462,9 @@ class JHSBActItem():
         i = 0
         for itemdata in p.finditer(page):
             position += 1
-            val = self.itemByBrandPageType1(itemdata.group(1), position)
-            self.brandact_itemVal_list.append(val)
+            self.itemByBrandPageType1(itemdata.group(1), position)
+            #val = self.itemByBrandPageType1(itemdata.group(1), position)
+            #self.brandact_itemVal_list.append(val)
 
         # other floor
         # 其他层数据
@@ -483,8 +484,9 @@ class JHSBActItem():
         p = re.compile(r'<div class="act-item0">(.+?)</div>\s+<img', flags=re.S)
         for itemdata in p.finditer(page):
             position += 1
-            val = self.itemByBrandPageType1(itemdata.group(1), position)
-            self.brandact_itemVal_list.append(val)
+            self.itemByBrandPageType1(itemdata.group(1), position)
+            #val = self.itemByBrandPageType1(itemdata.group(1), position)
+            #self.brandact_itemVal_list.append(val)
         # 第二层
         m = re.search(r'<div class="act-item1">\s+<ul>(.+?)</u>\s+</div>', page, flags=re.S)
         if m:
@@ -492,8 +494,9 @@ class JHSBActItem():
             p = re.compile(r'<li>(.+?)</li>', flags=re.S)
             for itemdata in p.finditer(item1_page):
                 position += 1
-                val = self.itemByBrandPageType1(itemdata.group(1), position)
-                self.brandact_itemVal_list.append(val)
+                self.itemByBrandPageType1(itemdata.group(1), position)
+                #val = self.itemByBrandPageType1(itemdata.group(1), position)
+                #self.brandact_itemVal_list.append(val)
 
         # other floor
         # 接口数据
@@ -512,8 +515,9 @@ class JHSBActItem():
         p = re.compile(r'<li class="item-small-v3">(.+?)</li>', flags=re.S)
         for itemdata in p.finditer(page):
             position += 1
-            val = self.itemByBrandPageType1(itemdata.group(1), position)
-            self.brandact_itemVal_list.append(val)
+            self.itemByBrandPageType1(itemdata.group(1), position)
+            #val = self.itemByBrandPageType1(itemdata.group(1), position)
+            #self.brandact_itemVal_list.append(val)
 
     # 品牌团页面格式(4)
     def brandActType4(self, page):
@@ -535,8 +539,9 @@ class JHSBActItem():
                 if result.has_key('code') and int(result['code']) == 200 and result.has_key('itemList') and result['itemList'] != []:
                     for itemdata in result['itemList']:
                         position += 1
-                        val = self.itemByBrandPageType2(itemdata, position)
-                        self.brandact_itemVal_list.append(val)
+                        self.itemByBrandPageType2(itemdata, position)
+                        #val = self.itemByBrandPageType2(itemdata, position)
+                        #self.brandact_itemVal_list.append(val)
 
     # 品牌团页面格式
     def brandActTypeOther(self, page):
@@ -568,8 +573,10 @@ class JHSBActItem():
                     item_ju_url = 'http://detail.ju.taobao.com/home.htm?item_id=%s'%item_id
                     
                 if item_ju_url != '':
-                    val = (item_ju_url, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, '', self.crawling_begintime)
-                    self.brandact_itemVal_list.append(val)
+                    val = (item_ju_url, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, '')
+                    self.return_val(val)
+                    #r_val = self.return_val(val)
+                    #self.brandact_itemVal_list.append(r_val)
                     items[key] = {'itemid':item_id,'itemjuid':item_juId}
         
         # other floor
@@ -596,8 +603,9 @@ class JHSBActItem():
             p = re.compile(r'<li class="item-small-v3">.+?(<a.+?</a>).+?</li>', flags=re.S)
             for itemdata in p.finditer(f_html):
                 position += 1
-                val = self.itemByBrandPageType1(itemdata.group(1), position)
-                self.brandact_itemVal_list.append(val)
+                self.itemByBrandPageType1(itemdata.group(1), position)
+                #val = self.itemByBrandPageType1(itemdata.group(1), position)
+                #self.brandact_itemVal_list.append(val)
         return position
 
     # 获取商品信息类型1
@@ -633,7 +641,8 @@ class JHSBActItem():
                     item_juPic_url = m.group(1)
 
         # 解析聚划算商品
-        return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url, self.crawling_begintime)
+        #return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url, self.crawling_begintime)
+        return self.return_val((itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url))
 
     # 获取商品信息类型2
     def itemByBrandPageType2(self, itemdata, position):
@@ -669,7 +678,13 @@ class JHSBActItem():
                             item_juId = ids.split('=')[1]
 
         # 解析聚划算商品
-        return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url, self.crawling_begintime)
+        #return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url, self.crawling_begintime)
+        return self.return_val((itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url))
+
+    def return_val(self, val):
+        r_val = val + (self.crawling_begintime,Common.time_s(float(self.brandact_starttime)/1000))
+        self.brandact_itemVal_list.append(r_val)
+        #return val + (self.crawling_begintime,Common.time_s(float(self.brandact_starttime)/1000))
 
     # 品牌团信息和其中商品基本信息
     def antPage(self, val):
@@ -678,6 +693,7 @@ class JHSBActItem():
         self.itemConfig()
         # 只爬一段时间内要开团的活动
         time_gap = Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time)
+        time_gap = 0
         if self.beginH_gap > time_gap and 0 <= time_gap:
             self.brandActConpons()
             # 不抓俪人购的商品
@@ -685,7 +701,7 @@ class JHSBActItem():
                 self.brandActItems()
             # 保存html文件
             page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
-            self.writeLog(page_datepath)
+            #self.writeLog(page_datepath)
         else:
             self.crawling_confirm = 2
 
@@ -697,7 +713,7 @@ class JHSBActItem():
         self.brandActItems()
         # 保存html文件
         page_datepath = 'act/hourcheck/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
-        self.writeLog(page_datepath)
+        #self.writeLog(page_datepath)
 
     # 即将上线的品牌团信息
     def antPageComing(self, val):
@@ -707,7 +723,7 @@ class JHSBActItem():
         self.brandActConpons()
         # 保存html文件
         page_datepath = 'act/coming/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
-        self.writeLog(page_datepath)
+        #self.writeLog(page_datepath)
 
     # 写html文件
     def writeLog(self, time_path):
