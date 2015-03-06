@@ -209,11 +209,6 @@ class JHSBActItemM(MyThread):
                 # 通知queue, task结束
                 self.queue.task_done()
 
-                self.crawlRetry(_data)
-                # 重新拨号
-                self.dialRouter(4, 'chn')
-                #time.sleep(random.uniform(10,30))
-
                 print 'Unknown exception crawl item :', e
                 #traceback.print_exc()
                 print '#####--Traceback Start--#####'
@@ -223,6 +218,14 @@ class JHSBActItemM(MyThread):
                     print text
                 print "exception traceback err:%s,%s,%s"%(tp,val,td)
                 print '#####--Traceback End--#####'
+
+                self.crawlRetry(_data)
+                # 重新拨号
+                try:
+                    self.dialRouter(4, 'chn')
+                except Exception as e:
+                    print '# DailClient Exception err:', e
+                    time.sleep(10)
                 time.sleep(1)
 
 if __name__ == '__main__':

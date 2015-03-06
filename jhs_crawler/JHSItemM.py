@@ -219,8 +219,8 @@ class JHSItemM(MyThread):
                     #if self.updateItemsale(_itemsalesql_list): _itemsalesql_list = []
                     #_itemstocksql_list.append(stockSql)
                     #if self.updateItemstock(_itemstocksql_list): _itemstocksql_list = []
-                    self.mysqlAccess.updateJhsItemSoldcountForHour(saleSql)
-                    self.mysqlAccess.updateJhsItemStockForHour(stockSql)
+                    #self.mysqlAccess.updateJhsItemSoldcountForHour(saleSql)
+                    #self.mysqlAccess.updateJhsItemStockForHour(stockSql)
                     self.mysqlAccess.updateJhsItemSaleStockForHour(salestockSql)
 
                 # 通知queue, task结束
@@ -246,11 +246,6 @@ class JHSItemM(MyThread):
             except Exception as e:
                 # 通知queue, task结束
                 self.queue.task_done()
-
-                self.crawlRetry(_data)
-                # 重新拨号
-                self.dialRouter(4, 'item')
-
                 print 'Unknown exception crawl item :', e
                 #traceback.print_exc()
                 print '#####--Traceback Start--#####'
@@ -260,6 +255,13 @@ class JHSItemM(MyThread):
                     print text
                 print "exception traceback err:%s,%s,%s"%(tp,val,td)
                 print '#####--Traceback End--#####'
+                self.crawlRetry(_data)
+                # 重新拨号
+                try:
+                    self.dialRouter(4, 'item')
+                except Exception as e:
+                    print '# DailClient Exception err:', e 
+                    time.sleep(10)
                 time.sleep(1)
                 #time.sleep((_data[0]+1)*random.uniform(10,30))
 
