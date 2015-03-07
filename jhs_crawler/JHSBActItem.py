@@ -693,7 +693,6 @@ class JHSBActItem():
         self.itemConfig()
         # 只爬一段时间内要开团的活动
         time_gap = Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time)
-        time_gap = 0
         if self.beginH_gap > time_gap and 0 <= time_gap:
             self.brandActConpons()
             # 不抓俪人购的商品
