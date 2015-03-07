@@ -35,6 +35,7 @@ class JHSBrand():
         # 首页
         self.ju_home_url   = 'http://ju.taobao.com'
         self.refers     = 'http://www.tmall.com'
+        self.ju_home_today_url = 'http://ju.taobao.com/tg/today_items.htm'
 
         # 品牌团页面
         self.brand_url  = 'http://ju.taobao.com/tg/brand.htm'
@@ -65,6 +66,9 @@ class JHSBrand():
             page = self.crawler.getData(self.ju_home_url, self.refers)
             hb = JHSHomeBrand()
             hb.antPage(page)
+            if not hb.home_brands:
+                page = self.crawler.getData(self.ju_home_today_url, self.refers)
+                hb.antPage(page)
             self.home_brands = hb.home_brands
             #print self.home_brands
 

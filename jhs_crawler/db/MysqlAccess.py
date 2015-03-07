@@ -171,8 +171,9 @@ class MysqlAccess():
     # 每天抓取商品
     def insertJhsItemForDay(self, args_list):
         try:
-            sql = 'replace into nd_jhs_parser_item_d(crawl_time,item_juid,act_id,act_name,act_url,item_juname,item_ju_url,item_id,item_url,item_oriprice,item_actprice,item_soldcount,item_stock,c_begindate,c_beginhour) value(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            #sql = 'replace into nd_jhs_parser_item_d(crawl_time,item_juid,act_id,act_name,act_url,item_juname,item_ju_url,item_id,item_url,item_oriprice,item_actprice,item_soldcount,item_stock,c_begindate,c_beginhour) value(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
             #self.jhs_db.execute(sql, args)
+            sql = 'call sp_jhs_parser_item_d(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
             self.jhs_db.executemany(sql, args_list)
         except Exception, e:
             print '# insert Jhs Item for day exception:', e
