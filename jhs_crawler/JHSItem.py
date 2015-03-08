@@ -304,7 +304,7 @@ class JHSItem():
         self.itemPromotiton()
         #self.getFromTMTBPage()
         page_datepath = 'item/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
-        #self.writeLog(page_datepath)
+        self.writeLog(page_datepath)
 
     # Day
     def antPageDay(self, val):
