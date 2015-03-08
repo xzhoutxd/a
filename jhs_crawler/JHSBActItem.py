@@ -700,7 +700,7 @@ class JHSBActItem():
                 self.brandActItems()
             # 保存html文件
             page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
-            #self.writeLog(page_datepath)
+            self.writeLog(page_datepath)
         else:
             self.crawling_confirm = 2
 
@@ -712,7 +712,7 @@ class JHSBActItem():
         self.brandActItems()
         # 保存html文件
         page_datepath = 'act/hourcheck/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
-        #self.writeLog(page_datepath)
+        self.writeLog(page_datepath)
 
     # 即将上线的品牌团信息
     def antPageComing(self, val):
@@ -722,7 +722,7 @@ class JHSBActItem():
         self.brandActConpons()
         # 保存html文件
         page_datepath = 'act/coming/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
-        #self.writeLog(page_datepath)
+        self.writeLog(page_datepath)
 
     # 写html文件
     def writeLog(self, time_path):

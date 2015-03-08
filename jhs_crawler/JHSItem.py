@@ -315,28 +315,43 @@ class JHSItem():
         # 本次抓取开始小时
         self.crawling_beginHour = time.strftime("%H", time.localtime(self.crawling_begintime))
 
-        # 聚划算商品页信息
-        page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-        if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-        self.item_juPage = page
-        self.item_pages['item-home-day'] = (self.item_ju_url, page)
+        ## 聚划算商品页信息
+        #page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+        #if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+        #self.item_juPage = page
+        #self.item_pages['item-home-day'] = (self.item_ju_url, page)
         # 商品关注人数, 商品销售数量, 商品库存
+        page = ''
         self.itemDynamic(page)
+        if self.item_soldCount == '' and self.item_stock == '':
+            # 聚划算商品页信息
+            page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+            if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+            self.item_juPage = page
+            self.item_pages['item-home-day'] = (self.item_ju_url, page)
         page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
-        #self.writeLog(page_datepath)
+        self.writeLog(page_datepath)
 
     # Hour
     def antPageHour(self, val):
         self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice,self.crawling_begintime,self.hour_index = val
-        # 聚划算商品页信息
-        page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-        if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-        self.item_juPage = page
-        self.item_pages['item-home-hour'] = (self.item_ju_url, page)
+        ## 聚划算商品页信息
+        #page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+        #if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+        #self.item_juPage = page
+        #self.item_pages['item-home-hour'] = (self.item_ju_url, page)
         # 商品关注人数, 商品销售数量, 商品库存
+        page = ''
         self.itemDynamic(page)
+        if self.item_soldCount == '' and self.item_stock == '':
+            # 聚划算商品页信息
+            page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+            if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+            self.item_juPage = page
+            self.item_pages['item-home-hour'] = (self.item_ju_url, page)
+            self.itemDynamic(page)
         page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
-        #self.writeLog(page_datepath)
+        self.writeLog(page_datepath)
 
     # 输出item info SQL
     def outIteminfoSql(self):
