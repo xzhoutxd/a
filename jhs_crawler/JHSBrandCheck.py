@@ -170,8 +170,8 @@ class JHSBrandCheck():
                     if m_itemsObj.empty_q():
                         item_list = m_itemsObj.items
                         print '# Activity Items num:', len(item_list)
-                        for item in item_list:
-                            sql, hourSql, stockSql = item
+                        #for item in item_list:
+                            #sql, hourSql, stockSql = item
                             #print sql,hourSql,stockSql
                             #self.mysqlAccess.insertJhsItem(sql)
                             #self.mysqlAccess.insertJhsItemSaleForHour(hourSql)
