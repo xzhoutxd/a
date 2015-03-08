@@ -234,16 +234,7 @@ class JHSItem():
 
                 if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
                     self.item_isSoldout = 1
-        #if self.item_soldCount == '' or self.item_remindNum == '' or self.item_stock == '': raise Common.InvalidPageException("# itemConfig: not find ju item sold remind stock num,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-
-        # 补充抓取想买人数
-        #if (self.item_remindNum == '' or int(self.item_remindNum) == 0) and self.item_pageData != '':
-        #    p = re.compile(r'<li class="item-small-v3">.+?<a href="(.+?)".+?>.+?<span class="sold-num">\s+<em class="J_soldnum">(.+?)</em>人想买\s*</span>.+?</li>', flags=re.S)
-        #    for item_g in p.finditer(self.item_pageData):
-        #        remindNum = item_g.group(1)
-        #        if remindNum != '' and int(remindNum) != 0:
-        #            self.item_remindNum = remindNum
-
+            
     # 商品其他优惠信息
     def itemPromotiton(self):
         promot_url = 'http://dskip.ju.taobao.com/promotion/json/get_shop_promotion.do?ju_id=%s'%str(self.item_juId)
@@ -251,10 +242,6 @@ class JHSItem():
         if not promot_page and promot_page == '': raise Common.InvalidPageException("# itemPromotion: not find promotion page")
         if promot_page and promot_page != '':
             self.item_pages['item-shoppromotion'] = (promot_url,promot_page)
-            #m = re.search(r'jsonp\d+\((.+?)\)$', promot_page, flags=re.S)
-            #if m:
-            #    json_str = m.group(1)
-            #    result = json.loads(json_str)
             result = json.loads(promot_page)
             if result.has_key('success') and result.has_key('model') and result['model'] != []:
                 for model in result['model']:
@@ -315,98 +302,69 @@ class JHSItem():
         # 本次抓取开始小时
         self.crawling_beginHour = time.strftime("%H", time.localtime(self.crawling_begintime))
 
-        ## 聚划算商品页信息
-        #page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-        #if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-        #self.item_juPage = page
-        #self.item_pages['item-home-day'] = (self.item_ju_url, page)
         # 商品关注人数, 商品销售数量, 商品库存
         page = ''
         self.itemDynamic(page)
-        if self.item_soldCount == '' and self.item_stock == '':
+        if self.item_soldCount == '' or self.item_stock == '':
             # 聚划算商品页信息
             page = self.crawler.getData(self.item_ju_url, self.item_act_url)
             if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
             self.item_juPage = page
             self.item_pages['item-home-day'] = (self.item_ju_url, page)
+            if self.item_soldCount == '' or self.item_stock == '':
+                print '# item not get soldcount or stock,item_juid:%s,item_actid:%s'%(str(self.item_juId),str(self.item_actId))
         page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
     # Hour
     def antPageHour(self, val):
-        self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice,self.crawling_begintime,self.hour_index = val
-        ## 聚划算商品页信息
-        #page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-        #if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-        #self.item_juPage = page
-        #self.item_pages['item-home-hour'] = (self.item_ju_url, page)
+        #self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice,self.crawling_begintime,self.hour_index = val
+        self.item_juId,self.item_actId,self.item_ju_url,self.item_act_url,self.item_id,self.crawling_begintime,self.hour_index = val
         # 商品关注人数, 商品销售数量, 商品库存
         page = ''
         self.itemDynamic(page)
-        if self.item_soldCount == '' and self.item_stock == '':
+        if self.item_soldCount == '' or self.item_stock == '':
             # 聚划算商品页信息
             page = self.crawler.getData(self.item_ju_url, self.item_act_url)
             if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
             self.item_juPage = page
             self.item_pages['item-home-hour'] = (self.item_ju_url, page)
             self.itemDynamic(page)
+            if self.item_soldCount == '' or self.item_stock == '':
+                print '# item not get soldcount or stock,item_juid:%s,item_actid:%s'%(str(self.item_juId),str(self.item_actId))
         page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
     # 输出item info SQL
     def outIteminfoSql(self):
-        #crawl_time,item_juid,act_id,act_name,act_url,item_position,item_ju_url,item_juname,item_judesc,item_jupic_url,item_id,item_url,seller_id,seller_name,shop_type,item_oriprice,item_actprice,discount,item_remindnum,total_stock,item_promotions,act_starttime
         return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,str(self.item_position),self.item_ju_url,self.item_juName,self.item_juDesc,self.item_juPic_url,self.item_id,self.item_url,str(self.item_sellerId),self.item_sellerName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),';'.join(self.item_promotions),self.item_act_starttime)
-
-    # 输出SQL
-    def outSql(self):
-        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,str(self.item_position),self.item_ju_url,self.item_juName,self.item_juDesc,self.item_juPic_url,self.item_id,self.item_url,str(self.item_sellerId),self.item_sellerName,str(self.item_shopId),self.item_shopName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),str(self.item_soldCount),str(self.item_stock),str(self.item_prepare),str(self.item_favorites),';'.join(self.item_promotions),str(self.item_catId),self.item_brand)
-
-    # 输出每小时商品销量SQL
-    def outSaleSqlForHour(self):
-        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice))
-
-    # 输出每小时商品库存SQL
-    def outStockSqlForHour(self):
-        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice))
 
     # 每天的SQL
     def outSqlForDay(self):
         return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice),str(self.item_soldCount),str(self.item_stock),self.crawling_beginDate,self.crawling_beginHour)
 
-    # 更新每小时销量SQL
-    def outUpdateSaleSqlForHour(self):
-        return ('item_soldcount_h%s'%str(self.hour_index),str(self.item_soldCount),str(self.item_juId),str(self.item_actId))
-        #return (str(self.item_soldCount),str(self.item_juId),str(self.item_actId))
-
-    # 更新每小时库存SQL
-    def outUpdateStockSqlForHour(self):
-        return ('item_stock_h%s'%str(self.hour_index),str(self.item_stock),str(self.item_juId),str(self.item_actId))
-        #return (str(self.item_stock),str(self.item_juId),str(self.item_actId))
-
-    # 更新每小时销量和库存SQL
-    def outUpdateSaleStockSqlForHour(self):
-        return ('item_soldcount_h%s'%str(self.hour_index),str(self.item_soldCount),'item_stock_h%s'%str(self.hour_index),str(self.item_stock),str(self.item_juId),str(self.item_actId))
+    # 每小时的SQL
+    def outSqlForHour(self):
+        return (Common.date_s(self.crawling_time),str(self.hour_index),str(self.item_juId),str(self.item_actId),str(self.item_soldCount),str(self.item_stock))
 
     # 输出Tuple
     def outTuple(self):
-        sql = self.outSql()
-        saleSql = self.outSaleSqlForHour()
-        stockSql = self.outStockSqlForHour()
+        #sql = self.outSql()
+        #saleSql = self.outSaleSqlForHour()
+        #stockSql = self.outStockSqlForHour()
         iteminfoSql = self.outIteminfoSql()
-        return (sql, saleSql, stockSql, iteminfoSql)
+        #return (sql, saleSql, stockSql, iteminfoSql)
+        return iteminfoSql
 
     # 输出每天Tuple
     def outTupleDay(self):
         sql = self.outSqlForDay()
         return sql
 
-    # 输出更新每小时Tuple
-    def outUpdateTupleHour(self):
-        salesql = self.outUpdateSaleSqlForHour()
-        stocksql = self.outUpdateStockSqlForHour()
-        salestock_updatesql = self.outUpdateSaleStockSqlForHour()
-        return (salesql,stocksql,salestock_updatesql)
+    # 输出每小时Tuple
+    def outTupleHour(self):
+        sql = self.outSqlForHour()
+        return sql
 
     # 写html文件
     def writeLog(self,time_path):
@@ -439,22 +397,6 @@ class JHSItem():
             pages.append((f_name, p_tag, f_path, f_content))
 
         return pages
-
-    #
-    def outItem(self):
-        print 'self.crawling_time,self.item_actId,self.item_actName,self.item_act_url,self.item_position,self.item_juId,self.item_ju_url,self.item_id,self.item_url,self.item_juPic_url,self.item_juName,self.item_juDesc,self.item_catId,self.item_catName,self.item_brand,self.item_sellerId,self.item_sellerName,self.item_shopId,self.item_shopName,self.item_shopType,self.item_oriPrice,self.item_actPrice,self.item_discount,self.item_remindNum,self.item_soldCount,self.item_stock,self.item_promotions,self.item_prepare,self.item_favorites'
-        print '# Ju Item:',self.crawling_time,self.item_actId,self.item_actName,self.item_act_url,self.item_position,self.item_juId,self.item_ju_url,self.item_id,self.item_url,self.item_juPic_url,self.item_juName,self.item_juDesc,self.item_catId,self.item_catName,self.item_brand,self.item_sellerId,self.item_sellerName,self.item_shopId,self.item_shopName,self.item_shopType,self.item_oriPrice,self.item_actPrice,self.item_discount,self.item_remindNum,self.item_soldCount,self.item_stock,self.item_promotions,self.item_prepare,self.item_favorites
-
-        """
-        print '原数据信息'
-        print '商品所属数据项内容'
-        print self.item_pageData
-        print '商品聚划算页面html内容'
-        print self.item_juPage
-        print '页面所有加载页面'
-        print self.item_pages
-        """
-
 
 def test():
     #(itemdata, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url)

@@ -202,7 +202,7 @@ def quotes_s(s):
 
 def time_s(t, fmt='%Y-%m-%d %H:%M:%S'):
     s = ''
-    if type(t) is float:
+    if type(t) is float or type(t) is int:
         s = time.strftime(fmt, time.localtime(t))
     return s
 
@@ -214,6 +214,12 @@ def htmlDecode_s(s):
 
 def now():
     return time.time()
+
+def date_s(t, fmt='%Y-%m-%d'):
+    s = ''
+    if type(t) is float or type(t) is int:
+        s = time.strftime(fmt, time.localtime(t))
+    return s
 
 # 当前时间字符串
 def now_s(fmt='%Y-%m-%d %H:%M:%S'):
@@ -260,4 +266,5 @@ def local_ip():
     host = socket.gethostname()
     ip = socket.gethostbyname(host)
     return ip
+    #return '192.168.1.35'
  

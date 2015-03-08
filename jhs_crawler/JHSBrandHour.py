@@ -15,7 +15,6 @@ import base.Config as Config
 from base.TBCrawler import TBCrawler
 from db.MysqlAccess import MysqlAccess
 from JHSItemM import JHSItemM
-from multiprocessing.dummy import Pool as ThreadPool
 from JHSItem import JHSItem
 
 class JHSBrandHour():
@@ -64,28 +63,21 @@ class JHSBrandHour():
                 return None
             
             # 商品默认信息列表
+            all_item_num = 0
             crawler_val_list = []
             for act_r in act_results:
                 # 只抓时尚女士,精品男士
                 if int(act_r[1]) == 261000 or int(act_r[1]) == 262000:
-                    starttime_TS = time.mktime(time.strptime(str(act_r[5]), "%Y-%m-%d %H:%M:%S"))
-                    index = int(Common.subTS_hours(self.crawling_time, starttime_TS)) + 1
-                    soldcount_name = 'item_soldcount_h%d'%index
-                    hour_index = str(index)
                     # 按照活动Id找出商品信息
                     item_results = self.mysqlAccess.selectJhsItemsHouralive((str(act_r[0]),))
                     if item_results:
-                        print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s hour_index:%s'%(str(act_r[0]),str(act_r[3]),str(act_r[5]),str(act_r[6]),str(len(item_results)),hour_index)
+                        print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s hour_index:%s'%(str(act_r[0]),str(act_r[3]),str(act_r[5]),str(act_r[6]),str(len(item_results)),str(self.begin_hour))
                         if len(item_results) > 0:
-                            item_val_list = []
-                            print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                            for item in item_results:
-                                item = item + (self.begin_time,hour_index)
-                                item_val_list.append(item)
-                            print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                            crawler_val_list.append((hour_index,act_r[0],act_r[3],item_val_list))
+                            crawler_val_list.append((act_r[0],act_r[3],item_results))
+                        all_item_num += len(item_results)
                     else:
                         print '# hour act id:%s name:%s not find items...'%(str(act_r[0]),str(act_r[3]))
+            print '# hour all item nums:',all_item_num
 
             # 多线程抓商品
             self.run_brandItems(crawler_val_list)
@@ -102,11 +94,11 @@ class JHSBrandHour():
     # 多线程抓去品牌团商品
     def run_brandItems(self, crawler_val_list):
         for crawler_val in crawler_val_list:
-            hour_index, brandact_id, brandact_name, item_valTuple = crawler_val
+            brandact_id, brandact_name, item_valTuple = crawler_val
             print '# hour activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
 
             # 附加的信息
-            a_val = (self.begin_time, hour_index)
+            a_val = (self.begin_time, self.begin_hour)
             # 多线程 控制并发的线程数
             if len(item_valTuple) > Config.item_max_th:
                 m_itemsObj = JHSItemM(3, Config.item_max_th, a_val)
@@ -116,47 +108,6 @@ class JHSBrandHour():
             m_itemsObj.putItems(item_valTuple)
             m_itemsObj.run()
             print '# hour activity Items update end: actId:%s, actName:%s'%(brandact_id, brandact_name)
-
-            """
-            while True:
-                try:
-                    print '# hour item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
-                    if m_itemsObj.empty_q():
-                        item_list = m_itemsObj.items
-                        for item in item_list:
-                            item_sold, item_stock = item
-                            soldcount_name = 'item_soldcount_h%s'%hour_index
-                            soldcount_val = (soldcount_name,) + item_sold
-                            if item_sold[0]:
-                                self.mysqlAccess.updateJhsItemSoldcountForHour(soldcount_val)
-                            else:
-                                print '# hour item sold count is none: ',soldcount_val
-                            stock_name = 'item_stock_h%s'%hour_index
-                            stock_val = (stock_name,) + item_stock
-                            if item_stock[0]:
-                                self.mysqlAccess.updateJhsItemStockForHour(stock_val)
-                            else:
-                                print '# hour item stock is none: ',stock_val
-                        print '# hour activity Items update end: actId:%s, actName:%s'%(brandact_id, brandact_name)
-                        break
-                except Exception as e:
-                    print '# exception error item for hour result :', e
-                    #traceback.print_exc()
-                    print '#####--Traceback Start--#####'
-                    tp,val,td = sys.exc_info()
-                    for file, lineno, function, text in traceback.extract_tb(td):
-                        print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
-                        print text
-                    print "exception traceback err:%s,%s,%s"%(tp,val,td)
-                    print '#####--Traceback End--#####'
-                    break
-            """
-
-    def run(self, val):
-        item = JHSItem()
-        item.antPageHour(val)
-        return item.outUpdateTupleHour()
-
 
 
 if __name__ == '__main__':
