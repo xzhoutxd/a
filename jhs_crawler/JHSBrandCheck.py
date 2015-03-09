@@ -57,7 +57,7 @@ class JHSBrandCheck():
             act_valList = []
             for act_r in act_results:
                 # 只抓时尚女士,精品男士
-                if int(act_r[1]) == 261000 or int(act_r[1]) == 262000:
+                if int(act_r[2]) == 261000 or int(act_r[2]) == 262000:
                     act_valList.append((str(act_r[1]),act_r[7],act_r[8],self.begin_time))
                     if not self.act_dict.has_key(str(act_r[1])):
                         self.act_dict[str(act_r[1])] = []
