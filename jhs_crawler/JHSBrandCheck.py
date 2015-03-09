@@ -48,7 +48,7 @@ class JHSBrandCheck():
             print '# hour need check activity time:',val
             act_results = self.mysqlAccess.selectJhsActAlive(val)
             if act_results:
-                print '# hour need check activity num:',len(act_results)
+                print '# hour find need check activity num:',len(act_results)
             else:
                 print '# hour need check activity not found..'
                 return None
@@ -56,18 +56,22 @@ class JHSBrandCheck():
             # 商品默认信息列表
             act_valList = []
             for act_r in act_results:
-                act_valList.append((str(act_r[1]),act_r[7],act_r[8],self.begin_time))
-                if not self.act_dict.has_key(str(act_r[1])):
-                    self.act_dict[str(act_r[1])] = []
-                # 按照活动Id找出商品
-                item_results = self.mysqlAccess.selectJhsItemIdsOfActId((str(act_r[1]),))
-                if item_results:
-                    print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s'%(str(act_r[1]),str(act_r[7]),str(act_r[28]),str(act_r[29]),str(len(item_results)))
-                    itemid_list = []
-                    if len(item_results) > 0:
-                        for item in item_results:
-                            itemid_list.append(str(item[0]))
-                    self.act_dict[str(act_r[1])] = itemid_list
+                # 只抓时尚女士,精品男士
+                if int(act_r[1]) == 261000 or int(act_r[1]) == 262000:
+                    act_valList.append((str(act_r[1]),act_r[7],act_r[8],self.begin_time))
+                    if not self.act_dict.has_key(str(act_r[1])):
+                        self.act_dict[str(act_r[1])] = []
+                    # 按照活动Id找出商品
+                    item_results = self.mysqlAccess.selectJhsItemIdsOfActId((str(act_r[1]),))
+                    if item_results:
+                        print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s'%(str(act_r[1]),str(act_r[7]),str(act_r[28]),str(act_r[29]),str(len(item_results)))
+                        itemid_list = []
+                        if len(item_results) > 0:
+                            for item in item_results:
+                                itemid_list.append(str(item[0]))
+                        self.act_dict[str(act_r[1])] = itemid_list
+
+            print '# need check brands num:',len(act_valList)
 
             #print act_valList
             #print self.act_dict
