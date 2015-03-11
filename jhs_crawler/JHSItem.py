@@ -34,6 +34,7 @@ class JHSItem():
         self.item_act_url = '' # 商品所属活动Url
         self.item_position = 0 # 商品所在活动位置
         self.item_act_starttime = 0.0 # 商品所在活动开团时间
+        self.item_act_endtime = 0.0 # 商品所在活动结束时间
 
         # 商品信息
         self.item_juId = '' # 商品聚划算Id
@@ -75,7 +76,7 @@ class JHSItem():
         self.hour_index = 0 # 每小时的时刻
 
     # 商品初始化
-    def initItem(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url, begin_time, start_time):
+    def initItem(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url, begin_time, start_time, end_time):
         # 商品所属数据项内容
         self.item_pageData = page
         self.item_pages['item-init'] = ('',page)
@@ -99,6 +100,8 @@ class JHSItem():
         self.crawling_begintime = begin_time
         # 商品所在活动的开团时间
         self.item_act_starttime = start_time
+        # 商品所在活动的结束时间
+        self.item_act_endtime = end_time
 
     # 聚划算商品页信息
     def itemConfig(self):
@@ -285,8 +288,8 @@ class JHSItem():
     # 执行
     #def antPage(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):
     def antPage(self, val):
-        page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url, begin_time, start_time = val
-        self.initItem(page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url, begin_time, start_time)
+        page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url, begin_time, start_time,end_time = val
+        self.initItem(page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url, begin_time, start_time, end_time)
         self.itemConfig()
         self.itemPromotiton()
         #self.getFromTMTBPage()
@@ -312,7 +315,7 @@ class JHSItem():
             self.item_juPage = page
             self.item_pages['item-home-day'] = (self.item_ju_url, page)
             if self.item_soldCount == '' or self.item_stock == '':
-                print '# item not get soldcount or stock,item_juid:%s,item_actid:%s'%(str(self.item_juId),str(self.item_actId))
+                print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
         page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
@@ -331,13 +334,13 @@ class JHSItem():
             self.item_pages['item-home-hour'] = (self.item_ju_url, page)
             self.itemDynamic(page)
             if self.item_soldCount == '' or self.item_stock == '':
-                print '# item not get soldcount or stock,item_juid:%s,item_actid:%s'%(str(self.item_juId),str(self.item_actId))
+                print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
         page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
     # 输出item info SQL
     def outIteminfoSql(self):
-        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,str(self.item_position),self.item_ju_url,self.item_juName,self.item_juDesc,self.item_juPic_url,self.item_id,self.item_url,str(self.item_sellerId),self.item_sellerName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),';'.join(self.item_promotions),self.item_act_starttime)
+        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,str(self.item_position),self.item_ju_url,self.item_juName,self.item_juDesc,self.item_juPic_url,self.item_id,self.item_url,str(self.item_sellerId),self.item_sellerName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),';'.join(self.item_promotions),self.item_act_starttime,self.item_act_endtime)
 
     # 每天的SQL
     def outSqlForDay(self):

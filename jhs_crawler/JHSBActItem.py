@@ -682,7 +682,7 @@ class JHSBActItem():
         return self.return_val((itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url))
 
     def return_val(self, val):
-        r_val = val + (self.crawling_begintime,Common.time_s(float(self.brandact_starttime)/1000))
+        r_val = val + (self.crawling_begintime,Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000))
         self.brandact_itemVal_list.append(r_val)
         #return val + (self.crawling_begintime,Common.time_s(float(self.brandact_starttime)/1000))
 
