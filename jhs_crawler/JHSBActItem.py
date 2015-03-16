@@ -47,8 +47,10 @@ class JHSBActItem():
         self.brandact_logopic_url = '' # 品牌团Logo图片链接
         self.brandact_enterpic_url = '' # 品牌团展示图片链接
         self.brandact_starttime = 0.0 # 品牌团开团时间
+        self.brandact_starttime_s = '' # 品牌团开团时间字符串形式
         self.brandact_startdate = '' # 品牌团开团日期
         self.brandact_endtime = 0.0 # 品牌团结束时间
+        self.brandact_endtime_s = '' # 品牌团结束时间字符串形式
         self.brandact_status = '' # 品牌团状态
         self.brandact_sign = 1 # 品牌团标识 1:普通品牌团,2:拼团,3:俪人购
         self.brandact_other_ids = '' # 如果是拼团, 其他团的ID
@@ -682,7 +684,10 @@ class JHSBActItem():
         return self.return_val((itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url))
 
     def return_val(self, val):
-        r_val = val + (self.crawling_begintime,Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000))
+        if self.brandact_starttime_s != '' and self.brandact_endtime_s != '':
+            r_val = val + (self.crawling_begintime,self.brandact_starttime_s,self.brandact_endtime_s)
+        else:
+            r_val = val + (self.crawling_begintime,Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000))
         self.brandact_itemVal_list.append(r_val)
         #return val + (self.crawling_begintime,Common.time_s(float(self.brandact_starttime)/1000))
 
@@ -706,7 +711,7 @@ class JHSBActItem():
 
     # 品牌团页面所有商品
     def antPageHourcheck(self, val):
-        self.brandact_id, self.brandact_name, self.brandact_url, self.crawling_begintime = val
+        self.brandact_id, self.brandact_name, self.brandact_url, self.crawling_begintime, self.brandact_starttime_s,self.brandact_endtime_s = val
         # 品牌团页面html
         self.brandPage()
         self.brandActItems()
@@ -783,22 +788,6 @@ class JHSBActItem():
     # 输出每小时检查活动的元组
     def outTupleForHourcheck(self):
         return (self.brandact_id, self.brandact_name, self.brandact_url, self.brandact_itemVal_list)
-
-    def outItem(self):
-        print 'self.brandact_platform,self.brandact_channel,self.crawling_time,self.brandact_catgoryId,self.brandact_catgoryName,self.brandact_position,self.brandact_id,self.brandact_url,self.brandact_name,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_starttime,self.brandact_endtime,self.brandact_status,self.brandact_sign,self.brandact_other_ids,self.brandact_sellerId,self.brandact_sellerName,self.brandact_shopId,self.brandact_shopName,self.brandact_soldCount,self.brandact_remindNum,self.brandact_discount,self.brandact_coupon,self.brandact_coupons'
-        print '# brandActivityItem:',self.brandact_platform,self.brandact_channel,self.crawling_time,self.brandact_catgoryId,self.brandact_catgoryName,self.brandact_position,self.brandact_id,self.brandact_url,self.brandact_name,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_starttime,self.brandact_endtime,self.brandact_status,self.brandact_sign,self.brandact_other_ids,self.brandact_sellerId,self.brandact_sellerName,self.brandact_shopId,self.brandact_shopName,self.brandact_soldCount,self.brandact_remindNum,self.brandact_discount,self.brandact_coupon,self.brandact_coupons
-
-        """
-        print '原数据信息:'
-        print 'brand activity pagedata'
-        print self.brandact_pagedata
-        print 'brand activity page'
-        print self.brandact_page
-        print 'brand activity pages'
-        print self.brandact_pages
-        """
-
-
 
 def test():
     pass
