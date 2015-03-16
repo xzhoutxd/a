@@ -83,32 +83,6 @@ class JHSItemM(MyThread):
             self.push_back(self.giveup_items, _val)
             print "# retry too many times, no get item:", _val
 
-    """
-    # insert item
-    def insertItem(self, itemsql_list, f=False):
-        if f or len(itemsql_list) >= Config.item_max_arg:
-            if len(itemsql_list) > 0:
-                self.mysqlAccess.insertJhsItem(itemsql_list)
-            return True
-        return False
-
-    # insert item sale
-    def insertItemsale(self, itemsalesql_list, f=False):
-        if f or len(itemsalesql_list) >= Config.item_max_arg:
-            if len(itemsalesql_list) > 0:
-                self.mysqlAccess.insertJhsItemSaleForHour(itemsalesql_list)
-            return True
-        return False
-
-    # insert item stock
-    def insertItemstock(self, itemstocksql_list, f=False):
-        if f or len(itemstocksql_list) >= Config.item_max_arg:
-            if len(itemstocksql_list) > 0:
-                self.mysqlAccess.insertJhsItemStockForHour(itemstocksql_list)
-            return True
-        return False
-    """
-
     # insert item info
     def insertIteminfo(self, iteminfosql_list, f=False):
         if f or len(iteminfosql_list) >= Config.item_max_arg:
@@ -136,6 +110,15 @@ class JHSItemM(MyThread):
             return True
         return False
 
+    # update item
+    def updateItem(self, itemsql_list, f=False):
+        if f or len(itemsql_list) >= Config.item_max_arg:
+            if len(itemsql_list) > 0:
+                self.mysqlAccess.updateJhsItem(itemsql_list)
+                #print '# update data to database'
+            return True
+        return False
+
     # To crawl item
     def crawl(self):
         # item sql list
@@ -143,6 +126,7 @@ class JHSItemM(MyThread):
         _iteminfosql_list = []
         _itemdaysql_list = []
         _itemhoursql_list = []
+        _itemlocksql_list = []
         while True:
             _data = None
             try:
@@ -153,11 +137,6 @@ class JHSItemM(MyThread):
                     # 队列为空，退出
                     #print '# queue is empty', e
                     #print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    #self.insertItem(_itemsql_list, True)
-                    #self.insertItemsale(_itemsalesql_list, True)
-                    #self.insertItemstock(_itemstocksql_list, True)
-                    #_itemsql_list = []
-                    #_itemsalesql_list, _itemstocksql_list = [], []
                     self.insertIteminfo(_iteminfosql_list, True)
                     _iteminfosql_list = []
                     #print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
@@ -167,6 +146,10 @@ class JHSItemM(MyThread):
 
                     self.insertItemhour(_itemhoursql_list, True)
                     _itemhoursql_list = []
+
+                    self.updateItem(_itemlocksql_list, True)
+                    _itemlocksql_list = []
+
                     break
 
                 if self.jhs_type == 1:
@@ -182,12 +165,6 @@ class JHSItemM(MyThread):
                     self.push_back(self.items, item.outTuple())
 
                     # 入库
-                    #_itemsql_list.append(sql)
-                    #if self.insertItem(_itemsql_list): _itemsql_list = []
-                    #_itemsalesql_list.append(saleSql)
-                    #if self.insertItemsale(_itemsalesql_list): _itemsalesql_list = []
-                    #_itemstocksql_list.append(stockSql)
-                    #if self.insertItemstock(_itemstocksql_list): _itemstocksql_list = []
                     _iteminfosql_list.append(iteminfoSql)
                     if self.insertIteminfo(_iteminfosql_list): _iteminfosql_list = []
                 elif self.jhs_type == 2:
@@ -215,9 +192,13 @@ class JHSItemM(MyThread):
                     # 汇聚
                     #self.push_back(self.items, item.outTupleHour())
 
-                    hourSql = item.outTupleHour()
+                    hourSql,lockSql = item.outTupleHour()
                     _itemhoursql_list.append(hourSql)
                     if self.insertItemhour(_itemhoursql_list): _itemhoursql_list = []
+
+                    if lockSql:
+                        _itemlocksql_list.append(lockSql)
+                    if self.updateItem(_itemlocksql_list): _itemlocksql_list = []
 
                 # 通知queue, task结束
                 self.queue.task_done()

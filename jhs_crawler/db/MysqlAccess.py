@@ -48,6 +48,14 @@ class MysqlAccess():
         except Exception, e:
             print '# insert Jhs Item info exception:', e
 
+    # 更新商品信息
+    def updateJhsItem(self, args_list):
+        try:
+            sql = 'call sp_update_item(%s,%s,%s)'
+            self.jhs_db.executemany(sql, args_list)
+        except Exception, e:
+            print '# update Jhs Item exception:', e
+
     # 即将上线活动
     def insertJhsActComing(self, args_list):
         try:

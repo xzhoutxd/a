@@ -48,6 +48,8 @@ class JHSItem():
         self.item_catName = '' # 商品叶子类目Name
         self.item_brand = '' # 商品品牌
         self.item_isSoldout = 0 # 商品是否售罄 0:没有售罄,1:售罄
+        self.item_isLock = 0 # 商品是否锁定 0:锁定,1:没有锁定 售罄和结束为0
+        self.item_isLock_time = None # 抓到锁定的时间
 
         # 商品店铺
         self.item_sellerId = '' # 商品卖家Id
@@ -159,11 +161,11 @@ class JHSItem():
                 self.item_sellerId, self.item_sellerName = m.group(1), m.group(2)
 
         # 商品聚划算Name
-        m = re.search(r'<title>(.+?)-(.+?)</title>', i_page, flags=re.S)
+        m = re.search(r'data-shortName="(.+?)"', i_page, flags=re.S)
         if m:
             self.item_juName = m.group(1)
         else:
-            m = re.search(r'data-shortName="(.+?)"', i_page, flags=re.S)
+            m = re.search(r'<title>(.+?)-(聚划算.+?)</title>', i_page, flags=re.S)
             if m:
                 self.item_juName = m.group(1)
             else:
@@ -237,6 +239,16 @@ class JHSItem():
 
                 if self.item_soldCount != '' and int(self.item_soldCount) != 0 and self.item_stock != '' and int(self.item_stock) == 0:
                     self.item_isSoldout = 1
+
+    # 商品锁定信息
+    def itemLock(self, page):
+        if page != '':
+            m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"isLock":\s*"(.+?)",.+?};', page, flags=re.S)
+            if m:
+                isLock = m.group(1)
+                if isLock != '':
+                    self.item_isLock = isLock
+                    self.item_isLock_time = Common.now()
             
     # 商品其他优惠信息
     def itemPromotiton(self):
@@ -323,18 +335,26 @@ class JHSItem():
     def antPageHour(self, val):
         #self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice,self.crawling_begintime,self.hour_index = val
         self.item_juId,self.item_actId,self.item_ju_url,self.item_act_url,self.item_id,self.crawling_begintime,self.hour_index = val
-        # 商品关注人数, 商品销售数量, 商品库存
         page = ''
+        # 聚划算商品页信息
+        page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+        if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+        self.item_juPage = page
+        self.item_pages['item-home-hour'] = (self.item_ju_url, page)
+
+        # 商品关注人数, 商品销售数量, 商品库存
         self.itemDynamic(page)
+        # 商品锁定信息
+        self.itemLock(page)
         if self.item_soldCount == '' or self.item_stock == '':
             # 聚划算商品页信息
-            page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-            if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-            self.item_juPage = page
-            self.item_pages['item-home-hour'] = (self.item_ju_url, page)
-            self.itemDynamic(page)
-            if self.item_soldCount == '' or self.item_stock == '':
-                print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
+            #page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+            #if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+            #self.item_juPage = page
+            #self.item_pages['item-home-hour'] = (self.item_ju_url, page)
+            #self.itemDynamic(page)
+            #if self.item_soldCount == '' or self.item_stock == '':
+            print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
         page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
@@ -349,6 +369,17 @@ class JHSItem():
     # 每小时的SQL
     def outSqlForHour(self):
         return (Common.date_s(self.crawling_time),str(self.hour_index),str(self.item_juId),str(self.item_actId),str(self.item_soldCount),str(self.item_stock))
+
+    # 商品锁定信息
+    def outSqlForLock(self):
+        try:
+            if int(self.item_isLock) == 0:
+                return (self.item_juId,Common.time_s(self.item_isLock_time),self.item_isLock)
+            else:
+                return None
+        except Exception as e:
+            print '# out item Lock Sql err:',e
+            return None
 
     # 输出Tuple
     def outTuple(self):
@@ -367,7 +398,8 @@ class JHSItem():
     # 输出每小时Tuple
     def outTupleHour(self):
         sql = self.outSqlForHour()
-        return sql
+        lockSql = self.outSqlForLock()
+        return (sql,lockSql)
 
     # 写html文件
     def writeLog(self,time_path):
