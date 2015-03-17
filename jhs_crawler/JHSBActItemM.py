@@ -21,7 +21,7 @@ warnings.filterwarnings("ignore")
 
 class JHSBActItemM(MyThread):
     '''A class of jhs activity item thread manager'''
-    def __init__(self, jhs_type, thread_num = 15):
+    def __init__(self, jhs_type, thread_num = 15, a_val=None):
         # parent construct
         MyThread.__init__(self, thread_num)
 
@@ -30,6 +30,9 @@ class JHSBActItemM(MyThread):
 
         # mysql
         self.mysqlAccess = MysqlAccess()
+
+        # appendix val
+        self.a_val = a_val
 
         # jhs queue type
         self.jhs_type   = jhs_type # 1:即将上线品牌团频道页, 2:检查每天还没结束的活动, 3:新增活动
@@ -44,7 +47,8 @@ class JHSBActItemM(MyThread):
         self._ip = Common.local_ip()
 
         # router tag
-        self._tag = 'ikuai'
+        #self._tag = 'ikuai'
+        self._tag = 'tpent'
 
     # To dial router
     def dialRouter(self, _type, _obj):
@@ -123,12 +127,6 @@ class JHSBActItemM(MyThread):
                 except Empty as e:
                     # 队列为空，退出
                     #print '# queue is empty', e
-                    """
-                    self.insertAct(_actsql_list, True)
-                    self.insertActday(_actdaysql_list, True)
-                    self.insertActhour(_acthoursql_list, True)
-                    _actsql_list, _actdaysql_list, _acthoursql_list = [], [], []
-                    """
                     self.insertActcoming(_actcomingsql_list, True)
                     _actcomingsql_list = []
                     break
@@ -172,17 +170,18 @@ class JHSBActItemM(MyThread):
                     # 汇聚
                     self.push_back(self.items, item.outTuple())
 
-                    """
-                    brandact_itemVal_list, sql, daySql, hourSql, crawling_confirm = item.outTuple()
-                    # 入库
-                    if crawling_confirm == 1:
-                        _actsql_list.append(sql)
-                        if self.insertAct(_actsql_list): _actsql_list = []
-                        _actdaysql_list.append(daySql)
-                        if self.insertActday(_actdaysql_list): _actdaysql_list = []
-                        _acthoursql_list.append(hourSql)
-                        if self.insertActhour(_acthoursql_list): _acthoursql_list = []
-                    """
+                elif self.jhs_type == 4:
+                    # 还没有开团的搜有品牌团实例
+                    item = JHSBActItem()
+
+                    # 信息处理
+                    _val  = _data[1]
+                    item.antPageMain(_val)
+                    #print '# To crawl activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
+
+                    # 汇聚
+                    self.push_back(self.items, item.outTuple())
+
                     
                 # 通知queue, task结束
                 self.queue.task_done()

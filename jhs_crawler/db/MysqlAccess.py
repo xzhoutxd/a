@@ -80,6 +80,14 @@ class MysqlAccess():
         except Exception, e:
             print '# execute Sql exception:', e
 
+    # 还没有开团的活动
+    def selectJhsActNotStart(self):
+        try:
+            sql = 'select act_id from nd_jhs_parser_activity where start_time > now()'
+            return self.jhs_db.select(sql)
+        except Exception, e:
+            print '# select Jhs not start act exception:', e
+
     # 查找还没有结束的活动
     def selectJhsActAlive(self, args):
         # 非俪人购

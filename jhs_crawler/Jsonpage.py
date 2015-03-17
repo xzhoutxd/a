@@ -99,6 +99,13 @@ class Jsonpage():
                     self.val_queue.task_done()
                     self.crawlRetry(_data)
                     time.sleep(random.uniform(10,30))
+                except Exception as e:
+                    print '# exception err:',e
+                    # 通知queue, task结束
+                    self.val_queue.task_done()
+                    if e.find('Read timed out') != -1:
+                        self.crawlRetry(_data)
+                    time.sleep(random.uniform(10,30))
         return bResult_list
 
     # 通过数据接口获取每一页的数据
@@ -145,7 +152,7 @@ class Jsonpage():
 
     # 解析每一页的数据
     def parser_brandjson(self, bResult_list, a_val=None):
-        print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        print '# brand activities parse json start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         # 获取多线程需要的字段val
         act_valList = []
         # 前一页的数据量,用于计算活动所在的位置
@@ -185,7 +192,7 @@ class Jsonpage():
                 else:
                     val = (activity, page[2], page[1], (b_position_start+i+1))
                 act_valList.append(val)
-        print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        print '# brand activities parse json end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         return act_valList
     
     def traceback_log(self):

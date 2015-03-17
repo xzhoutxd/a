@@ -79,7 +79,7 @@ class JHSBActItem():
         self.brandact_pages = {} # 品牌页面内请求数据列表
 
     # 品牌团初始化
-    def initItem(self, page, catId, catName, position, begin_time, home_brands):
+    def initItem(self, page, catId, catName, position, begin_time, home_brands={}):
         # 品牌团所在数据项内容
         self.brandact_pagedata = page
         self.brandact_pages['act-init'] = ('', page)
@@ -140,9 +140,6 @@ class JHSBActItem():
             elif self.home_brands.has_key(key2):
                 self.brandact_inJuHome = 1
                 self.brandact_juHome_position = self.home_brands[key2]['position']
-
-        # 品牌团页面html
-        self.brandPage()
 
     # Json dict
     def itemDict(self):
@@ -692,6 +689,28 @@ class JHSBActItem():
         #return val + (self.crawling_begintime,Common.time_s(float(self.brandact_starttime)/1000))
 
     # 品牌团信息和其中商品基本信息
+    def antPageMain(self, val):
+        page, catId, catName, position, begin_time, brandid_list = val
+        self.initItem(page, catId, catName, position, begin_time)
+        self.itemConfig()
+        # 还没有开团的活动
+        time_gap = Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time)
+        if str(self.brandact_id) not in brandid_list and 0 <= time_gap:
+            # 不抓俪人购的商品
+            if self.brandact_sign != 3:
+                # 品牌团页面html
+                self.brandPage()
+                # 活动优惠
+                self.brandActConpons()
+                # 活动页面商品
+                self.brandActItems()
+            # 保存html文件
+            page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+            self.writeLog(page_datepath)
+        else:
+            self.crawling_confirm = 2
+
+    # 品牌团信息和其中商品基本信息
     def antPage(self, val):
         page, catId, catName, position, begin_time, home_brands = val
         self.initItem(page, catId, catName, position, begin_time, home_brands)
@@ -699,9 +718,13 @@ class JHSBActItem():
         # 只爬一段时间内要开团的活动
         time_gap = Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time)
         if self.beginH_gap > time_gap and 0 <= time_gap:
-            self.brandActConpons()
             # 不抓俪人购的商品
             if self.brandact_sign != 3:
+                # 品牌团页面html
+                self.brandPage()
+                # 活动优惠
+                self.brandActConpons()
+                # 活动页面商品
                 self.brandActItems()
             # 保存html文件
             page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
@@ -714,6 +737,7 @@ class JHSBActItem():
         self.brandact_id, self.brandact_name, self.brandact_url, self.crawling_begintime, self.brandact_starttime_s,self.brandact_endtime_s = val
         # 品牌团页面html
         self.brandPage()
+        # 活动页面商品
         self.brandActItems()
         # 保存html文件
         page_datepath = 'act/hourcheck/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
@@ -724,6 +748,9 @@ class JHSBActItem():
         page, catId, catName, position, begin_time = val
         self.initItemComing(page, catId, catName, position, begin_time)
         self.itemConfig()
+        # 品牌团页面html
+        self.brandPage()
+        # 活动优惠
         self.brandActConpons()
         # 保存html文件
         page_datepath = 'act/coming/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))

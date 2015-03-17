@@ -47,7 +47,8 @@ class JHSItemM(MyThread):
         self._ip = Common.local_ip()
 
         # router tag
-        self._tag = 'ikuai'
+        #self._tag = 'ikuai'
+        self._tag = 'tpent'
 
         # give up item, retry too many times
         self.giveup_items = []

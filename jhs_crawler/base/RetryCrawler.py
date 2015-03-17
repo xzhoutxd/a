@@ -44,6 +44,12 @@ class RetryCrawler():
                 time.sleep(1*retry)
             except Exception as e:
                 print '# exception err in retry crawler:',e
-                break
+                if e.find('Read timed out') != -1:
+                    if retry >= max_retry:
+                        break
+                    retry += 1
+                    time.sleep(1*retry)
+                else:
+                    break
 
         return page
