@@ -78,6 +78,7 @@ class JHSBrand():
             self.activityList(page) 
         except Exception as e:
             print '# exception err in antPage info:',e
+            self.traceback_log()
 
     # 品牌团列表
     def activityListOld(self, page):
@@ -200,7 +201,7 @@ class JHSBrand():
     # 品牌团页面模板2
     def activityListTemp2(self, page):
         # 推荐
-        m = re.search(r'<div id="todayBrand".+?>.+?<div class="ju-itemlist">\s+<ul class="clearfix J_BrandList" data-spm="floor1">(.+?)</ul>', page, flags=re.S)
+        m = re.search(r'<div id="[todayBrand|custom0]".+?>.+?<div class="ju-itemlist">\s+<ul class="clearfix J_BrandList" data-spm="floor1".+?>(.+?)</ul>', page, flags=re.S)
         if m:
             brand_list = m.group(1)
             today_i = 0
