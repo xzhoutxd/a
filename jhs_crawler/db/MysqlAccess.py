@@ -99,7 +99,7 @@ class MysqlAccess():
     # 还没有开团的活动
     def selectJhsActNotStart(self):
         try:
-            sql = 'select act_id from nd_jhs_parser_activity where start_time > now()'
+            sql = 'select * from nd_jhs_parser_activity where start_time > now()'
             return self.jhs_db.select(sql)
         except Exception, e:
             print '# select Jhs not start act exception:', e

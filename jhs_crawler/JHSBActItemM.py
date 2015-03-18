@@ -150,7 +150,7 @@ class JHSBActItemM(MyThread):
                         _actcomingsql_list.append(sql)
                     if self.insertActcoming(_actcomingsql_list): _actcomingsql_list = []
                 elif self.jhs_type == 2:
-                    # 品牌团实例 每小时检查活动新加商品
+                    # 品牌团实例 检查活动新加商品
                     # _catid, _catname, _caturl = _val
                     item = JHSBActItem()
 

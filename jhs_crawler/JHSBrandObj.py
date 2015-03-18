@@ -31,7 +31,7 @@ class JHSBrandObj():
         results = self.mysqlAccess.selectJhsActNotStart()
         if results:
             for r in results:
-                actid_list.append(str(r[0]))
+                actid_list.append(str(r[1]))
         return actid_list
 
     # 获取接口数据并解析
