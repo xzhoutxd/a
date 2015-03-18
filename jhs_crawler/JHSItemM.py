@@ -120,14 +120,23 @@ class JHSItemM(MyThread):
             return True
         return False
 
+    # update item remind
+    def updateItemRemind(self, itemsql_list, f=False):
+        if f or len(itemsql_list) >= Config.item_max_arg:
+            if len(itemsql_list) > 0:
+                self.mysqlAccess.updateJhsItemRemind(itemsql_list)
+                #print '# update remind data to database'
+            return True
+        return False
+
     # To crawl item
     def crawl(self):
         # item sql list
-        #_itemsql_list, _itemsalesql_list, _itemstocksql_list = [], [], []
         _iteminfosql_list = []
         _itemdaysql_list = []
         _itemhoursql_list = []
         _itemlocksql_list = []
+        _itemsql_list = []
         while True:
             _data = None
             try:
@@ -138,19 +147,25 @@ class JHSItemM(MyThread):
                     # 队列为空，退出
                     #print '# queue is empty', e
                     #print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                    # info
                     self.insertIteminfo(_iteminfosql_list, True)
                     _iteminfosql_list = []
                     #print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
+                    # day
                     self.insertItemday(_itemdaysql_list, True)
                     _itemdaysql_list = []
 
+                    # hour
                     self.insertItemhour(_itemhoursql_list, True)
                     _itemhoursql_list = []
 
                     self.updateItem(_itemlocksql_list, True)
                     _itemlocksql_list = []
 
+                    # remind
+                    self.updateItemRemind(_itemsql_list, True)
+                    _itemsql_list = []
                     break
 
                 if self.jhs_type == 1:
@@ -200,6 +215,21 @@ class JHSItemM(MyThread):
                     if lockSql:
                         _itemlocksql_list.append(lockSql)
                     if self.updateItem(_itemlocksql_list): _itemlocksql_list = []
+                elif self.jhs_type == 4:
+                    # 更新商品关注人数
+                    item = JHSItem()
+                    _val = _data[1]
+                    if self.a_val: _val = _val + self.a_val
+
+                    item.antPageUpdateRemind(_val)
+                    #print '# Hour To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
+                    # 汇聚
+                    self.push_back(self.items, item.outTupleUpdateRemind())
+
+                    updateSql = item.outTupleUpdateRemind()
+
+                    _itemsql_list.append(updateSql)
+                    if self.updateItemRemind(_itemsql_list): _itemsql_list = []
 
                 # 通知queue, task结束
                 self.queue.task_done()

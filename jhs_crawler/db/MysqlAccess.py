@@ -21,11 +21,19 @@ class MysqlAccess():
     # 新加活动
     def insertJhsAct(self, args_list):
         try:
-            sql  = 'replace into nd_jhs_parser_activity(crawl_time,act_id,category_id,category_name,act_position,act_platform,act_channel,act_name,act_url,act_desc,act_logopic_url,act_enterpic_url,act_status,act_sign,_act_ids,seller_id,seller_name,shop_id,shop_name,discount,act_soldcount,act_remindnum,act_coupon,act_coupons,brand_id,brand_name,juhome,juhome_position,start_time,end_time,c_begindate,c_beginhour) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            sql = 'replace into nd_jhs_parser_activity(crawl_time,act_id,category_id,category_name,act_position,act_platform,act_channel,act_name,act_url,act_desc,act_logopic_url,act_enterpic_url,act_status,act_sign,_act_ids,seller_id,seller_name,shop_id,shop_name,discount,act_soldcount,act_remindnum,act_coupon,act_coupons,brand_id,brand_name,juhome,juhome_position,start_time,end_time,c_begindate,c_beginhour) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
             #self.jhs_db.execute(sql, args)
             self.jhs_db.executemany(sql, args_list)
         except Exception, e:
             print '# insert Jhs Act exception:', e
+
+    # 更新活动信息
+    def updateJhsAct(self, args_list):
+        try:
+            sql = 'call sp_update_jhs_parser_activity(%s,%s,%s,%s,%s,%s,%s,%s)'
+            self.jhs_db.executemany(sql, args_list)
+        except Exception, e:
+            print '# update Jhs Act exception:', e
 
     """
     # 新加商品
@@ -55,6 +63,14 @@ class MysqlAccess():
             self.jhs_db.executemany(sql, args_list)
         except Exception, e:
             print '# update Jhs Item exception:', e
+
+    # 更新商品关注人数
+    def updateJhsItemRemind(self, args_list):
+        try:
+            sql = 'call sp_update_item_remind(%s,%s)'
+            self.jhs_db.executemany(sql, args_list)
+        except Exception, e:
+            print '# update Jhs Item remind exception:', e
 
     # 即将上线活动
     def insertJhsActComing(self, args_list):
@@ -96,6 +112,23 @@ class MysqlAccess():
             return self.jhs_db.select(sql, args)
         except Exception, e:
             print '# select Jhs alive act exception:', e
+
+    # 查找还没有结束的活动
+    def selectJhsActStartForOneHour(self, args):
+        # 非俪人购
+        try:
+            sql = 'select * from nd_jhs_parser_activity where start_time > %s and start_time < %s and act_sign != 3'
+            return self.jhs_db.select(sql, args)
+        except Exception, e:
+            print '# select Jhs alive act exception:', e
+
+    # 查找需要抓取销量、关注人数的商品 按照活动Id查找
+    def selectJhsItemsFromActId(self, args):
+        try:
+            sql = 'select a.item_juid,a.act_id,a.item_ju_url,b.act_url,a.item_id from nd_jhs_parser_item_info a join nd_jhs_parser_activity b on a.act_id = b.act_id where a.act_id = %s'
+            return self.jhs_db.select(sql, args)
+        except Exception, e:
+            print '# select Jhs act items for sale and remind exception:', e
 
     # 需要每天抓取的活动
     def insertJhsActDayalive(self, args_list):
@@ -179,7 +212,7 @@ class MysqlAccess():
         except Exception, e:
             print '# delete Jhs alive act for hour exception:', e
 
-     # 查找需要每小时抓取活动的商品 按照活动Id查找
+    # 查找需要每小时抓取活动的商品 按照活动Id查找
     def selectJhsItemsHouralive(self, args):
         try:
             #sql = 'select a.item_juid,a.act_id,a.act_name,a.act_url,a.item_juname,a.item_ju_url,a.item_id,a.item_url,a.item_oriprice,a.item_actprice from nd_jhs_parser_item as a join nd_jhs_parser_activity_alive_h as b on a.act_id = b.act_id where b.act_id = %s'

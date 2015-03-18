@@ -174,7 +174,7 @@ class JHSBActItemM(MyThread):
                     self.push_back(self.items, item.outTuple())
 
                 elif self.jhs_type == 4:
-                    # 还没有开团的搜有品牌团实例
+                    # 还没有开团的品牌团实例
                     item = JHSBActItem()
 
                     # 信息处理

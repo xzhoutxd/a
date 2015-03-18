@@ -67,16 +67,16 @@ class JHSBrandHour():
             crawler_val_list = []
             for act_r in act_results:
                 # 只抓时尚女士,精品男士
-                if int(act_r[1]) == 261000 or int(act_r[1]) == 262000:
-                    # 按照活动Id找出商品信息
-                    item_results = self.mysqlAccess.selectJhsItemsHouralive((str(act_r[0]),))
-                    if item_results:
-                        print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s hour_index:%s'%(str(act_r[0]),str(act_r[3]),str(act_r[5]),str(act_r[6]),str(len(item_results)),str(self.begin_hour))
-                        if len(item_results) > 0:
-                            crawler_val_list.append((act_r[0],act_r[3],item_results))
-                        all_item_num += len(item_results)
-                    else:
-                        print '# hour act id:%s name:%s not find items...'%(str(act_r[0]),str(act_r[3]))
+                #if int(act_r[1]) == 261000 or int(act_r[1]) == 262000:
+                # 按照活动Id找出商品信息
+                item_results = self.mysqlAccess.selectJhsItemsHouralive((str(act_r[0]),))
+                if item_results:
+                    print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s hour_index:%s'%(str(act_r[0]),str(act_r[3]),str(act_r[5]),str(act_r[6]),str(len(item_results)),str(self.begin_hour))
+                    if len(item_results) > 0:
+                        crawler_val_list.append((act_r[0],act_r[3],item_results))
+                    all_item_num += len(item_results)
+                else:
+                    print '# hour act id:%s name:%s not find items...'%(str(act_r[0]),str(act_r[3]))
             print '# hour all item nums:',all_item_num
 
             # 多线程抓商品

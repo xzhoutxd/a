@@ -230,8 +230,11 @@ class JHSItem():
                 m = re.search(r'"remindNum":\s*"(.+?)",', json_str, flags=re.S)
                 if m:
                     remindNum = m.group(1)
-                    if remindNum != '' and int(remindNum) != 0:
+                    if self.item_soldCount == '':
                         self.item_remindNum = remindNum
+                    else:
+                        if remindNum != '' and int(remindNum) != 0:
+                            self.item_remindNum = remindNum
 
                 m = re.search(r'"stock":\s*"(.+?)",', json_str, flags=re.S)
                 if m:           
@@ -326,6 +329,7 @@ class JHSItem():
             if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
             self.item_juPage = page
             self.item_pages['item-home-day'] = (self.item_ju_url, page)
+            self.itemDynamic(page)
             if self.item_soldCount == '' or self.item_stock == '':
                 print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
         page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
@@ -347,15 +351,26 @@ class JHSItem():
         # 商品锁定信息
         self.itemLock(page)
         if self.item_soldCount == '' or self.item_stock == '':
-            # 聚划算商品页信息
-            #page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-            #if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-            #self.item_juPage = page
-            #self.item_pages['item-home-hour'] = (self.item_ju_url, page)
-            #self.itemDynamic(page)
-            #if self.item_soldCount == '' or self.item_stock == '':
             print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
         page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+        self.writeLog(page_datepath)
+
+    # update remind
+    def antPageUpdateRemind(self, val):
+        self.item_juId,self.item_actId,self.item_ju_url,self.item_act_url,self.item_id,self.crawling_begintime = val
+        # 商品关注人数
+        page = ''
+        self.itemDynamic(page)
+        if self.item_remindNum == '':
+            # 聚划算商品页信息
+            page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+            if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+            self.item_juPage = page
+            self.item_pages['item-home-day'] = (self.item_ju_url, page)
+            self.itemDynamic(page)
+            if self.item_remindNum == '':
+                print '# item not get remind num,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
+        page_datepath = 'item/update/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
     # 输出item info SQL
@@ -381,6 +396,10 @@ class JHSItem():
             print '# out item Lock Sql err:',e
             return None
 
+    # 更新item remind SQL
+    def outSqlForUpdateRemind(self):
+        return (str(self.item_juId),str(self.item_remindNum))
+
     # 输出Tuple
     def outTuple(self):
         #sql = self.outSql()
@@ -400,6 +419,11 @@ class JHSItem():
         sql = self.outSqlForHour()
         lockSql = self.outSqlForLock()
         return (sql,lockSql)
+
+    # 更新item remind Tuple
+    def outTupleUpdateRemind(self):
+        sql = self.outSqlForUpdateRemind()
+        return sql
 
     # 写html文件
     def writeLog(self,time_path):

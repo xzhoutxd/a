@@ -16,6 +16,15 @@ delim    = '\x01'
 def createPath(p):
     if not os.path.exists(p): os.makedirs(p)
 
+# 写文件
+def writefile(page_datepath,f_name,f_content):
+    filepath = pagePath + page_datepath
+    createPath(filepath)
+    filename = filepath + f_name
+    fout = open(filename, 'w')
+    fout.write(f_content)
+    fout.close()
+
 ######################## 抓取设置  ########################
 tmall_home = 'http://www.tmall.com'
 # 聚划算
@@ -111,7 +120,7 @@ json_crawl_retry = 10
 
 # 并发线程值
 act_max_th = 5
-item_max_th = 50
+item_max_th = 100
 
 # 同时入库的数据量限制
 act_max_arg = 10

@@ -12,6 +12,7 @@ import base.Config as Config
 import base.Common as Common
 from dial.DialClient import DialClient
 from base.MyThread  import MyThread
+from Queue import Empty
 from JHSBActItem import JHSBActItem
 from JHSItem import JHSItem
 
@@ -98,7 +99,6 @@ class JHSCrawlerM(MyThread):
 
                 # 信息处理
                 _val  = _data[1]
-                #time.sleep(1)
                 item.antPage(_val)
                 if self.jhs_type == 1:
                     print '# To crawl activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
