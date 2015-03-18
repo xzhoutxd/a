@@ -47,8 +47,8 @@ class JHSBActItemM(MyThread):
         self._ip = Common.local_ip()
 
         # router tag
-        #self._tag = 'ikuai'
-        self._tag = 'tpent'
+        self._tag = 'ikuai'
+        #self._tag = 'tpent'
 
     # To dial router
     def dialRouter(self, _type, _obj):
