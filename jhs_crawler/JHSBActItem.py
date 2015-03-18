@@ -704,11 +704,11 @@ class JHSBActItem():
                 self.brandActConpons()
                 # 活动页面商品
                 self.brandActItems()
-            # 保存html文件
-            page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
-            self.writeLog(page_datepath)
         else:
             self.crawling_confirm = 2
+        # 保存html文件
+        page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+        self.writeLog(page_datepath)
 
     # 品牌团信息和其中商品基本信息
     def antPage(self, val):
@@ -726,11 +726,11 @@ class JHSBActItem():
                 self.brandActConpons()
                 # 活动页面商品
                 self.brandActItems()
-            # 保存html文件
-            page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
-            self.writeLog(page_datepath)
         else:
             self.crawling_confirm = 2
+        # 保存html文件
+        page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+        self.writeLog(page_datepath)
 
     # 品牌团页面所有商品
     def antPageHourcheck(self, val):
@@ -748,10 +748,14 @@ class JHSBActItem():
         page, catId, catName, position, begin_time = val
         self.initItemComing(page, catId, catName, position, begin_time)
         self.itemConfig()
-        # 品牌团页面html
-        self.brandPage()
-        # 活动优惠
-        self.brandActConpons()
+        time_gap = Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time)
+        if 0 <= time_gap:
+            # 品牌团页面html
+            self.brandPage()
+            # 活动优惠
+            self.brandActConpons()
+        else:
+            self.crawling_confirm = 2
         # 保存html文件
         page_datepath = 'act/coming/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
@@ -815,6 +819,9 @@ class JHSBActItem():
     # 输出每小时检查活动的元组
     def outTupleForHourcheck(self):
         return (self.brandact_id, self.brandact_name, self.brandact_url, self.brandact_itemVal_list)
+
+    def outTupleForComing(self):
+        return (self.crawling_confirm,self.outSqlForComing())
 
 def test():
     pass

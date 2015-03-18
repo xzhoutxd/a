@@ -142,9 +142,12 @@ class JHSBActItemM(MyThread):
                     print '# To crawl coming activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
                     # 汇聚
                     #self.push_back(self.items, item.outSqlForComing())
-                    sql = item.outSqlForComing()
+                    #sql = item.outSqlForComing()
+                    self.push_back(self.items, item.outTupleForComing())
+                    crawling_confirm,sql = item.outTupleForComing()
                     # 入库
-                    _actcomingsql_list.append(sql)
+                    if crawling_confirm == 1:
+                        _actcomingsql_list.append(sql)
                     if self.insertActcoming(_actcomingsql_list): _actcomingsql_list = []
                 elif self.jhs_type == 2:
                     # 品牌团实例 每小时检查活动新加商品
