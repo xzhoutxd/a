@@ -67,7 +67,7 @@ class JHSBrandHour():
             crawler_val_list = []
             for act_r in act_results:
                 # 只抓时尚女士,精品男士
-                #if int(act_r[1]) == 261000 or int(act_r[1]) == 262000:
+                #if int(act_r[1]) != 261000 or int(act_r[1]) != 262000: continue
                 # 按照活动Id找出商品信息
                 item_results = self.mysqlAccess.selectJhsItemsHouralive((str(act_r[0]),))
                 if item_results:

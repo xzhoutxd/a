@@ -57,19 +57,19 @@ class JHSBrandCheck():
             act_valList = []
             for act_r in act_results:
                 # 只抓时尚女士,精品男士
-                if int(act_r[2]) == 261000 or int(act_r[2]) == 262000:
-                    act_valList.append((str(act_r[1]),act_r[7],act_r[8],self.begin_time,str(act_r[28]),str(act_r[29])))
-                    if not self.act_dict.has_key(str(act_r[1])):
-                        self.act_dict[str(act_r[1])] = []
-                    # 按照活动Id找出商品
-                    item_results = self.mysqlAccess.selectJhsItemIdsOfActId((str(act_r[1]),))
-                    if item_results:
-                        print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s'%(str(act_r[1]),str(act_r[7]),str(act_r[28]),str(act_r[29]),str(len(item_results)))
-                        itemid_list = []
-                        if len(item_results) > 0:
-                            for item in item_results:
-                                itemid_list.append(str(item[0]))
-                        self.act_dict[str(act_r[1])] = itemid_list
+                #if int(act_r[2]) != 261000 or int(act_r[2]) != 262000: continue
+                act_valList.append((str(act_r[1]),act_r[7],act_r[8],self.begin_time,str(act_r[28]),str(act_r[29])))
+                if not self.act_dict.has_key(str(act_r[1])):
+                    self.act_dict[str(act_r[1])] = []
+                # 按照活动Id找出商品
+                item_results = self.mysqlAccess.selectJhsItemIdsOfActId((str(act_r[1]),))
+                if item_results:
+                    print '# act id:%s name:%s starttime:%s endtime:%s Items num:%s'%(str(act_r[1]),str(act_r[7]),str(act_r[28]),str(act_r[29]),str(len(item_results)))
+                    itemid_list = []
+                    if len(item_results) > 0:
+                        for item in item_results:
+                            itemid_list.append(str(item[0]))
+                    self.act_dict[str(act_r[1])] = itemid_list
 
             print '# need check brands num:',len(act_valList)
 
