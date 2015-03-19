@@ -8,11 +8,9 @@ import re
 import random
 import json
 import time
-import Queue
 import traceback
 import base.Common as Common
 import base.Config as Config
-from base.TBCrawler import TBCrawler
 from base.RetryCrawler import RetryCrawler
 from db.MysqlAccess import MysqlAccess
 from JHSBrandTEMP import JHSBrandTEMP
@@ -26,7 +24,6 @@ class JHSBrandComing():
         self.mysqlAccess = MysqlAccess()
 
         # 抓取设置
-        #self.crawler = TBCrawler()
         self.crawler = RetryCrawler()
 
         # 页面模板解析
@@ -35,29 +32,17 @@ class JHSBrandComing():
         # 获取Json数据
         self.jsonpage = Jsonpage()
 
-        # 商品抓取队列
-        #self.item_queue = Queue.Queue()
-
         # 首页
         self.ju_home_url = 'http://ju.taobao.com'
 
         # 品牌团页面
         self.brand_url = 'http://ju.taobao.com/tg/brand.htm'
 
-        # 首页的品牌团列表
-        self.home_brands = {}
-        self.home_brands_list = []
-
-        # 品牌团页面
-        self.brandcoming_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=1'
-
         # 页面信息
         self.ju_brand_page = '' # 聚划算品牌团页面
 
         # 抓取开始时间
         self.begin_time = Common.now()
-        self.begin_date = Common.today_s()
-        self.begin_hour = Common.nowhour_s()
 
     def antPage(self):
         try:
@@ -72,6 +57,9 @@ class JHSBrandComing():
         if not page or page == '': raise Common.InvalidPageException("# activityListForComing: not get JHS brand home.")
         self.ju_brand_page = page
         #print page
+        # 保存html文件
+        page_datepath = 'act/coming/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.begin_time))
+        Config.writefile(page_datepath,'brand.htm',self.ju_brand_page)
 
         # 数据接口URL list
         #b_url_valList = self.activityListForComingTemp(page)

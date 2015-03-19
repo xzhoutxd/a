@@ -12,7 +12,6 @@ import Queue
 import traceback
 import base.Common as Common
 import base.Config as Config
-from base.TBCrawler import TBCrawler
 from db.MysqlAccess import MysqlAccess
 from JHSItemM import JHSItemM
 
@@ -22,15 +21,9 @@ class JHSBrandDay():
         # mysql
         self.mysqlAccess = MysqlAccess()
 
-        # 抓取设置
-        self.crawler    = TBCrawler()
-
         # 抓取开始时间
         self.crawling_time = Common.now() # 当前爬取时间
         self.begin_time = Common.now()
-        self.begin_date = Common.today_s()
-        self.begin_hour = Common.nowhour_s()
-        self.page_datepath = time.strftime("%Y/%m/%d/", time.localtime(self.crawling_time))
 
     def antPage(self):
         try:

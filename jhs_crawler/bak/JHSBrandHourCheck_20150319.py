@@ -12,31 +12,27 @@ import Queue
 import traceback
 import base.Common as Common
 import base.Config as Config
-from base.TBCrawler import TBCrawler
 from db.MysqlAccess import MysqlAccess
-from JHSHomeBrand import JHSHomeBrand
+from JHSBrandCheckObj import JHSBrandCheckObj
 from JHSBActItemM import JHSBActItemM
 from JHSItemM import JHSItemM
-#from JHSCrawlerM import JHSCrawlerM
 
-class JHSBrandCheck():
+class JHSBrandHourCheck():
     '''A class of brand for every hour check'''
     def __init__(self):
         # mysql
         self.mysqlAccess = MysqlAccess()
 
-        # 抓取设置
-        self.crawler    = TBCrawler()
+        # 活动检查
+        self.brand_checkobj = JHSBrandCheckObj()
 
         # 抓取开始时间
         self.crawling_time = Common.now() # 当前爬取时间
         self.begin_time = Common.now()
-        self.begin_date = Common.today_s()
-        self.begin_hour = Common.nowhour_s()
-        self.page_datepath = time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_time))
 
         # 需要检查的活动
         self.act_dict = {}
+        self.all_itemjuid = {}
 
         # 即将开团的最小时间
         self.min_hourslot = 1 # 最小时间段
@@ -69,30 +65,27 @@ class JHSBrandCheck():
                     if len(item_results) > 0:
                         for item in item_results:
                             itemid_list.append(str(item[0]))
+                            self.all_itemjuid[str(item[0])] = str(act_r[1])
                     self.act_dict[str(act_r[1])] = itemid_list
 
             print '# need check brands num:',len(act_valList)
+            print '# ALL item num:',len(self.all_itemjuid)
 
             #print act_valList
             #print self.act_dict
-            self.run_brandAct(act_valList)
+            #self.run_brandAct(act_valList)
+            
+            self.brand_checkobj.antPage(act_valList, self.act_dict, self.all_itemjuid)
         except Exception as e:
             print '# exception err in antPage info:',e
 
     # 多线程抓去品牌团活动
     def run_brandAct(self, act_valList):
-        # Test 只测前两个
-        #act_test = []
-        #act_test.append(act_valList[0])
-        #act_test.append(act_valList[1])
-        #act_valList = act_test
-
         act_num = 0
         newitem_num = 0
         allitem_num = 0
         crawler_val_list = []
         print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        #m_Obj = JHSBActItemM(2, Config.act_max_th)
         # 多线程 控制并发的线程数
         if len(act_valList) > Config.act_max_th:
             m_Obj = JHSBActItemM(2, Config.act_max_th)
@@ -117,23 +110,31 @@ class JHSBrandCheck():
                             if self.act_dict.has_key(str(brandact_id)):
                                 new_item_val = []
                                 new_item_juid = []
+                                hadin_otheract_juid = []
                                 # 重复商品
                                 #if len(self.act_dict[str(brandact_id)]) < len(brandact_itemVal_list):
                                 #    print len(self.act_dict[str(brandact_id)]),self.act_dict[str(brandact_id)]
                                 #    print len(brandact_itemVal_list),brandact_itemVal_list
                                 for item_val in brandact_itemVal_list:
                                     if str(item_val[7]) not in self.act_dict[str(brandact_id)]:
-                                        new_item_juid.append(str(item_val[7]))
-                                        new_item_val.append(item_val)
+                                        if str(item_val[7]) in self.all_itemjuid:
+                                            hadin_otheract_juid.append((str(item_val[7]),self.all_itemjuid[str(item_val[7])]))
+                                        else:
+                                            new_item_juid.append(str(item_val[7]))
+                                            new_item_val.append(item_val)
                                 if len(new_item_val) > 0:
                                     crawler_val_list.append((brandact_id,brandact_name,new_item_val))
                                     newitem_num = newitem_num + len(new_item_val)
                                     print new_item_juid
                                     print self.act_dict[str(brandact_id)]
-                                print '# activity id:%s name:%s url:%s'%(brandact_id, brandact_name, brandact_url)
+                                print '# activity id:%s name:%s'%(brandact_id, brandact_name)
                                 print '# old activity items num:', len(self.act_dict[str(brandact_id)])
                                 print '# now activity items num:', len(brandact_itemVal_list)
                                 print '# add new items num:', len(new_item_val)
+                                if len(hadin_otheract_juid) > 0:
+                                    print hadin_otheract_juid
+                                print '# repeat items, had in other act num:', len(hadin_otheract_juid)
+
                                 
                         print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                         print '#####A activity end#####'
@@ -159,10 +160,8 @@ class JHSBrandCheck():
             print '# activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
             # 多线程 控制并发的线程数
             if len(item_valTuple) > Config.item_max_th:
-                #m_itemsObj = JHSCrawlerM(2, Config.item_max_th)
                 m_itemsObj = JHSItemM(1, Config.item_max_th)
             else: 
-                #m_itemsObj = JHSCrawlerM(2, len(item_valTuple))
                 m_itemsObj = JHSItemM(1, len(item_valTuple))
             m_itemsObj.createthread()
             m_itemsObj.putItems(item_valTuple)
@@ -174,18 +173,11 @@ class JHSBrandCheck():
                     if m_itemsObj.empty_q():
                         item_list = m_itemsObj.items
                         print '# Activity Items num:', len(item_list)
-                        #for item in item_list:
-                            #sql, hourSql, stockSql = item
-                            #print sql,hourSql,stockSql
-                            #self.mysqlAccess.insertJhsItem(sql)
-                            #self.mysqlAccess.insertJhsItemSaleForHour(hourSql)
-                            #self.mysqlAccess.insertJhsItemStockForHour(stockSql)
                         print '# Activity Item List End: actId:%s, actName:%s'%(brandact_id, brandact_name)
                         break
                 except Exception as e:
                     print '# exception err crawl item: ', e
                     print '# crawler_val:', crawler_val
-                    #traceback.print_exc()
                     self.traceback_log()
                     break
 
@@ -201,7 +193,7 @@ class JHSBrandCheck():
 
 if __name__ == '__main__':
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    b = JHSBrandCheck()
+    b = JHSBrandHourCheck()
     b.antPage()
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 

@@ -8,7 +8,6 @@ import re
 import random
 import json
 import time
-import Queue
 import traceback
 import base.Common as Common
 import base.Config as Config

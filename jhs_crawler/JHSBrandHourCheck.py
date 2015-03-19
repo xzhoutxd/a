@@ -8,6 +8,7 @@ import re
 import random
 import json
 import time
+import Queue
 import traceback
 import base.Common as Common
 import base.Config as Config
@@ -16,7 +17,7 @@ from JHSBrandCheckObj import JHSBrandCheckObj
 from JHSBActItemM import JHSBActItemM
 from JHSItemM import JHSItemM
 
-class JHSBrandMainCheck():
+class JHSBrandHourCheck():
     '''A class of brand for every hour check'''
     def __init__(self):
         # mysql
@@ -26,20 +27,26 @@ class JHSBrandMainCheck():
         self.brand_checkobj = JHSBrandCheckObj()
 
         # 抓取开始时间
+        self.crawling_time = Common.now() # 当前爬取时间
         self.begin_time = Common.now()
 
         # 需要检查的活动
         self.act_dict = {}
         self.all_itemjuid = {}
 
+        # 即将开团的最小时间
+        self.min_hourslot = 1 # 最小时间段
+
     def antPage(self):
         try:
-            # 获取还没开团的活动
-            act_results = self.mysqlAccess.selectJhsActNotStart()
+            # 得到需要的时间段
+            val = (Common.time_s(self.crawling_time),Common.add_hours(self.crawling_time, self.min_hourslot))
+            print '# hour need check activity time:',val
+            act_results = self.mysqlAccess.selectJhsActAlive(val)
             if act_results:
-                print '# Main check activity num:',len(act_results)
+                print '# hour find need check activity num:',len(act_results)
             else:
-                print '# Main check activity not found..'
+                print '# hour need check activity not found..'
                 return None
 
             # 商品默认信息列表
@@ -61,12 +68,13 @@ class JHSBrandMainCheck():
                             self.all_itemjuid[str(item[0])] = str(act_r[1])
                     self.act_dict[str(act_r[1])] = itemid_list
 
-            print '# Main check brands num:',len(act_valList)
+            print '# need check brands num:',len(act_valList)
             print '# ALL item num:',len(self.all_itemjuid)
 
             #print act_valList
             #print self.act_dict
             #self.run_brandAct(act_valList)
+            
             self.brand_checkobj.antPage(act_valList, self.act_dict, self.all_itemjuid)
         except Exception as e:
             print '# exception err in antPage info:',e
@@ -84,7 +92,7 @@ class JHSBrandMainCheck():
 
 if __name__ == '__main__':
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    b = JHSBrandMainCheck()
+    b = JHSBrandHourCheck()
     b.antPage()
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
