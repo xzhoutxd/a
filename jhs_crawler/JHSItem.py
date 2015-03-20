@@ -108,16 +108,8 @@ class JHSItem():
     # 聚划算商品页信息
     def itemConfig(self):
         # 聚划算商品页信息
-        page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-        if not page or page == '': raise Common.InvalidPageException("# itemConfig: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-
-        if re.search(r'<title>【聚划算】无所不能聚</title>', page, flags=re.S):
-            raise Common.InvalidPageException("# itemConfig: not find ju item page, redirecting to juhuasuan home,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-        elif type(self.crawler.history) is list and len(self.crawler.history) != 0 and re.search(r'302',self.crawler.history[0]):
-            raise Common.InvalidPageException("# itemConfig: not find ju item page, redirecting to other page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-
-
-        self.item_juPage = page
+        self.itemPage()
+        page = self.item_juPage
         self.item_pages['item-home'] = (self.item_ju_url, page)
         m = re.search(r'<div id="content" class="detail">(.+?)</div> <!-- /content -->', page, flags=re.S)
         if m:
@@ -208,6 +200,20 @@ class JHSItem():
         # 商品关注人数, 商品销售数量, 商品库存
         self.itemDynamic(i_page)
 
+    # 商品详情页html
+    def itemPage(self):
+        if self.item_ju_url != '':
+            page = self.crawler.getData(self.item_ju_url, self.item_act_url)
+            if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+
+            if re.search(r'<title>【聚划算】无所不能聚</title>', page, flags=re.S):
+                raise Common.NoPageException("# itemConfig: not find ju item page, redirecting to juhuasuan home,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+            elif type(self.crawler.history) is list and len(self.crawler.history) != 0 and re.search(r'302',self.crawler.history[0]):
+                raise Common.NoPageException("# itemConfig: not find ju item page, redirecting to other page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+            self.item_juPage = page
+        else:
+            raise Common.NoPageException("# itemConfig: not find ju item page, url is null,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+
     def itemDynamic(self, page):
         # 商品关注人数, 商品销售数量, 商品库存
         i_getdata_url = ''
@@ -223,6 +229,15 @@ class JHSItem():
             if not json_str or json_str == '': raise Common.InvalidPageException("# itemDynamic: not find ju item dynamic page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
             self.item_pages['item-dynamic'] = (i_getdata_url, json_str)
             if json_str and json_str != '':
+                m = re.search(r'"success":\s*"false"', json_str, flags=re.S)
+                if m:
+                    m = re.search(r'"data":\s*"NULL_ITEM.+?', json_str, flags=re.S)
+                    if m:
+                        print json_str
+                        raise Common.NoItemException("# itemDynamic: find dynamic page null,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+                    else:
+                        raise Common.InvalidPageException("# itemDynamic: find dynamic page false,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+
                 m = re.search(r'"soldCount":\s*"(.+?)",', json_str, flags=re.S)
                 if m:
                     self.item_soldCount = m.group(1)
@@ -271,43 +286,12 @@ class JHSItem():
                             if level.has_key('title'):
                                 self.item_promotions.append('%s:%s'%(title,level['title']))
 
-    # 商品详情页信息
-    def getFromTMTBPage(self):
-        try:
-            #result = None
-            Item = None
-            PItem = None
-            # 天猫店铺
-            if int(self.item_shopType) == 1:
-                Item = TMItem()
-                Item.antPage(self.item_url)
-                if not Item.item_page or Item.item_page == '': raise Common.InvalidPageException("# getFromTMTBPage:not find TB or TM item page,juid:%s,id:%s,item_url:%s"%(str(self.item_juId), str(self.item_id), self.item_url))
-                PItem = PTMItem()
-                PItem.antPage(Item)
-                #result = PItem.outItemCrawl()
-            # 集市店铺
-            elif int(self.item_shopType) == 2:
-                Item = TBItem()
-                Item.antPage(self.item_url)
-                if not Item.item_page or Item.item_page == '': raise Common.InvalidPageException("# getFromTMTBPage:not find TB or TM item page,juid:%s,id:%s,item_url:%s"%(str(self.item_juId), str(self.item_id), self.item_url))
-                PItem = PTBItem()
-                PItem.antPage(Item)
-                #result = PT.outItemCrawl()
-                    
-            # 商品店铺Id, 商品店铺Name, 商品叶子类目Id, 商品活动前备货数, 商品收藏数, 商品品牌
-            if PItem:
-                self.item_shopId, self.item_shopName, self.item_catId, self.item_prepare, self.item_favorites, self.item_brand = PItem.shop_id, PItem.shop_name, PItem.item_catId, PItem.item_stock, PItem.item_favorites, PItem.item_brand
-        except Exception as e:
-            raise Common.InvalidPageException("# getFromTMTBPage: juid:%s,id:%s,item_url:%s,info:%s"%(str(self.item_juId), str(self.item_id), self.item_url, e))
-
     # 执行
-    #def antPage(self, page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url):
     def antPage(self, val):
         page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url, begin_time, start_time,end_time = val
         self.initItem(page, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url, begin_time, start_time, end_time)
         self.itemConfig()
         self.itemPromotiton()
-        #self.getFromTMTBPage()
         page_datepath = 'item/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
@@ -325,11 +309,9 @@ class JHSItem():
         self.itemDynamic(page)
         if self.item_soldCount == '' or self.item_stock == '':
             # 聚划算商品页信息
-            page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-            if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-            self.item_juPage = page
-            self.item_pages['item-home-day'] = (self.item_ju_url, page)
-            self.itemDynamic(page)
+            self.itemPage()
+            self.item_pages['item-home-day'] = (self.item_ju_url, self.item_juPage)
+            self.itemDynamic(self.item_juPage)
             if self.item_soldCount == '' or self.item_stock == '':
                 print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
         page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
@@ -337,17 +319,13 @@ class JHSItem():
 
     # Hour
     def antPageHour(self, val):
-        #self.item_juId,self.item_actId,self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,self.item_oriPrice,self.item_actPrice,self.crawling_begintime,self.hour_index = val
         self.item_juId,self.item_actId,self.item_ju_url,self.item_act_url,self.item_id,self.crawling_begintime,self.hour_index = val
         page = ''
         # 聚划算商品页信息
-        page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-        if not page or page == '': raise Common.InvalidPageException("# antPageHour: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-        self.item_juPage = page
-        self.item_pages['item-home-hour'] = (self.item_ju_url, page)
-
+        self.itemPage()
+        self.item_pages['item-home-hour'] = (self.item_ju_url, self.item_juPage)
         # 商品关注人数, 商品销售数量, 商品库存
-        self.itemDynamic(page)
+        self.itemDynamic(self.item_juPage)
         # 商品锁定信息
         self.itemLock(page)
         if self.item_soldCount == '' or self.item_stock == '':
@@ -363,11 +341,10 @@ class JHSItem():
         self.itemDynamic(page)
         if self.item_remindNum == '':
             # 聚划算商品页信息
-            page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-            if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
-            self.item_juPage = page
-            self.item_pages['item-home-day'] = (self.item_ju_url, page)
-            self.itemDynamic(page)
+            self.itemPage()
+            self.item_pages['item-home-update'] = (self.item_ju_url, self.item_juPage)
+            # 商品关注人数, 商品销售数量, 商品库存
+            self.itemDynamic(self.item_juPage)
             if self.item_remindNum == '':
                 print '# item not get remind num,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
         page_datepath = 'item/update/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
@@ -460,13 +437,14 @@ class JHSItem():
 def test():
     #(itemdata, actId, actName, actUrl, position, item_ju_url, item_id, item_juId, item_juPic_url)
 
-    url = 'http://detail.ju.taobao.com/home.htm?id=10000005644539&item_id=35093553474'
-    url = 'http://detail.ju.taobao.com/home.htm?id=10000005625649&item_id=37865414237'
-    item_id = '37865414237'
-    ju_id = '10000005625649'
+    url = 'http://detail.ju.taobao.com/home.htm?id=10000006058022&amp;item_id=42860458287'
+    item_id = '42860458287'
+    ju_id = '10000006058022'
     item = JHSItem()
-    val = ('', '', '', '', 1, url, item_id, ju_id, '')
+    begin_time = Common.now()
+    val = ('', '', '', '', 1, url, item_id, ju_id, '', begin_time, '', '')
     item.antPage(val)
+    print item.outTuple()
     #item.outItem()
     #print item.item_remindNum
     #print item.item_soldCount
