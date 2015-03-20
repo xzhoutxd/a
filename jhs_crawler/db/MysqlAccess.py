@@ -144,7 +144,7 @@ class MysqlAccess():
         # 非俪人购
         # 当前时间减一天小于结束时间，需要每天抓取
         try:
-            sql = 'select * from nd_jhs_parser_activity_alive_d where _end_time >= %s'
+            sql = 'select * from nd_jhs_parser_activity_alive_d where _start_time < %s and _end_time >= %s'
             return self.jhs_db.select(sql, args)
         except Exception, e:
             print '# select Jhs alive act for day exception:', e

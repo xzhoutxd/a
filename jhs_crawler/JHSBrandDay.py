@@ -41,6 +41,7 @@ class JHSBrandDay():
             self.mysqlAccess.deleteJhsActDayalive(val)
             # 查找需要每天统计的活动列表
             print '# day crawler time:',val
+            val = (Common.time_s(self.crawling_time),Common.add_hours(self.crawling_time, -24))
             act_results = self.mysqlAccess.selectJhsActDayalive(val)
             if act_results:
                 print '# day act num:',len(act_results)
