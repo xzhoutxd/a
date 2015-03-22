@@ -771,6 +771,15 @@ class JHSBActItem():
         page_datepath = 'act/coming/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
+    # 解析品牌团活动数据
+    def antPageParser(self, val):
+        page, catId, catName, position, begin_time = val
+        self.initItem(page, catId, catName, position, begin_time)
+        self.itemConfig()
+        # 保存html文件
+        page_datepath = 'act/parser/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+        self.writeLog(page_datepath)
+
     # 写html文件
     def writeLog(self, time_path):
         try:
@@ -815,6 +824,7 @@ class JHSBActItem():
     # 更新活动
     def outSqlForUpdate(self):
         return (str(self.brandact_id),str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position))
+        #return (str(self.brandact_id),self.brandact_url,str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position))
 
     # 每天抓取
     def outSqlForDay(self):
@@ -844,6 +854,10 @@ class JHSBActItem():
 
     def outTupleForComing(self):
         return (self.crawling_confirm,self.outSqlForComing())
+
+    def outTupleBrand(self):
+        return (str(self.brandact_id),self.brandact_name,self.brandact_url,(Common.time_s(self.crawling_time),str(self.brandact_id),self.brandact_name,str(self.brandact_position),str(self.brandact_catgoryId),self.brandact_catgoryName,self.crawling_beginDate))
+
 
 def test():
     pass

@@ -70,6 +70,9 @@ class JHSBrand():
                 page = self.crawler.getData(self.ju_home_today_url, self.refers)
                 hb.antPage(page)
             self.home_brands = hb.home_brands
+            # 保存html文件
+            page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.begin_time))
+            Config.writefile(page_datepath,'home.htm',page)
             #print self.home_brands
 
             # 更新即将开团活动的商品信息

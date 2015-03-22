@@ -65,34 +65,15 @@ class JHSBrandTEMP():
             m = re.search(r'data-activitySignId=\"(.+?)\"$', floor_info, flags=re.S)
             if m:
                 f_activitySignId = m.group(1)
-            print '# activity floor:', f_name, f_catid, f_activitySignId
 
-            begin_page = 1
-            if f_activitySignId != '':
-                f_url = self.brand_page_url + '&page=%d'%begin_page + '&activitySignId=%s'%f_activitySignId.replace(',','%2C') + '&stype=ids'
-                print '# brand activity floor: %s activitySignIds: %s, url: %s'%(f_name, f_activitySignId, f_url)
-            else:
-                f_url = self.brand_page_url + '&page=%d'%begin_page + '&frontCatIds=%s'%f_catid
+            if f_activitySignId == '':
+                f_url = self.brand_page_url + '&page=1&frontCatIds=%s'%f_catid
                 print '# brand activity floor:', f_name, f_catid, f_url
                 url_valList.append((f_url, f_name, f_catid))
         return url_valList
 
     # 品牌团页面模板2
     def activityListTemp2(self, page):
-        # 推荐
-        m = re.search(r'<div id="[todayBrand|custom0]".+?>.+?<div class="ju-itemlist">\s+<ul class="clearfix J_BrandList" data-spm="floor1".+?>(.+?)</ul>', page, flags=re.S)
-        if m:
-            brand_list = m.group(1)
-            today_i = 0
-            p = re.compile(r'<li class="brand-mid-v2".+?>.+?<a.+?href="(.+?)".+?>.+?</li>', flags=re.S)
-            for act in p.finditer(brand_list):
-                act_url = act.group(1)
-                act_id = ''
-                today_i += 1
-                m = re.search(r'act_sign_id=(\d+)', act_url, flags=re.S)
-                if m:
-                    act_id = m.group(1)
-                print '# top brand: position:%s,id:%s,url:%s'%(str(today_i),str(act_id),act_url)
         # 获取数据接口的URL
         url_valList = []
         p = re.compile(r'<div id="(\d+)" class="l-floor J_Floor placeholder ju-wrapper" data-ajax="(.+?)">\s+<div class="l-f-title">\s+<div class="l-f-tbox">(.+?)</div>', flags=re.S)
@@ -195,3 +176,76 @@ class JHSBrandTEMP():
                 url_valList.append((f_url, f_name, f_catid))
         return url_valList
      
+    # 聚划算开团活动列表中的Top推广位
+    def activityTopbrandTemp(self, page):
+        # Top 推广位的活动
+        top_brands = {}
+        # 模板1
+        m = re.search(r'<div id="floor\d+" class="l-floor J_Floor placeholder ju-wrapper" (.+?)>.+?</div>', page, flags=re.S)
+        if m:
+            top_brands = self.activityTopbrandTemp1(page)
+        else:
+            # 模板2
+            m = re.search(r'<div id="(todayBrand)|(custom\d+)".+?>\s+<div class="l-f-title">\s+<div class="l-f-tbox">(.+?)</div>', page, flags=re.S)
+            if m:
+                top_brands = self.activityTopbrandTemp2(page)
+            else:
+                print '# err: not find top brands all templates.'
+
+        return top_brands
+
+    # 品牌团页面Top推广位模板1
+    def activityTopbrandTemp1(self, page):
+        # 获取数据接口的URL
+        top_brands = {}
+        p = re.compile(r'<div id="floor\d+" class="l-floor J_Floor placeholder ju-wrapper" (.+?)>.+?</div>', flags=re.S)
+        for floor in p.finditer(page):
+            floor_info = floor.group(1)
+            f_name, f_catid, f_activitySignId = '', '', ''
+            m = re.search(r'data-floorName="(.+?)"\s+', floor_info, flags=re.S)
+            if m:
+                f_name = m.group(1)
+
+            m = re.search(r'data-catid=\'(.+?)\'\s+', floor_info, flags=re.S)
+            if m:
+                f_catid = m.group(1)
+
+            m = re.search(r'data-activitySignId=\"(.+?)\"$', floor_info, flags=re.S)
+            if m:
+                f_activitySignId = m.group(1)
+
+            begin_page = 1
+            if f_activitySignId != '':
+                f_url = self.brand_page_url + '&page=%d'%begin_page + '&activitySignId=%s'%f_activitySignId.replace(',','%2C') + '&stype=ids'
+                print '# brand activity floor: %s activitySignIds: %s, url: %s'%(f_name, f_activitySignId, f_url)
+                act_ids = f_activitySignId.split(',')
+                i = 1
+                for act_id in act_ids:
+                    print '# top brand: position:%s,id:%s'%(str(i),str(act_id))
+                    top_brands[str(act_id)] = {'act_id':str(act_id),'position':today_i,'datatype':f_name}
+                    i += 1
+        return top_brands
+
+    # 品牌团页面Top推广位模板2
+    def activityTopbrandTemp2(self, page):
+        top_brands = {}
+        p = re.compile(r'<div id="(todayBrand)|(custom\d+)".+?>\s+<div class="l-f-title">\s+<div class="l-f-tbox">(.+?)</div>\s+</div>\s+<div class="ju-itemlist">\s+<ul.+?data-spm="floor\d+">(.+?)</ul>', flags=re.S)
+        for floor in p.finditer(page):
+            f_name, brand_list = floor.group(3), floor.group(4)
+            f_name = re.sub('&amp;','',f_name)
+            today_i = 1
+            p = re.compile(r'<li class="brand.+?".+?>.+?<a.+?href="(.+?)".+?>.+?</a>.+?</li>', flags=re.S)
+            for act in p.finditer(brand_list):
+                act_url = act.group(1)
+                act_id = -1
+                m = re.search(r'act_sign_id=(\d+)', act_url, flags=re.S)
+                if m:
+                    act_id = m.group(1)
+                    top_brands[str(act_id)] = {'act_id':str(act_id),'position':today_i,'url':act_url,'datatype':f_name}
+                else:
+                    top_brands[str(act_url)] = {'act_id':str(act_id),'position':today_i,'url':act_url,'datatype':f_name}
+                print '# top brand: position:%s,id:%s,url:%s'%(str(today_i),str(act_id),act_url),f_name
+                today_i += 1
+        return top_brands
+
+

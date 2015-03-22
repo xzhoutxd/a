@@ -67,16 +67,16 @@ class JHSHomeBrand():
                 m = re.search(r'act_sign_id=(\d+)', brand_act_url, flags=re.S)
                 if m:
                     brand_act_id = str(m.group(1))
-                    self.home_brands[brand_act_id] = {'name':brand_act_name,'url':brand_act_url,'position':i}
+                    self.home_brands[str(brand_act_id)] = {'act_id':brand_act_id,'act_name':brand_act_name,'url':brand_act_url,'position':i,'datatype':'home','typename':'首页'}
                 else:
                     m = re.search(r'minisiteId=(\d+)', brand_act_url, flags=re.S)
                     if m:
                         brand_act_id = str(m.group(1))
-                        self.home_brands[brand_act_id] = {'name':brand_act_name,'url':brand_act_url,'position':i}
+                        self.home_brands[str(brand_act_id)] = {'act_id':brand_act_id,'act_name':brand_act_name,'url':brand_act_url,'position':i,'datatype':'home','typename':'首页'}
                     else:
                         key = brand_act_url.split('?')[0]
                         if key.find('brand_items.htm') == -1:
-                            self.home_brands[key] = {'name':brand_act_name,'url':brand_act_url,'position':i}
+                            self.home_brands[key] = {'act_id':'-1','act_name':brand_act_name,'url':brand_act_url,'position':i,'datatype':'home','typename':'首页'}
                         else:
                             print '# home brand not find info: url:%s'%brand_act_url
 
@@ -84,16 +84,17 @@ class JHSHomeBrand():
 
     # 首页品牌团页面模板2
     def homeBrandTemp2(self, page):
+        dataType_key_list = ["hotBrands","lastBrands","newBrands"]
+        dataType_name = {"hotBrands":"正在热卖","lastBrands":"最后疯狂","newBrands":"今日上新"}
         result = json.loads(page)
         #print result
         if result.has_key('indexShanGouVO'):
             index = result['indexShanGouVO']
             # 首页品牌推广展示模块
-            dataType_key_list = ['hotBrands','lastBrands','newBrands']
             for dataType_key in dataType_key_list:
                 if index.has_key(dataType_key):
                     print '# %s:'%dataType_key, len(index[dataType_key])
-                    brands = self.JsonListConfig(index[dataType_key], dataType_key)
+                    brands = self.JsonListConfig(index[dataType_key], dataType_key, dataType_name[dataType_key])
                     if brands and brands != {}:
                         self.home_brands.update(brands)
             if index.has_key('newNum'):
@@ -107,7 +108,7 @@ class JHSHomeBrand():
                 print '# total brandNum:', index['totalNum']
 
     # Json List Configuration
-    def JsonListConfig(self, brand_json_list, data_type):
+    def JsonListConfig(self, brand_json_list, data_type, type_name):
         brand = {}
         i = 0
         for brand_json in brand_json_list: 
@@ -128,7 +129,7 @@ class JHSHomeBrand():
                     # 品牌团Name
                     brand_act_name = b_materials['logoText']
             if brand_act_id != '':
-                brand[brand_act_id] = {'name':brand_act_name,'url':brand_act_url,'position':i,'datatype':data_type}
+                brand[str(brand_act_id)] = {'act_id':brand_act_id,'act_name':brand_act_name,'url':brand_act_url,'position':i,'datatype':data_type,'typename':type_name}
             print data_type, i, brand_act_id, brand_act_url, brand_act_name
         return brand
 

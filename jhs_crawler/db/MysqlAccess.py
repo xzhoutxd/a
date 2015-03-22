@@ -239,5 +239,14 @@ class MysqlAccess():
         except Exception, e:
             print '# insert Jhs Item for hour exception:', e
 
+    # 活动位置信息
+    def insertJhsActPosition(self, args_list):
+        try:
+            sql = 'call sp_jhs_parser_activity_position(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            self.jhs_db.executemany(sql, args_list)
+        except Exception, e:
+            print '# insert Jhs act position exception:', e
+
+
 if __name__ == '__main__':
     my = MysqlAccess()

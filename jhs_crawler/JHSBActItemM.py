@@ -185,6 +185,18 @@ class JHSBActItemM(MyThread):
                     # 汇聚
                     self.push_back(self.items, item.outTuple())
 
+                elif self.jhs_type == 5:
+                    # 解析品牌团数据
+                    item = JHSBActItem()
+
+                    # 信息处理
+                    _val  = _data[1]
+                    item.antPageParser(_val)
+                    #print '# To crawl activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
+
+                    # 汇聚
+                    self.push_back(self.items, item.outTupleBrand())
+
                     
                 # 通知queue, task结束
                 self.queue.task_done()
