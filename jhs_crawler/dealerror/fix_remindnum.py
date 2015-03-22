@@ -16,6 +16,8 @@ import MySQLdb
 #filepath_m = '/home/har/jhs/jhsdata/page/act/main/2015/02/02/19/'
 #filename = 'add_newBrands_2015020219.log'
 #filepath_m = '/home/har/jhs/jhsdata/page/act/main/2015/03/03/09/'
+#filepath_m = '/home/har/jhs/crawler_v2/jhsdata/page/act/main/2015/03/16/19/'
+#filepath_m = '/home/har/jhs/crawler_v2/jhsdata/page/act/hourcheck/2015/03/16/09/'
 """
 fout = open(filename, 'r')
 s = fout.read()
@@ -39,9 +41,9 @@ db = MySQLdb.connect("192.168.1.113","jhs","123456","jhs",charset='utf8')
 db_cursor = db.cursor()
 
 results = []
-time_start = '2015-03-03 09:29:00'
-time_end = '2015-03-03 09:50:00'
-sql = 'select act_id from nd_jhs_parser_item where crawl_time > \'%s\' and crawl_time < \'%s\''%(time_start,time_end)
+time_start = '2015-03-16 09:50:00'
+time_end = '2015-03-16 10:00:00'
+sql = 'select act_id,item_juid from nd_jhs_parser_item_info where item_remindnum = 0 and crawl_time > \'%s\' and crawl_time < \'%s\''%(time_start,time_end)
 
 try:
     db_cursor.execute(SET_NAMES_QUERY)
@@ -53,11 +55,12 @@ except StandardError as err:
 #关闭    
 db_cursor.close()
 db.close()
+"""
 
 print '# item num:',len(results)
 #print results
-"""
 
+item_idlist = []
 act_idList = []
 file_nameList = []
 for item in results:
@@ -65,9 +68,13 @@ for item in results:
     if act_id not in act_idList:
         act_idList.append(act_id)
         file_nameList.append((act_id+'_act',act_id))
+    item_id = str(item[1])
+    if item_id not in item_idlist:
+        item_idlist.append(item_id)
 
 print '# act nums:',len(act_idList)
 print act_idList
+print '# item nums:',len(item_idlist)
 
 need_fix_file_list = []
 for files in file_nameList:
@@ -84,7 +91,7 @@ for files in file_nameList:
             m = re.search(r'\d+-act-home_\d+.htm', f, flags=re.S)
             if m:
                 need_fix_file_list.append((filepath + f, act_id))
-print  need_fix_file_list
+#print  need_fix_file_list
 print '# num file:', len(need_fix_file_list)
 
 remind_item_list = []
@@ -130,7 +137,8 @@ for need_file in need_fix_file_list:
                     if item_remind.has_key('remindNum'):
                         remindNum = item_remind['remindNum']
                 if juId != '' and itemId != '':
-                    remind_item_list.append((act_id, juId, itemId, remindNum))
+                    if str(juId) in item_idlist:
+                        remind_item_list.append((act_id, juId, itemId, remindNum))
                 print act_id, juId, itemId, remindNum
     """
     m = re.search(r'<li class="item-small-v3">.+?</li>', s, flags=re.S)
@@ -152,7 +160,8 @@ for need_file in need_fix_file_list:
                 remindNum = m.group(1)
             else:
                 remindNum = 0
-            remind_item_list.append((act_id, juId, itemId, remindNum))
+            if str(juId) in item_idlist:
+                remind_item_list.append((act_id, juId, itemId, remindNum))
     m = re.search(r'<div class="ju-itemlist">\s*<ul class="clearfix">(.+?)</ul>', s, flags=re.S)
     if m:
         bigitem = m.group(1)
@@ -169,7 +178,8 @@ for need_file in need_fix_file_list:
             if m:
                 itemId = m.group(1)
             #print act_id, juId, itemId, remindNum
-                remind_item_list.append((act_id, juId, itemId, remindNum))
+                if str(juId) in item_idlist:
+                    remind_item_list.append((act_id, juId, itemId, remindNum))
 
 print '# remind item num:', len(remind_item_list)
 
@@ -184,7 +194,17 @@ db_cursor = db.cursor()
 for r in remind_item_list:
     #print r
     #remind_item_list.append((act_id, juId, itemId, remindNum))
-    update_sql = 'update nd_jhs_parser_item set item_remindnum = %s where item_juid = %s and act_id = %s and item_id = %s'%(str(r[3]),str(r[1]),str(r[0]),str(r[2]))
+    update_sql = 'update nd_jhs_parser_item_info set item_remindnum = %s where item_juid = %s and act_id = %s and item_id = %s'%(str(r[3]),str(r[1]),str(r[0]),str(r[2]))
+    #print update_sql
+    try:
+        db_cursor.execute(SET_NAMES_QUERY)
+        db_cursor.execute(update_sql)
+        db.commit()
+    except StandardError as err:
+        db.rollback()
+        print err
+
+    update_sql = 'update nd_jhs_mid_item_info set remind_num = %s where item_juid = %s and activity_id = %s and item_id = %s'%(str(r[3]),str(r[1]),str(r[0]),str(r[2]))
     #print update_sql
     try:
         db_cursor.execute(SET_NAMES_QUERY)
