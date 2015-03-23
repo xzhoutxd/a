@@ -132,7 +132,6 @@ class JHSBrandMarketing():
                     item_list = m_Obj.items
                     for b in item_list:
                         act_num += 1
-                        print b
                         brandact_id,brandact_name,brandact_url,val = b
                         if self.home_brands.has_key(str(brandact_id)):
                             val = val + (self.home_brands[str(brandact_id)]["position"],self.home_brands[str(brandact_id)]["datatype"],self.home_brands[str(brandact_id)]["typename"])
