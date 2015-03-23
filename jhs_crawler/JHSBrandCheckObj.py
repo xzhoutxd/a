@@ -53,7 +53,7 @@ class JHSBrandCheckObj():
                     for b in item_list:
                         print '#####A activity start#####'
                         brandact_itemVal_list = []
-                        brandact_id, brandact_name, brandact_url, brandact_itemVal_listi, crawling_time = b
+                        brandact_id, brandact_name, brandact_url, brandact_itemVal_list, crawling_time = b
                         act_num += 1
                         # item init val list
                         if brandact_itemVal_list and len(brandact_itemVal_list) > 0:
