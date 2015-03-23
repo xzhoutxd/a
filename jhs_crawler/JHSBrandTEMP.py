@@ -42,9 +42,10 @@ class JHSBrandTEMP():
                 if m:
                     b_url_valList = self.activityListTemp3(page)
                 else:
-                    m = re.search(r'"firstFloorData":{"brandList":\[{.+?}}\],.+?},"floorList"', page, flags=re.S)
+                    #m = re.search(r'"firstFloorData":{"brandList":\[{.+?}}\],.+?},"floorList"', page, flags=re.S)
+                    m = re.search(r'=(\[{.+?"firstFloorData":{"brandList".+?},"floorList".+?}\]);', page, flags=re.S)
                     if m:
-                        b_url_valList = self.activityListTemp4(page)
+                        b_url_valList = self.activityListTemp4(m.group(1))
                     else:
                         print '# err: not matching all templates.'
 
@@ -134,27 +135,59 @@ class JHSBrandTEMP():
     def activityListTemp4(self, page):
         #print page
         # 获取数据接口的URL
+        return self.activityListJson1(page, '1')
+
+    def activityListJson1(self, page, b_type=None):
+        url_valList = []
+        json_list = json.loads(page)
+        for val in json_list:
+            if val.has_key("floorList"):
+                for floor in val["floorList"]:
+                    if b_type and b_type == '1':
+                        if floor.has_key("floorName") and floor["floorName"].find('即将上线') != -1: continue
+                    elif b_type and b_type == '2':
+                        if floor.has_key("floorName") and floor["floorName"].find('即将上线') == -1: continue
+                    if floor.has_key("subFloorList"):
+                        for f in floor["subFloorList"]:
+                            if f.has_key("dataUrl") and f.has_key("floorName"):
+                                url_valList.append((f["dataUrl"],f["floorName"],-1))
+                            elif f.has_key("dataUrl") and floor.has_key("floorName"):
+                                url_valList.append((f["dataUrl"],floor["floorName"],-1))
+                                
+                    else:
+                        if floor.has_key("dataUrl") and floor.has_key("floorName"):
+                            url_valList.append((floor["dataUrl"],floor["floorName"],-1))
+                            
+
+        return url_valList
+    """
+        #print page
+        # 获取数据接口的URL
+        url_list = []
         url_valList = []
         p = re.compile(r'{"dataType":1,"elemNum":\d+,"floorName":"(.+?)","hasSubFloor":true,"kengType":0,"subFloorList":\[(.+?)\].+?}', flags=re.S)
         for floor in p.finditer(page):
             f_catname, sub_floor = floor.group(1), floor.group(2)
             if f_catname.find('即将上线') != -1: continue
             f_catid = -1
-            s_p = re.compile(r'"dataUrl":"(.+?)"', flags=re.S)
+            s_p = re.compile(r'"dataUrl":"(.+?)".+?"floorName":"(.+?)"', flags=re.S)
             for s_floor in s_p.finditer(sub_floor):
-                f_url = s_floor.group(1)
-                url_valList.append((f_url,f_catname,f_catid))                
-                print f_url,f_catname,f_catid
+                f_url, sub_f_catname = s_floor.group(1), s_floor.group(2)
+                url_valList.append((f_url,sub_f_catname,f_catid))                
+                print f_url,sub_f_catname,f_catid
+                url_list.append(f_url)
                 
         p = re.compile(r'{"dataType":1,"dataUrl":"(.+?)","elemNum":\d+,"floorName":"(.+?)","hasSubFloor":false,"kengType":0.+?}', flags=re.S)
         for floor in p.finditer(page):
             f_url, f_catname = floor.group(1), floor.group(2)
+            if f_url in url_list: continue
             if f_catname.find('即将上线') != -1: continue
             f_catid = -1
             url_valList.append((f_url,f_catname,f_catid))
             print f_url,f_catname,f_catid
 
         return url_valList
+    """
 
 
     # 聚划算即将上线活动列表模板
@@ -171,9 +204,11 @@ class JHSBrandTEMP():
             if m:
                 b_url_valList = self.activityListForComingTemp2(page)
             else:
-                m = re.search(r'"firstFloorData":{"brandList":\[{.+?}}\],.+?},"floorList"', page, flags=re.S)
+                #m = re.search(r'"firstFloorData":{"brandList":\[{.+?}}\],.+?},"floorList"', page, flags=re.S)
+                m = re.search(r'=(\[{.+?"firstFloorData":{"brandList".+?},"floorList".+?}\]);', page, flags=re.S)
                 if m:
-                    b_url_valList = self.activityListForComingTemp3(page)
+                    #b_url_valList = self.activityListForComingTemp3(page)
+                    b_url_valList = self.activityListForComingTemp3(m.group(1))
                 else:
                     print '# err: not matching all templates.' 
         return b_url_valList
@@ -213,6 +248,9 @@ class JHSBrandTEMP():
 
     # 品牌团页面模板3
     def activityListForComingTemp3(self, page):
+        return self.activityListJson1(page, '2')
+
+    """
         #print page
         # 获取数据接口的URL
         url_valList = []
@@ -227,15 +265,8 @@ class JHSBrandTEMP():
                 url_valList.append((f_url,sub_f_catname,f_catid))                
                 print f_url,sub_f_catname,f_catid
                 
-        p = re.compile(r'{"dataType":1,"dataUrl":"(.+?)","elemNum":\d+,"floorName":"(.+?)","hasSubFloor":false,"kengType":0.+?}', flags=re.S)
-        for floor in p.finditer(page):
-            f_url, f_catname = floor.group(1), floor.group(2)
-            if f_catname.find('即将上线') == -1: continue
-            f_catid = -1
-            url_valList.append((f_url,f_catname,f_catid))
-            print f_url,f_catname,f_catid
-
         return url_valList
+    """
 
 
     # 聚划算开团活动列表中的Top推广位

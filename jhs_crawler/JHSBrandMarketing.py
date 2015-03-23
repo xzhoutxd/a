@@ -113,10 +113,13 @@ class JHSBrandMarketing():
             print '# err: not find activity json data URL list.'
 
     def run_brandAct(self, act_valList):
+        repeatact_num = 0
         # 活动数量
         act_num = 0
         # 需要保存活动sql列表
         act_sql_list = []
+        # 用于活动去重id dict
+        brandact_id_dict = {}
         print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         # 多线程 控制并发的线程数
         if len(act_valList) > Config.act_max_th:
@@ -133,20 +136,26 @@ class JHSBrandMarketing():
                     for b in item_list:
                         act_num += 1
                         brandact_id,brandact_name,brandact_url,val = b
-                        if self.home_brands.has_key(str(brandact_id)):
-                            val = val + (self.home_brands[str(brandact_id)]["position"],self.home_brands[str(brandact_id)]["datatype"],self.home_brands[str(brandact_id)]["typename"])
-                        elif self.home_brands.has_key(brandact_url):
-                            val = val + (self.home_brands[brandact_url]["position"],self.home_brands[brandact_url]["datatype"],self.home_brands[str(brandact_id)]["typename"])
+                        # 去重
+                        if brandact_id_dict.has_key(str(brandact_id)):
+                            repeatact_num += 1
+                            print '# repeat brand act. activity id:%s name:%s'%(brandact_id, brandact_name)
                         else:
-                            val = val + (None,None,None)
+                            brandact_id_dict[str(brandact_id)] = brandact_name
+                            if self.home_brands.has_key(str(brandact_id)):
+                                val = val + (self.home_brands[str(brandact_id)]["position"],self.home_brands[str(brandact_id)]["datatype"],self.home_brands[str(brandact_id)]["typename"])
+                            elif self.home_brands.has_key(brandact_url):
+                                val = val + (self.home_brands[brandact_url]["position"],self.home_brands[brandact_url]["datatype"],self.home_brands[str(brandact_id)]["typename"])
+                            else:
+                                val = val + (None,None,None)
 
-                        if self.top_brands.has_key(str(brandact_id)):
-                            val = val + (self.top_brands[str(brandact_id)]["position"],self.top_brands[str(brandact_id)]["datatype"])
-                        elif self.top_brands.has_key(brandact_url):
-                            val = val + (self.top_brands[brandact_url]["position"],self.top_brands[brandact_url]["datatype"])
-                        else:
-                            val = val + (None,None)
-                        act_sql_list.append(val)
+                            if self.top_brands.has_key(str(brandact_id)):
+                                val = val + (self.top_brands[str(brandact_id)]["position"],self.top_brands[str(brandact_id)]["datatype"])
+                            elif self.top_brands.has_key(brandact_url):
+                                val = val + (self.top_brands[brandact_url]["position"],self.top_brands[brandact_url]["datatype"])
+                            else:
+                                val = val + (None,None)
+                            act_sql_list.append(val)
                 break
             except Exception as e:
                 print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e
@@ -167,6 +176,7 @@ class JHSBrandMarketing():
             self.mysqlAccess.insertJhsActPosition(actsql_list)
 
         print '# Find act num:', act_num
+        print '# Repeat brand activity num:', repeatact_num
 
 
     def traceback_log(self):

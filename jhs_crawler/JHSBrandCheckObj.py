@@ -32,7 +32,10 @@ class JHSBrandCheckObj():
         act_num = 0
         newitem_num = 0
         allitem_num = 0
+        # 新商品
         crawler_val_list = []
+        # 新活动商品关系
+        act_item_val_list = []
         print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         # 多线程 控制并发的线程数
         if len(act_valList) > Config.act_max_th:
@@ -50,7 +53,7 @@ class JHSBrandCheckObj():
                     for b in item_list:
                         print '#####A activity start#####'
                         brandact_itemVal_list = []
-                        brandact_id, brandact_name, brandact_url, brandact_itemVal_list = b
+                        brandact_id, brandact_name, brandact_url, brandact_itemVal_listi, crawling_time = b
                         act_num += 1
                         # item init val list
                         if brandact_itemVal_list and len(brandact_itemVal_list) > 0:
@@ -70,6 +73,7 @@ class JHSBrandCheckObj():
                                         else:
                                             new_item_juid.append(str(item_val[7]))
                                             new_item_val.append(item_val)
+                                        act_item_val_list = [(crawling_time,str(item_val[7]),str(brandact_id))]
                                 if len(new_item_val) > 0:
                                     crawler_val_list.append((brandact_id,brandact_name,new_item_val))
                                     newitem_num = newitem_num + len(new_item_val)
@@ -98,6 +102,18 @@ class JHSBrandCheckObj():
         print '# New add brand activity new items num:', newitem_num
         print '# All get brand activity items num:', allitem_num
 
+        # 保存活动商品关系
+        act_item_val_list = [(crawling_time,str(item_val[7]),str(brandact_id))]
+        sql_list = []
+        for sql in act_item_val_list:
+            sql_list.append(sql)
+            if len(sql_list) >= Config.act_max_arg:
+                self.mysqlAccess.insertJhsActItemRelation(sql_list)
+                sql_list = []
+        if len(sql_list) > 0:
+            self.mysqlAccess.insertJhsActItemRelation(sql_list)
+
+        # 抓取新加商品
         self.run_brandItems(crawler_val_list)
 
     # 多线程抓去品牌团商品

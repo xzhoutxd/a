@@ -72,6 +72,14 @@ class MysqlAccess():
         except Exception, e:
             print '# update Jhs Item remind exception:', e
 
+    # 活动商品关系
+    def insertJhsActItemRelation(self, args_list):
+        try:
+            sql = 'call sp_jhs_parser_activity_item(%s,%s,%s)'
+            self.jhs_db.executemany(sql, args_list)
+        except Exception, e:
+            print '# insert Jhs Act Item relation exception:', e
+
     # 即将上线活动
     def insertJhsActComing(self, args_list):
         try:
