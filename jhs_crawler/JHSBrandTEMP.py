@@ -42,7 +42,11 @@ class JHSBrandTEMP():
                 if m:
                     b_url_valList = self.activityListTemp3(page)
                 else:
-                    print '# err: not matching all templates.'
+                    m = re.search(r'"firstFloorData":{"brandList":\[{.+?}}\],.+?},"floorList"', page, flags=re.S)
+                    if m:
+                        b_url_valList = self.activityListTemp4(page)
+                    else:
+                        print '# err: not matching all templates.'
 
         return b_url_valList
 
@@ -126,6 +130,33 @@ class JHSBrandTEMP():
 
         return url_valList
 
+    # 品牌团页面模板4
+    def activityListTemp4(self, page):
+        #print page
+        # 获取数据接口的URL
+        url_valList = []
+        p = re.compile(r'{"dataType":1,"elemNum":\d+,"floorName":"(.+?)","hasSubFloor":true,"kengType":0,"subFloorList":\[(.+?)\].+?}', flags=re.S)
+        for floor in p.finditer(page):
+            f_catname, sub_floor = floor.group(1), floor.group(2)
+            if f_catname.find('即将上线') != -1: continue
+            f_catid = -1
+            s_p = re.compile(r'"dataUrl":"(.+?)"', flags=re.S)
+            for s_floor in s_p.finditer(sub_floor):
+                f_url = s_floor.group(1)
+                url_valList.append((f_url,f_catname,f_catid))                
+                print f_url,f_catname,f_catid
+                
+        p = re.compile(r'{"dataType":1,"dataUrl":"(.+?)","elemNum":\d+,"floorName":"(.+?)","hasSubFloor":false,"kengType":0.+?}', flags=re.S)
+        for floor in p.finditer(page):
+            f_url, f_catname = floor.group(1), floor.group(2)
+            if f_catname.find('即将上线') != -1: continue
+            f_catid = -1
+            url_valList.append((f_url,f_catname,f_catid))
+            print f_url,f_catname,f_catid
+
+        return url_valList
+
+
     # 聚划算即将上线活动列表模板
     def activityListForComingTemp(self, page):
         # 数据接口URL list
@@ -140,7 +171,11 @@ class JHSBrandTEMP():
             if m:
                 b_url_valList = self.activityListForComingTemp2(page)
             else:
-                print '# err: not matching all templates.' 
+                m = re.search(r'"firstFloorData":{"brandList":\[{.+?}}\],.+?},"floorList"', page, flags=re.S)
+                if m:
+                    b_url_valList = self.activityListForComingTemp3(page)
+                else:
+                    print '# err: not matching all templates.' 
         return b_url_valList
          
     # 品牌团页面模板1
@@ -175,7 +210,34 @@ class JHSBrandTEMP():
                 print '# Coming activity floor:', f_name, f_catid, f_url
                 url_valList.append((f_url, f_name, f_catid))
         return url_valList
-     
+
+    # 品牌团页面模板3
+    def activityListForComingTemp3(self, page):
+        #print page
+        # 获取数据接口的URL
+        url_valList = []
+        p = re.compile(r'{"dataType":1,"elemNum":\d+,"floorName":"(.+?)","hasSubFloor":true,"kengType":0,"subFloorList":\[(.+?)\].+?}', flags=re.S)
+        for floor in p.finditer(page):
+            f_catname, sub_floor = floor.group(1), floor.group(2)
+            if f_catname.find('即将上线') == -1: continue
+            f_catid = -1
+            s_p = re.compile(r'"dataUrl":"(.+?)".+?"floorName":"(.+?)"', flags=re.S)
+            for s_floor in s_p.finditer(sub_floor):
+                f_url, sub_f_catname = s_floor.group(1), s_floor.group(2)
+                url_valList.append((f_url,sub_f_catname,f_catid))                
+                print f_url,sub_f_catname,f_catid
+                
+        p = re.compile(r'{"dataType":1,"dataUrl":"(.+?)","elemNum":\d+,"floorName":"(.+?)","hasSubFloor":false,"kengType":0.+?}', flags=re.S)
+        for floor in p.finditer(page):
+            f_url, f_catname = floor.group(1), floor.group(2)
+            if f_catname.find('即将上线') == -1: continue
+            f_catid = -1
+            url_valList.append((f_url,f_catname,f_catid))
+            print f_url,f_catname,f_catid
+
+        return url_valList
+
+
     # 聚划算开团活动列表中的Top推广位
     def activityTopbrandTemp(self, page):
         # Top 推广位的活动
