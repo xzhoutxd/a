@@ -11,12 +11,16 @@ import time
 import traceback
 import base.Common as Common
 import base.Config as Config
+from db.MysqlAccess import MysqlAccess
 from JHSBActItemM import JHSBActItemM
 from JHSItemM import JHSItemM
 
 class JHSBrandCheckObj():
     '''A class for brand item check'''
     def __init__(self):
+        # mysql
+        self.mysqlAccess = MysqlAccess()
+
         # 需要检查的活动
         self.act_dict = {}
         # 所有已经存在数据库中的item
@@ -103,7 +107,7 @@ class JHSBrandCheckObj():
         print '# All get brand activity items num:', allitem_num
 
         # 保存活动商品关系
-        act_item_val_list = [(crawling_time,str(item_val[7]),str(brandact_id))]
+        #act_item_val_list = [(crawling_time,str(item_val[7]),str(brandact_id))]
         sql_list = []
         for sql in act_item_val_list:
             sql_list.append(sql)
