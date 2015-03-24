@@ -850,7 +850,7 @@ class JHSBActItem():
 
     # 输出每小时检查活动的元组
     def outTupleForHourcheck(self):
-        return (self.brandact_id, self.brandact_name, self.brandact_url, self.brandact_itemVal_list)
+        return (self.brandact_id, self.brandact_name, self.brandact_url, self.brandact_itemVal_list, Common.time_s(self.crawling_time))
 
     def outTupleForComing(self):
         return (self.crawling_confirm,self.outSqlForComing())
