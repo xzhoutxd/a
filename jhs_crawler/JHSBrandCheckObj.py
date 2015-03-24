@@ -77,7 +77,7 @@ class JHSBrandCheckObj():
                                         else:
                                             new_item_juid.append(str(item_val[7]))
                                             new_item_val.append(item_val)
-                                        act_item_val_list = [(crawling_time,str(item_val[7]),str(brandact_id))]
+                                        act_item_val_list.append((crawling_time,str(item_val[7]),str(brandact_id)))
                                 if len(new_item_val) > 0:
                                     crawler_val_list.append((brandact_id,brandact_name,new_item_val))
                                     newitem_num = newitem_num + len(new_item_val)
@@ -107,7 +107,6 @@ class JHSBrandCheckObj():
         print '# All get brand activity items num:', allitem_num
 
         # 保存活动商品关系
-        #act_item_val_list = [(crawling_time,str(item_val[7]),str(brandact_id))]
         sql_list = []
         for sql in act_item_val_list:
             sql_list.append(sql)
