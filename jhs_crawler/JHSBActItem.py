@@ -614,7 +614,7 @@ class JHSBActItem():
         m = re.search(r'<a.+?href="(.+?)".+?>', itemdata, flags=re.S)
         if m:
             # 商品聚划算链接
-            item_ju_url = m.group(1)
+            item_ju_url = m.group(1).replace('amp;','')
             if item_ju_url:
                 ids_list = item_ju_url.split('&')
                 for ids in ids_list:
@@ -635,7 +635,7 @@ class JHSBActItem():
             if m:
                 item_juPic_url = m.group(1)
             else:
-                m = re.search(r'<img data-ks-lazyload="(.+?)"', itemdata, flags=re.S)
+                m = re.search(r'<img.+?data-ks-lazyload="(.+?)"', itemdata, flags=re.S)
                 if m:
                     item_juPic_url = m.group(1)
 
