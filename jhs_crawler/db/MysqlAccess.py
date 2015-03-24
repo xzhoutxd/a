@@ -30,7 +30,7 @@ class MysqlAccess():
     # 更新活动信息
     def updateJhsAct(self, args_list):
         try:
-            sql = 'call sp_update_jhs_parser_activity(%s,%s,%s,%s,%s,%s,%s,%s)'
+            sql = 'call sp_update_jhs_parser_activity(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
             self.jhs_db.executemany(sql, args_list)
         except Exception, e:
             print '# update Jhs Act exception:', e
@@ -92,7 +92,8 @@ class MysqlAccess():
     # 按照活动Id查找商品Id
     def selectJhsItemIdsOfActId(self, args):
         try:
-            sql = 'select item_juid from nd_jhs_parser_item_info where act_id = %s'
+            #sql = 'select item_juid from nd_jhs_parser_item_info where act_id = %s'
+            sql = 'select item_juid from nd_jhs_parser_activity_item where act_id = %s'
             return self.jhs_db.select(sql, args)
         except Exception, e:
             print '# select act items exception:', e

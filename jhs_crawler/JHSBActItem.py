@@ -823,8 +823,8 @@ class JHSBActItem():
 
     # 更新活动
     def outSqlForUpdate(self):
-        return (str(self.brandact_id),str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position))
-        #return (str(self.brandact_id),self.brandact_url,str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position))
+        #return (str(self.brandact_id),str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position))
+        return (str(self.brandact_id),self.brandact_name,self.brandact_url,str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),';'.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position))
 
     # 每天抓取
     def outSqlForDay(self):
