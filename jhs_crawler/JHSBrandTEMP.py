@@ -205,7 +205,7 @@ class JHSBrandTEMP():
                 b_url_valList = self.activityListForComingTemp2(page)
             else:
                 #m = re.search(r'"firstFloorData":{"brandList":\[{.+?}}\],.+?},"floorList"', page, flags=re.S)
-                m = re.search(r'=(\[{.+?"firstFloorData":{"brandList".+?},"floorList".+?}\]);', page, flags=re.S)
+                m = re.search(r'=(\[{.+?"firstFloorData":.+?,"floorList".+?}\]);', page, flags=re.S)
                 if m:
                     #b_url_valList = self.activityListForComingTemp3(page)
                     b_url_valList = self.activityListForComingTemp3(m.group(1))
