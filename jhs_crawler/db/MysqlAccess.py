@@ -122,7 +122,7 @@ class MysqlAccess():
         except Exception, e:
             print '# select Jhs alive act exception:', e
 
-    # 查找还没有结束的活动
+    # 查找还有一小时开团的活动
     def selectJhsActStartForOneHour(self, args):
         # 非俪人购
         try:
@@ -251,7 +251,7 @@ class MysqlAccess():
     # 活动位置信息
     def insertJhsActPosition(self, args_list):
         try:
-            sql = 'call sp_jhs_parser_activity_position(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            sql = 'call sp_jhs_parser_activity_position(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
             self.jhs_db.executemany(sql, args_list)
         except Exception, e:
             print '# insert Jhs act position exception:', e

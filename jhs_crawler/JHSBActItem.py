@@ -856,7 +856,7 @@ class JHSBActItem():
         return (self.crawling_confirm,self.outSqlForComing())
 
     def outTupleBrand(self):
-        return (str(self.brandact_id),self.brandact_name,self.brandact_url,(Common.time_s(self.crawling_time),str(self.brandact_id),self.brandact_name,str(self.brandact_position),str(self.brandact_catgoryId),self.brandact_catgoryName,self.crawling_beginDate))
+        return (str(self.brandact_id),self.brandact_name,self.brandact_url,(Common.time_s(self.crawling_time),str(self.brandact_id),self.brandact_name,str(self.brandact_position),str(self.brandact_catgoryId),self.brandact_catgoryName,self.brandact_enterpic_url,self.crawling_beginDate))
 
 
 def test():
