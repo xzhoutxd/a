@@ -48,7 +48,7 @@ class JHSItem():
         self.item_catName = '' # 商品叶子类目Name
         self.item_brand = '' # 商品品牌
         self.item_isSoldout = 0 # 商品是否售罄 0:没有售罄,1:售罄
-        self.item_isLock = 0 # 商品是否锁定 0:锁定,1:没有锁定 售罄和结束为0
+        self.item_isLock = 1 # 商品是否锁定 0:锁定,1:没有锁定 售罄和结束为0
         self.item_isLock_time = None # 抓到锁定的时间
 
         # 商品店铺
