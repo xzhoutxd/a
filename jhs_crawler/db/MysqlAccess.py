@@ -30,7 +30,7 @@ class MysqlAccess():
     # 更新活动信息
     def updateJhsAct(self, args_list):
         try:
-            sql = 'call sp_update_jhs_parser_activity(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            sql = 'call sp_update_jhs_parser_activity(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
             self.jhs_db.executemany(sql, args_list)
         except Exception, e:
             print '# update Jhs Act exception:', e
@@ -117,7 +117,7 @@ class MysqlAccess():
     def selectJhsActAlive(self, args):
         # 非俪人购
         try:
-            sql = 'select * from nd_jhs_parser_activity where end_time > %s and start_time < %s and act_sign != 3' 
+            sql = 'select * from nd_jhs_parser_activity where start_time < %s and end_time > %s and act_sign != 3' 
             return self.jhs_db.select(sql, args)
         except Exception, e:
             print '# select Jhs alive act exception:', e
@@ -134,7 +134,8 @@ class MysqlAccess():
     # 查找需要抓取销量、关注人数的商品 按照活动Id查找
     def selectJhsItemsFromActId(self, args):
         try:
-            sql = 'select a.item_juid,a.act_id,a.item_ju_url,b.act_url,a.item_id from nd_jhs_parser_item_info a join nd_jhs_parser_activity b on a.act_id = b.act_id where a.act_id = %s'
+            #sql = 'select a.item_juid,a.act_id,a.item_ju_url,b.act_url,a.item_id from nd_jhs_parser_item_info a join nd_jhs_parser_activity b on a.act_id = b.act_id where a.act_id = %s'
+            sql = 'select b.item_juid,a.act_id,b.item_ju_url,b.act_url,b.item_id from nd_jhs_parser_activity_item a join nd_jhs_parser_item_info b on a.item_juid = b.item_juid where a.act_id = %s'
             return self.jhs_db.select(sql, args)
         except Exception, e:
             print '# select Jhs act items for sale and remind exception:', e
@@ -226,6 +227,7 @@ class MysqlAccess():
         try:
             #sql = 'select a.item_juid,a.act_id,a.act_name,a.act_url,a.item_juname,a.item_ju_url,a.item_id,a.item_url,a.item_oriprice,a.item_actprice from nd_jhs_parser_item as a join nd_jhs_parser_activity_alive_h as b on a.act_id = b.act_id where b.act_id = %s'
             sql = 'select a.item_juid,a.act_id,a.item_ju_url,a.act_url,a.item_id from nd_jhs_parser_item_info as a join nd_jhs_parser_activity_alive_h as b on a.act_id = b.act_id where b.act_id = %s'
+            #sql = 'select c.item_juid,a.act_id,c.item_ju_url,c.act_url,c.item_id from nd_jhs_parser_activity_alive_h as a join nd_jhs_parser_activity_item b on a.act_id = b.act_id join nd_jhs_parser_item_info as c on b.item_juid = c.item_juid where a.act_id = %s'
             return self.jhs_db.select(sql, args)
         except Exception, e:
             print '# select Jhs alive act items for hour exception:', e
@@ -256,6 +258,18 @@ class MysqlAccess():
         except Exception, e:
             print '# insert Jhs act position exception:', e
 
+    def update_item_totalstock(self, args_list):
+        try:
+            sql = 'call sp_jhs_mid_item_totalstock(%s,%s,%s)'
+            self.jhs_db.executemany(sql, args_list)
+        except Exception, e:
+            print '# update Jhs item totalstock exception:', e
+
+    def selectSQL(self, sql):
+        try:
+            return self.jhs_db.select(sql)
+        except Exception, e:
+            print '# select SQL exception:', e
 
 if __name__ == '__main__':
     my = MysqlAccess()

@@ -61,8 +61,7 @@ class JHSBrandHour():
             all_item_num = 0
             crawler_val_list = []
             for act_r in act_results:
-                # 只抓时尚女士,精品男士
-                #if int(act_r[1]) != 261000 or int(act_r[1]) != 262000: continue
+                #if int(act_r[1]) not in Config.default_catids: continue
                 # 按照活动Id找出商品信息
                 item_results = self.mysqlAccess.selectJhsItemsHouralive((str(act_r[0]),))
                 if item_results:
@@ -77,14 +76,7 @@ class JHSBrandHour():
             # 多线程抓商品
             self.run_brandItems(crawler_val_list)
         except Exception as e:
-            print '# exception err in antPage info:',e
-            print '#####--Traceback Start--#####'
-            tp,val,td = sys.exc_info()
-            for file, lineno, function, text in traceback.extract_tb(td):
-                print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
-                print text
-            print "exception traceback err:%s,%s,%s"%(tp,val,td)
-            print '#####--Traceback End--#####'
+            Common.traceback_log()
 
     # 多线程抓去品牌团商品
     def run_brandItems(self, crawler_val_list):
@@ -102,7 +94,7 @@ class JHSBrandHour():
             m_itemsObj.createthread()
             m_itemsObj.putItems(item_valTuple)
             m_itemsObj.run()
-            print '# hour activity Items update end: actId:%s, actName:%s'%(brandact_id, brandact_name)
+            print '# hour activity Items update end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),brandact_id, brandact_name
 
 
 if __name__ == '__main__':

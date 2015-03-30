@@ -40,7 +40,7 @@ class JHSBrandHourCheck():
     def antPage(self):
         try:
             # 得到需要的时间段
-            val = (Common.time_s(self.crawling_time),Common.add_hours(self.crawling_time, self.min_hourslot))
+            val = (Common.add_hours(self.crawling_time, self.min_hourslot),Common.time_s(self.crawling_time))
             print '# hour need check activity time:',val
             act_results = self.mysqlAccess.selectJhsActAlive(val)
             if act_results:
@@ -52,8 +52,7 @@ class JHSBrandHourCheck():
             # 商品默认信息列表
             act_valList = []
             for act_r in act_results:
-                # 只抓时尚女士,精品男士
-                #if int(act_r[2]) != 261000 or int(act_r[2]) != 262000: continue
+                #if int(act_r[1]) not in Config.default_catids: continue
                 act_valList.append((str(act_r[1]),act_r[7],act_r[8],self.begin_time,str(act_r[28]),str(act_r[29])))
                 if not self.act_dict.has_key(str(act_r[1])):
                     self.act_dict[str(act_r[1])] = []
@@ -78,16 +77,7 @@ class JHSBrandHourCheck():
             self.brand_checkobj.antPage(act_valList, self.act_dict, self.all_itemjuid)
         except Exception as e:
             print '# exception err in antPage info:',e
-            self.traceback_log()
-
-    def traceback_log(self):
-        print '#####--Traceback Start--#####'
-        tp,val,td = sys.exc_info()
-        for file, lineno, function, text in traceback.extract_tb(td):
-            print "exception traceback err:%s,line:%s,in:%s"%(file, lineno, function)
-            print text
-        print "exception traceback err:%s,%s,%s"%(tp,val,td)
-        print '#####--Traceback End--#####'
+            Common.traceback_log()
 
 
 if __name__ == '__main__':
