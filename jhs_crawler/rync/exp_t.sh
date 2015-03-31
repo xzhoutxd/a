@@ -26,7 +26,7 @@ if [ ! -d $day ]; then
 fi
 
 tbl_suf=${tbl_name:$((-2))}
-if [ $tbl_suf = '_h' -o $tbl_suf = '_d' ]; then
+if [ $tbl_suf = '_h' -o $tbl_suf = '_d' -o $tbl_name = 'nd_jhs_rpt_activity_position' ]; then
 	where_clause=date\=\"$theday\"
 else
 	where_clause=thedate\=\"$theday\"
