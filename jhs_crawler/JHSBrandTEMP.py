@@ -12,7 +12,7 @@ import time
 class JHSBrandTEMP():
     '''A class of brand'''
     def __init__(self):
-        pass
+        self.brand_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=0'
 
     def temp(self, page):
         # 即将上线
@@ -215,6 +215,7 @@ class JHSBrandTEMP():
          
     # 品牌团页面模板1
     def activityListForComingTemp1(self, page):
+        brandcoming_page_url = 'http://ju.taobao.com/json/tg/ajaxGetBrandsV2.json?psize=60&btypes=1%2C2&showType=1'
         # 获取数据接口的URL
         url_valList = []
         p = re.compile(r'<div.+?data-catid=\'(\d+)\' data-forecast="true">\s+<div class="f-sub-floor">\s+<span>(.+?)</span>\s+</div>', flags=re.S)
@@ -225,7 +226,7 @@ class JHSBrandTEMP():
             print '# Coming activity floor:', f_name, f_catid
             if f_catid != '':
                 page_num = 1
-                f_url = self.brandcoming_page_url + '&page=%d'%page_num + '&frontCatIds=%s'%f_catid
+                f_url = brandcoming_page_url + '&page=%d'%page_num + '&frontCatIds=%s'%f_catid
                 url_valList.append((f_url, f_name, f_catid))
         return url_valList
 
