@@ -1,5 +1,6 @@
 #!/bin/bash
 
+DIR=/home/har/jhs/crawler_v2/jhsdata/dump/sql
 yesterday=`date -d -1days +"%Y-%m-%d"`
 
 if [ $# = 0 ]; then 
@@ -14,8 +15,8 @@ else
 	day=$2
 fi
 
-if [ ! -d $day ]; then
-	echo " Directory $day is not existed"
+if [ ! -d $DIR/$day ]; then
+	echo " Directory $DIR/$day is not existed"
 	exit 2
 fi
 
@@ -24,5 +25,5 @@ db_user=jhs
 db_passwd=123456
 db_name=jhs
 
-echo "To import ${day}/${tbl_name}_${theday}.sql to $db_name.$tbl_name"
-/usr/bin/mysql -h$db_host -u$db_user -p"$db_passwd" $db_name < ${day}/${tbl_name}_${theday}.sql
+echo "To import ${day}/${tbl_name}_${day}.sql to $db_name.$tbl_name"
+/usr/bin/mysql -h$db_host -u$db_user -p"$db_passwd" $db_name < $DIR/${day}/${tbl_name}_${day}.sql

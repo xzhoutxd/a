@@ -1,8 +1,9 @@
 #!/bin/bash
 
 #yesterday=`date -d -1days +"%Y-%m-%d"`
+DIR=/home/har/jhs/crawler_v2/jhsdata/dump/sql
 today=`date +"%Y-%m-%d"`
-hour=`date +"%H"`
+hour=`date -d -1hours +"%H"`
 
 if [ $# = 0 ]; then 
 	echo " Usage: $0 TableName TheDate" 
@@ -18,16 +19,16 @@ else
 	hour=$3
 fi
 
-if [ ! -d $day/$hour ]; then
-  mkdir -p $day/$hour
+if [ ! -d $DIR/$day/$hour ]; then
+  mkdir -p $DIR/$day/$hour
 fi
 
-where_clause=update_date\=\"$theday\"
+where_clause=update_date\=\"$day\"
 
 db_host=192.168.1.113
 db_user=jhs
 db_passwd=123456
 db_name=jhs
 
-echo "To export $db_name.$tbl_name to ${day}/${hour}/${tbl_name}_${theday}.sql"
-/usr/bin/mysqldump -h$db_host -u$db_user -p"$db_passwd" $db_name $tbl_name -t -c -C --replace --compact -w"$where_clause" > ${day}/${hour}/${tbl_name}_${theday}.sql
+echo "To export $db_name.$tbl_name to ${day}/${hour}/${tbl_name}_${day}.sql"
+/usr/bin/mysqldump -h$db_host -u$db_user -p"$db_passwd" $db_name $tbl_name -t -c -C --replace --compact -w"$where_clause" > $DIR/${day}/${hour}/${tbl_name}_${day}.sql

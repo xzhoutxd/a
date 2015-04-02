@@ -1,13 +1,15 @@
 #!/bin/bash
 
-#yesterday=`date -d -1days +"%Y-%m-%d"`
-today=`date +"%Y-%m-%d"`
+DIR=/home/har/jhs/crawler_v2/jhsdata/dump/sql
+yesterday=`date -d -1days +"%Y-%m-%d"`
 
 if [ $# = 0 ]; then
-	theday=$today
+	theday=$yesterday
 else
 	theday=$1
 fi
+
+cd $DIR
 
 while read line
 do
@@ -16,5 +18,5 @@ do
 	then
 		continue
 	fi
-	exp_t.sh $line $theday
-done < ./jhs_tbl_day.list
+	/bin/sh $DIR/exp_t_day.sh $line $theday
+done < $DIR/jhs_tbl_day.list

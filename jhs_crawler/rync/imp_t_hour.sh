@@ -1,8 +1,9 @@
 #!/bin/bash
 
 #yesterday=`date -d -1days +"%Y-%m-%d"`
+DIR=/home/har/jhs/crawler_v2/jhsdata/dump/sql
 today=`date +"%Y-%m-%d"`
-hour=`date +"%H"`
+hour=`date -d -1hours +"%H"`
 
 if [ $# = 0 ]; then 
 	echo " Usage: $0 TableName TheDate TheHour" 
@@ -18,8 +19,8 @@ else
 	hour=$3
 fi
 
-if [ ! -d $day/$hour ]; then
-	echo " Directory $day/$hour is not existed"
+if [ ! -d $DIR/$day/$hour ]; then
+	echo " Directory $DIR/$day/$hour is not existed"
 	exit 2
 fi
 
@@ -28,5 +29,5 @@ db_user=jhs
 db_passwd=123456
 db_name=jhs
 
-echo "To import ${day}/${hour}/${tbl_name}_${theday}.sql to $db_name.$tbl_name"
-/usr/bin/mysql -h$db_host -u$db_user -p"$db_passwd" $db_name < ${day}/${hour}/${tbl_name}_${theday}.sql
+echo "To import ${day}/${hour}/${tbl_name}_${day}.sql to $db_name.$tbl_name"
+/usr/bin/mysql -h$db_host -u$db_user -p"$db_passwd" $db_name < $DIR/${day}/${hour}/${tbl_name}_${day}.sql

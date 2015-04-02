@@ -1,8 +1,9 @@
 #!/bin/bash
 
 #yesterday=`date -d -1days +"%Y-%m-%d"`
+DIR=/home/har/jhs/crawler_v2/jhsdata/dump/sql
 today=`date +"%Y-%m-%d"`
-hour=`date +"%H"`
+hour=`date -d -1hours +"%H"`
 
 if [ $# = 0 ]; then
 	theday=$today
@@ -11,9 +12,11 @@ else
 	theday=$1
 	thehour=$2
 fi
+
+cd $DIR
 # To unzip compressed dump file
-gz_file=jhs_${theday}.tar.gz
-tar zxvf ${gz_file}
+#gz_file=jhs_${theday}.tar.gz
+#tar zxvf ${gz_file}
 
 while read line
 do
@@ -23,5 +26,5 @@ do
 		continue
 	fi
 	
-	imp_t.sh $line $theday $thehour
-done < ./jhs_tbl_hour.list
+	/bin/sh $DIR/imp_t_hour.sh $line $theday $thehour
+done < $DIR/jhs_tbl_hour.list
