@@ -107,7 +107,6 @@ class JHSBrand():
 
     # 更新活动商品关注人数
     def update_items(self):
-        print '###### items update start ######'
         # 获取一个小时即将开团的活动
         val = (Common.time_s(self.crawling_time),Common.add_hours(self.crawling_time, self.min_hourslot))
         print '# update activity time:',val
@@ -133,6 +132,7 @@ class JHSBrand():
 
         print '# need update all item nums:',all_item_num
 
+        print '###### items update start ######'
         self.run_updateItems(update_val_list)
         print '###### items update end ######'
 

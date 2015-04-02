@@ -69,7 +69,7 @@ class JHSBrandMarketing():
             self.home_brands = hb.home_brands
             page_datepath = 'act/marketing/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.begin_time))
             Config.writefile(page_datepath,'home.htm',self.ju_brand_page)
-            print '# home activities:', self.home_brands
+            #print '# home activities:', self.home_brands
 
             # 获取品牌团列表页数据
             page = self.crawler.getData(self.brand_url, self.ju_home_url)

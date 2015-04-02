@@ -472,7 +472,7 @@ class JHSBActItem():
         for floor_url in p.finditer(page):
             i += 1
             f_url = (floor_url.group(1)).replace('&amp;','&')
-            print f_url
+            #print f_url
             position = self.getItemDataFromInterface(f_url, position, i)
 
     # 品牌团页面格式(2)
@@ -528,7 +528,7 @@ class JHSBActItem():
             i += 1
             ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
             f_url = (floor_url.group(1)).replace('&amp;','&') + '&_ksTS=%s'%ts
-            print f_url
+            #print f_url
             f_page = self.crawler.getData(f_url, self.brandact_url)
             pageKey = 'act-home-floor-%d'%i
             self.brandact_pages[pageKey] = (f_url, f_page)
