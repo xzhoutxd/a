@@ -12,7 +12,7 @@ fi
 # Remote host
 remote_user=mysql
 remote_host=192.168.1.112
-remote_path=/home/mysql/dump 
+remote_path=/home/mysql/dump
 
 # The mysql table dump file
 dmp_dir=${theday}
