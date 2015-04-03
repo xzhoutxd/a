@@ -568,7 +568,7 @@ class JHSBActItem():
                     item_ju_url = 'http://detail.ju.taobao.com/home.htm?item_id=%s&id=%s'%(item_id, item_juId)
                 elif item_juId != '':
                     item_ju_url = 'http://detail.ju.taobao.com/home.htm?id=%s'%item_juId
-                elif item_juId != '':
+                elif item_id != '':
                     item_ju_url = 'http://detail.ju.taobao.com/home.htm?item_id=%s'%item_id
                     
                 if item_ju_url != '':
