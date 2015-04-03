@@ -78,7 +78,7 @@ class JHSBrandCheckObj():
                                             if str(item_val[7]) != '':
                                                 new_item_juid.append(str(item_val[7]))
                                             else:
-                                                new_item_juid.append(str(item_val[6])))
+                                                new_item_juid.append(str(item_val[6]))
                                             new_item_val.append(item_val)
                                         if str(item_val[7]) != '':
                                             act_item_val_list.append((crawling_time,str(item_val[7]),str(brandact_id)))
