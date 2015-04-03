@@ -88,7 +88,7 @@ class JHSBrandCheckObj():
                                     print new_item_juid
                                     print self.act_dict[str(brandact_id)]
                                 print '# activity id:%s name:%s'%(brandact_id, brandact_name)
-                                print '# old activity items num:', len(self.act_dict[str(brandact_id)])
+                                print '# old activity items num:', len(self.act_dict[str(brandact_id)])/2
                                 print '# now activity items num:', len(brandact_itemVal_list)
                                 print '# add new items num:', len(new_item_val)
                                 if len(hadin_otheract_juid) > 0:
