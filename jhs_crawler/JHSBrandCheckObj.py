@@ -71,13 +71,17 @@ class JHSBrandCheckObj():
                                 #    print len(self.act_dict[str(brandact_id)]),self.act_dict[str(brandact_id)]
                                 #    print len(brandact_itemVal_list),brandact_itemVal_list
                                 for item_val in brandact_itemVal_list:
-                                    if str(item_val[7]) not in self.act_dict[str(brandact_id)]:
+                                    if str(item_val[7]) not in self.act_dict[str(brandact_id)] and str(item_val[6]) not in self.act_dict[str(brandact_id)]:
                                         if str(item_val[7]) in self.all_itemjuid:
                                             hadin_otheract_juid.append((str(item_val[7]),self.all_itemjuid[str(item_val[7])]))
                                         else:
-                                            new_item_juid.append(str(item_val[7]))
+                                            if str(item_val[7]) != '':
+                                                new_item_juid.append(str(item_val[7]))
+                                            else:
+                                                new_item_juid.append(str(item_val[6])))
                                             new_item_val.append(item_val)
-                                        act_item_val_list.append((crawling_time,str(item_val[7]),str(brandact_id)))
+                                        if str(item_val[7]) != '':
+                                            act_item_val_list.append((crawling_time,str(item_val[7]),str(brandact_id)))
                                 if len(new_item_val) > 0:
                                     crawler_val_list.append((brandact_id,brandact_name,new_item_val))
                                     newitem_num = newitem_num + len(new_item_val)

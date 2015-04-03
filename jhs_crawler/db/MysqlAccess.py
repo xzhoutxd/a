@@ -93,7 +93,7 @@ class MysqlAccess():
     def selectJhsItemIdsOfActId(self, args):
         try:
             #sql = 'select item_juid from nd_jhs_parser_item_info where act_id = %s'
-            sql = 'select item_juid from nd_jhs_parser_activity_item where act_id = %s'
+            sql = 'select a.item_juid,b.item_id from nd_jhs_parser_activity_item a join nd_jhs_parser_item_info b on a.item_juid = b.item_juid where a.act_id = %s'
             return self.jhs_db.select(sql, args)
         except Exception, e:
             print '# select act items exception:', e

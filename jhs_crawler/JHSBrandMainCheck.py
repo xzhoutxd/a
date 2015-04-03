@@ -58,6 +58,7 @@ class JHSBrandMainCheck():
                     if len(item_results) > 0:
                         for item in item_results:
                             itemid_list.append(str(item[0]))
+                            itemid_list.append(str(item[1]))
                             self.all_itemjuid[str(item[0])] = str(act_r[1])
                     self.act_dict[str(act_r[1])] = itemid_list
 
