@@ -1,8 +1,7 @@
 #!/bin/bash
 
 DIR=/home/har/jhs/crawler_v2/jhsdata/dump/sql
-#yesterday=`date -d -1days +"%Y-%m-%d"`
-today=`date +"%Y-%m-%d"`
+yesterday=`date -d -1days +"%Y-%m-%d"`
 
 if [ $# = 0 ]; then
 	theday=$today
