@@ -1,7 +1,10 @@
 #!/bin/bash
 
-DIR=/home/har/jhs/crawler_v2/jhsdata/dump/sql
+DIR=`pwd`
 yesterday=`date -d -1days +"%Y-%m-%d"`
+
+now_time=$(date +%Y-%m-%d-%H:%M:%S)
+echo "-- exp day start...time:$now_time"
 
 if [ $# = 0 ]; then
 	theday=$yesterday
@@ -20,3 +23,8 @@ do
 	fi
 	/bin/sh $DIR/exp_t_day.sh $line $theday
 done < $DIR/jhs_tbl_day.list
+
+/bin/sh $DIR/sync_g_day.sh $theday
+now_time=$(date +%Y-%m-%d-%H:%M:%S)
+echo "-- exp day end...time:$now_time"
+exit;

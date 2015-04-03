@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIR=/home/har/jhs/crawler_v2/jhsdata/dump/sql
+DIR=`pwd`
 yesterday=`date -d -1days +"%Y-%m-%d"`
 
 if [ $# = 0 ]; then 
@@ -15,15 +15,14 @@ else
 	day=$2
 fi
 
-if [ ! -d $DIR/$day ]; then
-	echo " Directory $DIR/$day is not existed"
+if [ ! -d ${DIR}/${day}/day_${day} ]; then
+	echo " Directory ${DIR}/${day}/day_${day} is not existed"
 	exit 2
 fi
 
-db_host=192.168.1.112
-db_user=jhs
-db_passwd=123456
-db_name=jhs
+db_user=bduser
+db_passwd=newword!@#
+db_name=bigdata
 
-echo "To import ${day}/${tbl_name}_${day}.sql to $db_name.$tbl_name"
-/usr/bin/mysql -h$db_host -u$db_user -p"$db_passwd" $db_name < $DIR/${day}/${tbl_name}_${day}.sql
+echo "To import ${day}/day_${day}/${tbl_name}_${day}.sql to ${db_name}.${tbl_name}"
+/usr/bin/mysql -u$db_user -p"$db_passwd" $db_name < ${DIR}/${day}/day_${day}/${tbl_name}_${day}.sql
