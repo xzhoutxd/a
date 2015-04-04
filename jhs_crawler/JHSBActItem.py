@@ -532,6 +532,8 @@ class JHSBActItem():
             f_page = self.crawler.getData(f_url, self.brandact_url)
             pageKey = 'act-home-floor-%d'%i
             self.brandact_pages[pageKey] = (f_url, f_page)
+            position = self.getItemDataFromInterface(f_url, position, i)
+            """
             m = re.search(r'^{.+?\"itemList\":\[.+?\].+?}$', f_page, flags=re.S)
             if m:
                 result = json.loads(f_page)
@@ -541,6 +543,7 @@ class JHSBActItem():
                         self.itemByBrandPageType2(itemdata, position)
                         #val = self.itemByBrandPageType2(itemdata, position)
                         #self.brandact_itemVal_list.append(val)
+            """
 
     # 品牌团页面格式
     def brandActTypeOther(self, page):
@@ -605,6 +608,18 @@ class JHSBActItem():
                 self.itemByBrandPageType1(itemdata.group(1), position)
                 #val = self.itemByBrandPageType1(itemdata.group(1), position)
                 #self.brandact_itemVal_list.append(val)
+        else:
+            m = re.search(r'^{.+?\"itemList\":\[.+?\].+?}$', f_page, flags=re.S)
+            if m:
+                result = json.loads(f_page)
+                if result.has_key('code') and int(result['code']) == 200 and result.has_key('itemList') and result['itemList'] != []:
+                    for itemdata in result['itemList']:
+                        position += 1
+                        self.itemByBrandPageType2(itemdata, position)
+                        #val = self.itemByBrandPageType2(itemdata, position)
+                        #self.brandact_itemVal_list.append(val)
+
+
         return position
 
     # 获取商品信息类型1
