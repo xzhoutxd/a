@@ -103,7 +103,7 @@ class Jsonpage():
                     print '# exception err:',e
                     # 通知queue, task结束
                     self.val_queue.task_done()
-                    if e.find('Read timed out') != -1:
+                    if str(e).find('Read timed out') != -1:
                         self.crawlRetry(_data)
                     time.sleep(random.uniform(10,30))
         return bResult_list
