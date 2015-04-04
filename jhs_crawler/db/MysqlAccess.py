@@ -30,7 +30,7 @@ class MysqlAccess():
     # 更新活动信息
     def updateJhsAct(self, args_list):
         try:
-            sql = 'call sp_update_jhs_parser_activity(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            sql = 'call sp_update_jhs_parser_activity(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
             self.jhs_db.executemany(sql, args_list)
         except Exception, e:
             print '# update Jhs Act exception:', e
