@@ -389,11 +389,15 @@ class JHSBActItem():
     # 品牌团页面html
     def brandPage(self):
         if self.brandact_url != '':
-            data = self.crawler.getData(self.brandact_url, Config.ju_brand_home)
-            if not data and data == '': raise Common.InvalidPageException("# itemConfig:not find act page,actid:%s,act_url:%s"%(str(self.brandact_id), self.brandact_url))
-            if data and data != '':
-                self.brandact_page = data
-                self.brandact_pages['act-home'] = (self.brandact_url, data)
+            # 不抓俪人购
+            if self.brandact_sign == 3 or self.brandact_url.find('ladygo.tmall.com') != -1: 
+                print "# ladygo not need.."
+            else:
+                data = self.crawler.getData(self.brandact_url, Config.ju_brand_home)
+                if not data and data == '': raise Common.InvalidPageException("# itemConfig:not find act page,actid:%s,act_url:%s"%(str(self.brandact_id), self.brandact_url))
+                if data and data != '':
+                    self.brandact_page = data
+                    self.brandact_pages['act-home'] = (self.brandact_url, data)
 
     # 品牌团优惠券
     def brandActConpons(self):
