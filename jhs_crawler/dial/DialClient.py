@@ -2,10 +2,8 @@
 #!/usr/bin/env python
 
 import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
-#sys.path.append('../')
-#sys.path.append('../base')
+sys.path.append('../')
+sys.path.append('../base')
 import json
 from socket import AF_INET, SOCK_STREAM, socket
 import base.Common as Common
@@ -15,17 +13,36 @@ class DialClient():
     ''' A class of Dial client, to send dial request '''
     def __init__(self):
         self.magic_num = Config.magic_num
+        self.bufsize   = 1024
         self.dial_ip   = Config.dial_ip
         self.dial_port = Config.dial_port
         self.dial_addr = (self.dial_ip, self.dial_port)
-        
-        self.client    = socket(AF_INET, SOCK_STREAM)
-        self.client.settimeout(60)
-        self.client.connect(self.dial_addr)
-        self.bufsize   = 1024
+
+        self.initClient()
 
     def __del__(self):
+        self.closeClient()
+
+    def closeClient(self):
         self.client.close()
+
+    def initClient(self):
+        self.client = socket(AF_INET, SOCK_STREAM)
+        self.client.settimeout(60)
+        self.setConnect(False)
+
+    def connectClient(self):
+        try:
+            self.client.connect(self.dial_addr)
+            self.setConnect(True)
+        except:
+            print '# connectClient :', self.dial_addr     
+
+    def isConnect(self):
+        return self.is_connect
+
+    def setConnect(self, flag=True):
+        self.is_connect = flag
 
     def buildMsg(self, _content):
         _module, _ip, _tag = _content
@@ -40,23 +57,20 @@ class DialClient():
     def send(self, _content):
         s = self.buildMsg(_content)
         try:
+            if not self.isConnect():
+                self.connectClient()
             self.client.sendall(s)
+
         except Exception as e:
-            print '# DailClient send exception 1 times ', e
-            self.client.close()
-            self.client = socket(AF_INET, SOCK_STREAM)
-            self.client.connect(self.dial_addr)
-            try:
-                self.client.sendall(s)
-            except Exception as e:        
-                print '# DailClient send exception 2 times ', e
+            print '# DailClient send exception: ', e
+            self.connectClient()
 
     def recv(self):
-        return self.client.recv(self.bufsize)  
+        return self.client.recv(self.bufsize)
 
 if __name__ == "__main__":
     args = sys.argv
-    args = ['DialClient', '3_act', '192.168.1.110', 'ikuai']
+    args = ['DialClient', '3_act', '192.168.7.1', 'ikuai']
     if len(args) < 3:
         print 'python DialClient module ip tag'
         exit()
@@ -68,4 +82,5 @@ if __name__ == "__main__":
     c = DialClient()
     c_time = Common.now_ss() 
     c.send((_module, _ip, _tag))
-    #r = c.recv(); print r
+    c = None
+
