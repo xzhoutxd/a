@@ -231,6 +231,8 @@ class JHSItemM(MyThread):
                     _itemsql_list.append(updateSql)
                     if self.updateItemRemind(_itemsql_list): _itemsql_list = []
 
+                # 延时
+                time.sleep(0.1)
                 # 通知queue, task结束
                 self.queue.task_done()
 
