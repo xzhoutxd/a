@@ -15,8 +15,6 @@ import base.Config as Config
 from base.TBCrawler import TBCrawler
 from crawler.TBItem import TBItem
 from crawler.TMItem import TMItem
-from parser.parserTBItem import PTBItem
-from parser.parserTMItem import PTMItem
 
 class JHSItem():
     '''A class of Juhuasuan Item'''
@@ -365,10 +363,7 @@ class JHSItem():
     # 商品锁定信息
     def outSqlForLock(self):
         try:
-            if int(self.item_isLock) == 0:
-                return (self.item_juId,Common.time_s(self.item_isLock_time),self.item_isLock)
-            else:
-                return None
+            return (self.item_juId,Common.time_s(self.item_isLock_time),self.item_isLock)
         except Exception as e:
             print '# out item Lock Sql err:',e
             return None
