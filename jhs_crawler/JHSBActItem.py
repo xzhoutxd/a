@@ -402,14 +402,6 @@ class JHSBActItem():
     # 品牌团优惠券
     def brandActConpons(self):
         # 优惠券
-        """
-        #m = re.search(r'<div id="content">(.+?)</div>\s+<div class="crazy-wrap">', self.brandact_page, flags=re.S)
-        #if m:
-        #    page = m.group(1)
-        #    p = re.compile(r'<div class=".+?">\s*<div class="c-price">\s*<i>.+?</i><em>(.+?)</em></div>\s*<div class="c-desc">\s*<span class="c-title"><em>(.+?)</em>(.+?)</span>\s*<span class="c-require">(.+?)</span>\s*</div>', flags=re.S)
-        #    for coupon in p.finditer(page):
-        #        self.brandact_coupons.append(''.join(coupon.groups()))
-        """
         p = re.compile(r'<div class=".+?J_coupons">\s*<div class="c-price">(.+?)</div>\s*<div class="c-desc">\s*<span class="c-title">(.+?)</span>\s*<span class="c-require">(.+?)</span>\s*</div>', flags=re.S)
         for coupon in p.finditer(self.brandact_page):
             price, title, require = coupon.group(1).strip(), coupon.group(2).strip(), coupon.group(3).strip()
@@ -442,7 +434,7 @@ class JHSBActItem():
         if m:
             self.brandActType1(page)
         else:
-            m = re.search(r'<div class="act-main ju-itemlist">', page, flags=re.S)
+            m = re.search(r'<div class="act.+?main ju-itemlist".+?>', page, flags=re.S)
             if m:
                 self.brandActType2(page)
             else:
@@ -504,7 +496,8 @@ class JHSBActItem():
         # other floor
         # 接口数据
         getdata_url = "http://ju.taobao.com/json/tg/ajaxGetItems.htm?stype=ids&styleType=small&includeForecast=true"
-        p = re.compile(r'<div class=".+?J_jupicker" data-item="(.+?)">', flags=re.S)
+        #getdata_url = "http://ju.taobao.com/json/tg/self/ajaxGetJsonItems.json?stype=ids&includeForecast=true&version=min"
+        p = re.compile(r'<.+?data-item="(.+?)".+?>', flags=re.S)
         i = 0
         for floor_url in p.finditer(page):
             i += 1
@@ -526,16 +519,17 @@ class JHSBActItem():
     def brandActType4(self, page):
         position = 0
         # 请求接口数据
-        p = re.compile(r'<div class="l-floor J_Floor .+? data-ajaxurl="(.+?)"', flags=re.S)
+        p = re.compile(r'<div .+?data-ajaxurl="(.+?)"', flags=re.S)
         i = 0
         for floor_url in p.finditer(page):
             i += 1
-            ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-            f_url = (floor_url.group(1)).replace('&amp;','&') + '&_ksTS=%s'%ts
+            f_url = (floor_url.group(1)).replace('&amp;','&')
+            #ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
+            #f_url = (floor_url.group(1)).replace('&amp;','&') + '&_ksTS=%s'%ts
             #print f_url
-            f_page = self.crawler.getData(f_url, self.brandact_url)
-            pageKey = 'act-home-floor-%d'%i
-            self.brandact_pages[pageKey] = (f_url, f_page)
+            #f_page = self.crawler.getData(f_url, self.brandact_url)
+            #pageKey = 'act-home-floor-%d'%i
+            #self.brandact_pages[pageKey] = (f_url, f_page)
             position = self.getItemDataFromInterface(f_url, position, i)
             """
             m = re.search(r'^{.+?\"itemList\":\[.+?\].+?}$', f_page, flags=re.S)
@@ -553,8 +547,18 @@ class JHSBActItem():
     def brandActTypeOther(self, page):
         position = 0
         items = {}
+        # 聚划算详情页
         p = re.compile(r'<.+? href="http://detail.ju.taobao.com/home.htm?(.+?)".+?>', flags=re.S)
         for ids_str in p.finditer(page):
+            ids = ids_str.group(1)
+            items,position = self.get_ids_from_url(ids,1,items,position)
+        # 天猫详情页
+        p = re.compile(r'<.+? href="http://detail.tmall.com/item.htm?(.+?)".+?>', flags=re.S)
+        for ids_str in p.finditer(page):
+            ids = ids_str.group(1)
+            items,position = self.get_ids_from_url(ids,2,items,position)
+
+            """
             ids = ids_str.group(1)
             item_id, item_juId = '', ''
             m = re.search(r'itemId=(\d+)', ids, flags=re.S)
@@ -584,45 +588,114 @@ class JHSBActItem():
                     #r_val = self.return_val(val)
                     #self.brandact_itemVal_list.append(r_val)
                     items[key] = {'itemid':item_id,'itemjuid':item_juId}
+            """
         
         # other floor
         # 接口数据
         getdata_url = "http://ju.taobao.com/json/tg/ajaxGetItems.htm?stype=ids&styleType=small&includeForecast=true"
-        p = re.compile(r'<div class=".+?J_jupicker" data-item="(.+?)">', flags=re.S)
+        p = re.compile(r'<.+?data-item="(.+?)".+?>', flags=re.S)
         i = 0
         for floor_url in p.finditer(page):
             i += 1
             f_url = getdata_url + '&juIds=' + floor_url.group(1)
             position = self.getItemDataFromInterface(f_url, position, i)
 
+        # json type
+        m = re.search(r'<script>.+?var tpData=(\[{.+?}\]);.+?</script>', page, flags=re.S)
+        if m:
+            self.brandActTypeJson(m.group(1))
+
+        # 请求接口数据
+        p = re.compile(r'<.+?data-ajaxurl="(.+?)".+?>', flags=re.S)
+        i = 0
+        for floor_url in p.finditer(page):
+            i += 1
+            f_url = (floor_url.group(1)).replace('&amp;','&')
+            position = self.getItemDataFromInterface(f_url, position, i)
+
+    # 从url中获取id
+    def get_ids_from_url(self,ids,url_type,items,position):
+        item_id, item_juId = '', ''
+        # 聚划算详情url
+        if url_type == 1:
+            m = re.search(r'itemId=(\d+)', ids, flags=re.S)
+            if m:
+                item_id = m.group(1)
+            m = re.search(r'item_id=(\d+)', ids, flags=re.S)
+            if m:
+                item_id = m.group(1)
+            m = re.search(r'&id=(\d+)', ids, flags=re.S)
+            if m:
+                item_juId = m.group(1)
+        # 天猫详情url
+        elif url_type == 2:
+            m = re.search(r'id=(\d+)', ids, flags=re.S)
+            if m:
+                item_id = m.group(1)
+        
+        item_ju_url = ''
+        if item_juId != '' and item_id != '':
+            item_ju_url = 'http://detail.ju.taobao.com/home.htm?item_id=%s&id=%s'%(item_id, item_juId)
+        elif item_juId != '':
+            item_ju_url = 'http://detail.ju.taobao.com/home.htm?id=%s'%item_juId
+        elif item_id != '':
+            item_ju_url = 'http://detail.ju.taobao.com/home.htm?item_id=%s'%item_id
+            
+        if item_ju_url != '':
+            key = '-%s-%s'%(item_id, item_juId)
+            if not items.has_key(key):
+                position += 1
+                if item_ju_url != '':
+                    val = (item_ju_url, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, '')
+                    self.return_val(val)
+                    items[key] = item_ju_url
+        return (items,position)
+
+    # 活动页面商品数据为Json格式
+    def brandActTypeJson(self, page):
+        try:
+            position = 0
+            i = 0
+            act_data = json.loads(page)
+            for act_info in act_data:
+                if act_info.has_key("floorList"):
+                    for act_floor in act_info["floorList"]:
+                        i += 1
+                        if act_floor.has_key("dataUrl"):
+                            position = self.getItemDataFromInterface(act_floor["dataUrl"], position, i)
+                            
+        except Exception as e:
+            print "# err act items data json load error:",self.brandact_id,self.brandact_url,page
+        
+
     # 从接口获取商品数据列表
     def getItemDataFromInterface(self, url, position, floor_num=0):
         ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
         f_url = url + '&_ksTS=%s'%ts
-        #print f_url
         f_page = self.crawler.getData(f_url, self.brandact_url)
-        pageKey = 'act-home-floor-%d'%floor_num
-        self.brandact_pages[pageKey] = (f_url, f_page)
-        m = re.search(r'html\":\'(.+?)\'', f_page, flags=re.S)
-        if m:
-            f_html = m.group(1)
-            p = re.compile(r'<li class="item-small-v3">.+?(<a.+?</a>).+?</li>', flags=re.S)
-            for itemdata in p.finditer(f_html):
-                position += 1
-                self.itemByBrandPageType1(itemdata.group(1), position)
-                #val = self.itemByBrandPageType1(itemdata.group(1), position)
-                #self.brandact_itemVal_list.append(val)
-        else:
-            m = re.search(r'^{.+?\"itemList\":\[.+?\].+?}$', f_page, flags=re.S)
+        if f_page and f_page != '':
+            pageKey = 'act-home-floor-%d'%floor_num
+            self.brandact_pages[pageKey] = (f_url, f_page)
+            #print f_page
+            m = re.search(r'html\":\'(.+?)\'', str(f_page), flags=re.S)
             if m:
-                result = json.loads(f_page)
-                if result.has_key('code') and int(result['code']) == 200 and result.has_key('itemList') and result['itemList'] != []:
-                    for itemdata in result['itemList']:
-                        position += 1
-                        self.itemByBrandPageType2(itemdata, position)
-                        #val = self.itemByBrandPageType2(itemdata, position)
-                        #self.brandact_itemVal_list.append(val)
-
+                f_html = m.group(1)
+                p = re.compile(r'<li class="item-small-v3">.+?(<a.+?</a>).+?</li>', flags=re.S)
+                for itemdata in p.finditer(f_html):
+                    position += 1
+                    self.itemByBrandPageType1(itemdata.group(1), position)
+                    #val = self.itemByBrandPageType1(itemdata.group(1), position)
+                    #self.brandact_itemVal_list.append(val)
+            else:
+                m = re.search(r'^{.+?\"itemList\":\[.+?\].+?}$', str(f_page), flags=re.S)
+                if m:
+                    result = json.loads(f_page)
+                    if result.has_key('itemList') and result['itemList'] != []:
+                        for itemdata in result['itemList']:
+                            position += 1
+                            self.itemByBrandPageType2(itemdata, position)
+                            #val = self.itemByBrandPageType2(itemdata, position)
+                            #self.brandact_itemVal_list.append(val)
 
         return position
 
