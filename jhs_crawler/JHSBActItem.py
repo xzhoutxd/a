@@ -593,6 +593,7 @@ class JHSBActItem():
         # other floor
         # 接口数据
         getdata_url = "http://ju.taobao.com/json/tg/ajaxGetItems.htm?stype=ids&styleType=small&includeForecast=true"
+        #getdata_url = "http://ju.taobao.com/json/tg/self/ajaxGetJsonItems.json?stype=ids&includeForecast=true&version=min"
         p = re.compile(r'<.+?data-item="(.+?)".+?>', flags=re.S)
         i = 0
         for floor_url in p.finditer(page):
@@ -916,7 +917,7 @@ class JHSBActItem():
     # 更新活动
     def outSqlForUpdate(self):
         #return (str(self.brandact_id),str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),Config.sep.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position))
-        return (str(self.brandact_id),self.brandact_name,self.brandact_url,str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),Config.sep.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.brandact_other_ids)
+        return (str(self.brandact_id),self.brandact_name,self.brandact_url,str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),Config.sep.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.brandact_other_ids,str(self.brandact_sign))
 
     # 每天抓取
     def outSqlForDay(self):
