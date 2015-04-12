@@ -2,12 +2,17 @@
 #!/usr/bin/env python
 
 import re
+import os
 import random
 import time
 import datetime
+import calendar
 import urllib
 
 # defined exception
+class InvalidParameterException(Exception):
+    pass
+
 class DenypageException(Exception):
     pass
 
@@ -33,6 +38,18 @@ class TBCheckCodeException(Exception):
 class NoActivityException(Exception):
     pass
 
+# not activity item exception
+class NoActivityItemException(Exception):
+    pass
+
+# offshelf item exception
+class OffshelfItemException(Exception):
+    pass
+
+# postage/delivery/refund item exception
+class NotStatItemException(Exception):
+    pass
+
 # not shop exception
 class NoShopException(Exception):
     pass
@@ -45,17 +62,51 @@ class NoItemException(Exception):
 class NoShopItemException(Exception):
     pass
 
+# 单体模式
+def singleton(cls, *args, **kw):  
+    instances = {}  
+    def _singleton():  
+        if cls not in instances:  
+            instances[cls] = cls(*args, **kw)  
+        return instances[cls]  
+    return _singleton
+
+# 创建目录
+def createPath(p):
+    if not os.path.exists(p): os.makedirs(p)
+
 # 全局变量
 template_str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 template_low = 'abcdefghijklmnopqrstuvwxyz0123456789'
 template_tag = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789&='
 template_num = '0123456789'
 
-def add_days(n = 0, fmt='%Y-%m-%d'):
-    dt = datetime.datetime.now()
-    nDays = datetime.timedelta(days=n)
-    dt = dt + nDays
-    return dt.strftime(fmt)
+### time functions ###
+
+# 取当前时间
+def now():
+    return time.time()
+
+# 当前时间字符串
+def now_s(fmt='%Y-%m-%d %H:%M:%S'):
+    return time.strftime(fmt, time.localtime(time.time()))
+
+# 当前时间字符串
+def now_ss():
+    return now_s('%Y%m%d%H%M%S')
+
+def time_s(t, fmt='%Y-%m-%d %H:%M:%S'):
+    try:
+        t = float(t)
+        return time.strftime(fmt, time.localtime(t))
+    except:
+        return ''
+
+def time_ss(t):
+    return time_s(t, '%Y%m%d%H%M%S')
+
+def timestamp(_ms = 0):
+    return time.time() * 1000 + _ms
 
 def today_s(fmt='%Y-%m-%d'):
     return time.strftime(fmt, time.localtime(time.time()))
@@ -63,30 +114,67 @@ def today_s(fmt='%Y-%m-%d'):
 def today_ss():
     return today_s('%Y%m%d')
 
+def today_sss():
+    return '{dt.year}{dt.month}{dt.day}'.format(dt=datetime.datetime.now())
+
 def day_s(t, fmt='%Y-%m-%d'):
-    return '0.0' if t == '' else time.strftime(fmt, time.localtime(t))
+    return '' if t == '' else time.strftime(fmt, time.localtime(t))
 
 def day_ss(t):
     return day_s(t, '%Y%m%d')
 
-def date2timestamp(d):
-    return float(time.mktime(d.timetuple()))
+def dt_to_t(dt):
+    return float(time.mktime(dt.timetuple()))
 
-def str2timestamp(s, fmt="%Y-%m-%d %H:%M:%S"):
+def str2timestamp(s, fmt='%Y-%m-%d %H:%M:%S'):
     try:
-        s = s.strip()
-        d = datetime.datetime.strptime(s, fmt)
-        return date2timestamp(d)
+        dt = datetime.datetime.strptime(s.strip(), fmt)
+        return dt_to_t(dt)
     except:
         return 0.0
 
 # To compute time delta
 def timeDelta(t, h='00:00:00'):
-    t_end = 0.0
-    if type(t) is float:
-        t_str = day_s(t) + ' ' + h
-        t_end = str2timestamp(t_str)
-    return t_end
+    return str2timestamp(day_s(t) + ' ' + h, '%Y-%m-%d %H:%M:%S')
+
+def yyyymmdd(t, fmt='%Y-%m-%d'):
+    return str2timestamp(time_s(t, fmt), fmt)
+
+def yyyymmddhh24(t, fmt='%Y-%m-%d %H:00:00'):
+    return str2timestamp(time_s(t, fmt), fmt)
+
+### datetime functions ###
+def dt_to_s(dt, fmt='%Y-%m-%d'):
+    return datetime.datetime.strftime(dt, fmt)    
+
+def s_to_dt(s, fmt='%Y-%m-%d'):
+    return datetime.datetime.fromtimestamp(time.mktime(time.strptime(s, fmt))) 
+
+def t_add_days(t, n = 0):
+    s   = time_s(t, "%Y-%m-%d")
+    dt  = s_to_dt(s)
+    dt += datetime.timedelta(days=n)
+    return dt
+
+def s_add_days(s, n = 0):
+    dt  = s_to_dt(s)
+    dt += datetime.timedelta(days=n)
+    return dt
+
+def s_add_months(s, n = 0):
+    dt    = s_to_dt(s)
+    month = dt.month - 1 + n
+    year  = dt.year + month / 12
+    month = month % 12 + 1
+    day = min(dt.day,calendar.monthrange(year,month)[1])
+    dt  = dt.replace(year=year, month=month, day=day)
+    return dt
+    
+def s_add_years(s, n = 0):
+    dt   = s_to_dt(s)
+    year = dt.year + n
+    dt   = dt.replace(year=year)
+    return dt
 
 # 随机用户名
 def rand_user(pfx = 'tb'):
@@ -95,22 +183,13 @@ def rand_user(pfx = 'tb'):
 
 # 随机字符串
 def rand_s(template, length):
-    s = ''
+    ns = []
     for i in range(0, length):
-        s += random.choice(template)
-    return s
+        ns.append(random.choice(template))
+    return ''.join(ns)
 
 def rand_n(n=4):
     return rand_s(template_num, n)
-
-# 随机IP地址
-def randIp():
-    ips = []
-    ips.append(str(random.randint(111, 251)))
-    ips.append(str(random.randint(121, 240)))
-    ips.append(str(random.randint( 40, 251)))
-    ips.append(str(random.randint(150, 253)))
-    return '.'.join(ips)
 
 # 计算差集
 def diffSet(A, B):
@@ -162,31 +241,24 @@ def decode_r(s):
 def quotes_s(s):
     return re.sub(r'\'', '\\\'', s)
 
-def time_s(t, fmt='%Y-%m-%d %H:%M:%S'):
-    s = ''
-    if type(t) is float:
-        s = time.strftime(fmt, time.localtime(t))
-    return s
-
-def time_ss(t):
-    return time_s(t, '%Y%m%d%H%M%S')
-
 def htmlDecode_s(s):
     return s if s.find(r'&#') == -1 else htmlDecode(s)
 
-def now():
-    return time.time()
+# 计算中位数
+def median(numbers):
+    n = len(numbers)
+    if n == 0: return None
 
-# 当前时间字符串
-def now_s(fmt='%Y-%m-%d %H:%M:%S'):
-    return time.strftime(fmt, time.localtime(time.time()))
-
-# 当前时间字符串
-def now_ss():
-    return now_s('%Y%m%d%H%M%S')
-
-def timestamp(_ms = 0):
-    return time.time() * 1000 + _ms
+    copy = numbers[:]
+    copy.sort()
+    if n & 1:
+        m_val = copy[n/2]
+    else:
+        # 改进中位数算法：数值列表长度为偶数时，取中间小的数值
+        m_val = copy[n/2-1]
+        # 正常中位数算法：数值列表长度为偶数时，取中间2个数值的平均
+        #m_val = (copy[n/2-1] + copy[n/2])/2
+    return m_val
 
 # To get url template
 def urlTemplate(_type):
@@ -196,14 +268,6 @@ def urlTemplate(_type):
     elif _type == '2':
         template = 'http://item.taobao.com/item.htm?id=%s'
     return template
-
-def charset(data):
-    coder = 'gbk'
-    if data and data != '':
-        data = re.sub('"|\'| ', '', data.lower())
-        if re.search(r'charset=utf-8', data):
-            coder = 'utf-8'
-    return coder
 
 # 随机json回调名称
 def jsonCallback(n=4):
@@ -215,4 +279,13 @@ def cookieJar2Dict(cj):
         cj_d[c.name] = c.value
     return cj_d
 
-    
+import socket
+def local_ip():
+    host = socket.gethostname()
+    ip   = socket.gethostbyname(host)
+    return ip
+
+if __name__ == '__main__':
+    t = now()
+    d = yyyymmdd(t)
+    print time_s(t), time_s(d)
