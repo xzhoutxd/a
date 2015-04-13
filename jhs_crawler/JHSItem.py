@@ -318,16 +318,28 @@ class JHSItem():
     # Hour
     def antPageHour(self, val):
         self.item_juId,self.item_actId,self.item_ju_url,self.item_act_url,self.item_id,self.crawling_begintime,self.hour_index = val
+        # 商品关注人数, 商品销售数量, 商品库存
+        self.itemDynamic(self.item_juPage)
+        if self.item_soldCount == '' or self.item_stock == '':
+            # 聚划算商品页信息
+            self.itemPage()
+            self.item_pages['item-home-hour'] = (self.item_ju_url, self.item_juPage)
+            # 商品关注人数, 商品销售数量, 商品库存
+            self.itemDynamic(self.item_juPage)
+            if self.item_soldCount == '' or self.item_stock == '':
+                print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
+        page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
+        self.writeLog(page_datepath)
+
+    # item islock
+    def antPageLock(self, val):
+        self.item_juId,self.item_actId,self.item_ju_url,self.item_act_url,self.item_id,self.crawling_begintime,self.hour_index = val
         page = ''
         # 聚划算商品页信息
         self.itemPage()
         self.item_pages['item-home-hour'] = (self.item_ju_url, self.item_juPage)
-        # 商品关注人数, 商品销售数量, 商品库存
-        self.itemDynamic(self.item_juPage)
         # 商品锁定信息
         self.itemLock(page)
-        if self.item_soldCount == '' or self.item_stock == '':
-            print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
         page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
@@ -396,6 +408,21 @@ class JHSItem():
     def outTupleUpdateRemind(self):
         sql = self.outSqlForUpdateRemind()
         return sql
+
+    # 输出商品的网页
+    def outItemPage(self,crawl_type):
+        if self.crawling_begintime != '':
+            time_s = time.strftime("%Y%m%d%H", time.localtime(self.crawling_begintime))
+        else:
+            time_s = time.strftime("%Y%m%d%H", time.localtime(self.crawling_time))
+        # timeStr_jhstype_webtype_item_crawltype_itemjuid
+        key = '%s_%s_%s_%s_%s_%s' % (time_s,Config.JHS_TYPE,'1','item',crawl_type,str(self.item_juId))
+        pages = {}
+        for p_tag in self.item_pages.keys():
+            p_url, p_content = self.item_pages[p_tag]
+            f_content = '<!-- url=%s --> %s' %(p_url, p_content)
+            pages[p_tag] = f_content.strip()
+        return (key,pages)
 
     # 写html文件
     def writeLog(self,time_path):

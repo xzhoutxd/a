@@ -208,13 +208,14 @@ class JHSItemM(MyThread):
                     # 汇聚
                     #self.push_back(self.items, item.outTupleHour())
 
-                    hourSql,lockSql = item.outTupleHour()
+                    #hourSql,lockSql = item.outTupleHour()
+                    hourSql = item.outSqlForHour()
                     _itemhoursql_list.append(hourSql)
                     if self.insertItemhour(_itemhoursql_list): _itemhoursql_list = []
 
-                    if lockSql:
-                        _itemlocksql_list.append(lockSql)
-                    if self.updateItem(_itemlocksql_list): _itemlocksql_list = []
+                    #if lockSql:
+                    #    _itemlocksql_list.append(lockSql)
+                    #if self.updateItem(_itemlocksql_list): _itemlocksql_list = []
                 elif self.jhs_type == 4:
                     # 更新商品关注人数
                     item = JHSItem()
@@ -230,6 +231,23 @@ class JHSItemM(MyThread):
 
                     _itemsql_list.append(updateSql)
                     if self.updateItemRemind(_itemsql_list): _itemsql_list = []
+                elif self.jhs_type == 5:
+                    # 商品islock标志
+                    item = JHSItem()
+                    _val = _data[1]
+                    if self.a_val: _val = _val + self.a_val
+
+                    item.antPageLock(_val)
+                    #print '# Hour To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
+                    # 汇聚
+                    #self.push_back(self.items, item.outTupleHour())
+
+                    lockSql = item.outSqlForLock()
+
+                    if lockSql:
+                        _itemlocksql_list.append(lockSql)
+                    if self.updateItem(_itemlocksql_list): _itemlocksql_list = []
+
 
                 # 延时
                 time.sleep(0.1)

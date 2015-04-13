@@ -32,7 +32,11 @@ class JHSBrandHour():
         self.min_hourslot = 0 # 最小时间段
         self.max_hourslot = -24 # 最大时间段
 
-    def antPage(self):
+    def anPageForItemlock(self):
+        # item islock 
+        self.antPage(4)
+
+    def antPage(self, item_type=3):
         try:
             # 得到需要删除的时间点
             val = (Common.add_hours(self.crawling_time, self.max_hourslot),)
@@ -74,12 +78,12 @@ class JHSBrandHour():
             print '# hour all item nums:',all_item_num
 
             # 多线程抓商品
-            self.run_brandItems(crawler_val_list)
+            self.run_brandItems(crawler_val_list,item_type)
         except Exception as e:
             Common.traceback_log()
 
     # 多线程抓去品牌团商品
-    def run_brandItems(self, crawler_val_list):
+    def run_brandItems(self, crawler_val_list, item_type):
         for crawler_val in crawler_val_list:
             brandact_id, brandact_name, item_valTuple = crawler_val
             print '# hour activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
@@ -88,9 +92,9 @@ class JHSBrandHour():
             a_val = (self.begin_time, self.begin_hour)
             # 多线程 控制并发的线程数
             if len(item_valTuple) > Config.item_max_th:
-                m_itemsObj = JHSItemM(3, Config.item_max_th, a_val)
+                m_itemsObj = JHSItemM(item_type, Config.item_max_th, a_val)
             else:
-                m_itemsObj = JHSItemM(3, len(item_valTuple), a_val)
+                m_itemsObj = JHSItemM(item_type, len(item_valTuple), a_val)
             m_itemsObj.createthread()
             m_itemsObj.putItems(item_valTuple)
             m_itemsObj.run()
