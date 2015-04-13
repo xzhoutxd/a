@@ -34,7 +34,7 @@ ju_brand_home = 'http://ju.taobao.com/tg/brand.htm' # 品牌团
 TMALL_TYPE  = '1'
 TAOBAO_TYPE = '2'
 VIP_TYPE    = '3'
-JUHUASUAN_TYPE = '4'
+JHS_TYPE    = '4'
 
 # 通用http报文头
 g_httpHeader  = {
@@ -121,6 +121,7 @@ json_crawl_retry = 10
 # 并发线程值
 act_max_th = 5
 item_max_th = 100
+item_mid_th = 50
 
 # 同时入库的数据量限制
 act_max_arg = 10
@@ -136,6 +137,9 @@ sep = '<br>'
 
 
 ######################## 拨号服务器  #####################
+# prod
+#dial_ip     = '192.168.7.1'
+# 919
 dial_ip     = '192.168.1.112'
 #dial_ip     = '192.168.1.8'
 dial_port   = 9075

@@ -88,8 +88,11 @@ class JHSBrandHour():
             # 附加的信息
             a_val = (self.begin_time, self.begin_hour)
             # 多线程 控制并发的线程数
-            if len(item_valTuple) > Config.item_max_th:
-                m_itemsObj = JHSItemM(item_type, Config.item_max_th, a_val)
+            max_th = Config.item_max_th
+            if item_type == 5:
+                max_th = Config.item_mid_th
+            if len(item_valTuple) > max_th:
+                m_itemsObj = JHSItemM(item_type, max_th, a_val)
             else:
                 m_itemsObj = JHSItemM(item_type, len(item_valTuple), a_val)
             m_itemsObj.createthread()
