@@ -32,24 +32,21 @@ class JHSBrandHour():
         self.min_hourslot = 0 # 最小时间段
         self.max_hourslot = -24 # 最大时间段
 
-    def anPageForItemlock(self):
-        # item islock 
-        self.antPage(4)
-
     def antPage(self, item_type=3):
         try:
-            # 得到需要删除的时间点
-            val = (Common.add_hours(self.crawling_time, self.max_hourslot),)
-            print '# hour need delete time:',val
-            # 删除已经超过时间段的活动
-            delete_results = self.mysqlAccess.selectDeleteJhsActHouralive(val)
-            if delete_results:
-                print '# hour need delete act num: ',len(delete_results)
-                for delete_r in delete_results:
-                    print '# hour need delete act: id:%s,name:%s'%(str(delete_r[0]),str(delete_r[3]))
-            else:
-                print '# hour need delete act is null...'
-            self.mysqlAccess.deleteJhsActHouralive(val)
+            if item_type == 3:
+                # 得到需要删除的时间点
+                val = (Common.add_hours(self.crawling_time, self.max_hourslot),)
+                print '# hour need delete time:',val
+                # 删除已经超过时间段的活动
+                delete_results = self.mysqlAccess.selectDeleteJhsActHouralive(val)
+                if delete_results:
+                    print '# hour need delete act num: ',len(delete_results)
+                    for delete_r in delete_results:
+                        print '# hour need delete act: id:%s,name:%s'%(str(delete_r[0]),str(delete_r[3]))
+                else:
+                    print '# hour need delete act is null...'
+                self.mysqlAccess.deleteJhsActHouralive(val)
             # 查找需要每小时统计的活动列表
             # 得到需要的时间段
             val = (Common.add_hours(self.crawling_time, self.min_hourslot), Common.add_hours(self.crawling_time, self.max_hourslot))
