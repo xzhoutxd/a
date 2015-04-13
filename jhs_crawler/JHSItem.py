@@ -375,7 +375,10 @@ class JHSItem():
     # 商品锁定信息
     def outSqlForLock(self):
         try:
-            return (self.item_juId,Common.time_s(self.item_isLock_time),self.item_isLock)
+            if self.item_isLock_time:
+                return (self.item_juId,Common.time_s(self.item_isLock_time),self.item_isLock)
+            else:
+                return None
         except Exception as e:
             print '# out item Lock Sql err:',e
             return None
