@@ -84,7 +84,7 @@ class JHSBrandQ():
                 if i > M:
                     print '# not get brandQ of key:',_key
                     break
-                time.sleep(1)
+                time.sleep(10)
                 continue
             self.run_brandItems(_data, q_type, a_val)
 
