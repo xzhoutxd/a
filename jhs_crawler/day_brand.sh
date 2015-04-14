@@ -13,4 +13,4 @@ DIR=`pwd`
 cd $DIR
 /bin/sh $DIR/k.sh python JHSBrandDay
 
-/usr/bin/python $DIR/JHSBrandDay.py $m_type > $DIR/log/brand_day/add_dayBrands_${DATESTR}.log
+/usr/local/bin/python $DIR/JHSBrandDay.py $m_type > $DIR/log/brand_day/add_dayBrands_${DATESTR}.log

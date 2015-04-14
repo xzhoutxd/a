@@ -12,4 +12,4 @@ fi
 DIR=`pwd`
 /bin/sh $DIR/k.sh python JHSBrandItemLock
 
-/usr/bin/python $DIR/JHSBrandItemLock.py $m_type > $DIR/log/item_lock/add_itemlock_${DATESTR}.log
+/usr/local/bin/python $DIR/JHSBrandItemLock.py $m_type > $DIR/log/item_lock/add_itemlock_${DATESTR}.log

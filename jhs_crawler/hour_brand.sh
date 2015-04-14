@@ -13,4 +13,4 @@ DIR=`pwd`
 cd $DIR
 /bin/sh $DIR/k.sh python JHSBrandHour
 
-/usr/bin/python $DIR/JHSBrandHour.py $m_type > $DIR/log/brand_hour/add_hourBrands_${DATESTR}.log
+/usr/local/bin/python $DIR/JHSBrandHour.py $m_type > $DIR/log/brand_hour/add_hourBrands_${DATESTR}.log
