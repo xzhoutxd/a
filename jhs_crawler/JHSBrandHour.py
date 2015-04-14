@@ -16,7 +16,7 @@ from JHSBrandQ import JHSBrandQ
 
 class JHSBrandHour():
     '''A class of brand for every hour'''
-    def __init__(self, m, _q_type='h'):
+    def __init__(self, m_type, _q_type='h'):
         # mysql
         self.mysqlAccess = MysqlAccess()
 
@@ -34,14 +34,14 @@ class JHSBrandHour():
         self.max_hourslot = -24 # 最大时间段
 
         # 分布式主机标志
-        self.m = m
+        self.m_type = m_type
         # 活动队列标志
         self.q_type = _q_type
 
     def antPage(self):
         try:
             # 主机器需要配置redis队列
-            if self.m == 'm':
+            if self.m_type == 'm':
                 self.brandHourList()
             # 附加信息
             a_val = (self.begin_time, self.begin_hour)
@@ -66,8 +66,6 @@ class JHSBrandHour():
             self.mysqlAccess.deleteJhsActHouralive(val)
 
         # 查找需要每小时统计的活动列表
-        # 清空每小时活动redis队列
-        self.brand_queue.clearBrandQ(self.q_type)
         # 得到需要的时间段
         val = (Common.add_hours(self.crawling_time, self.min_hourslot), Common.add_hours(self.crawling_time, self.max_hourslot))
         print '# hour crawler time:',val
@@ -93,6 +91,8 @@ class JHSBrandHour():
             else:
                 print '# hour act id:%s name:%s not find items...'%(str(act_r[0]),str(act_r[3]))
         print '# hour all item nums:',all_item_num
+        # 清空每小时活动redis队列
+        self.brand_queue.clearBrandQ(self.q_type)
         # 保存每小时活动redis队列
         self.brand_queue.putBrandlistQ(self.q_type, crawl_val_list)
         print '# brand queue end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
@@ -105,8 +105,8 @@ if __name__ == '__main__':
         print '#err not enough args for JHSBrandHour...'
         exit()
     # 是否是分布式中主机
-    m = args[1]
-    b = JHSBrandHour(m)
+    m_type = args[1]
+    b = JHSBrandHour(m_type)
     b.antPage()
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
