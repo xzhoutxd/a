@@ -19,10 +19,11 @@ from JHSItemM import JHSItemM
 from JHSHomeBrand import JHSHomeBrand
 from JHSBrandTEMP import JHSBrandTEMP
 from JHSBrandObj import JHSBrandObj
+from JHSBrandQ import JHSBrandQ
 
 class JHSBrand():
     '''A class of brand'''
-    def __init__(self):
+    def __init__(self, m_type, _q_type='s'):
         # mysql
         self.mysqlAccess = MysqlAccess()
 
@@ -35,6 +36,9 @@ class JHSBrand():
 
         # 获取、解析活动，并抓取商品信息
         self.brand_obj = JHSBrandObj()
+
+        # brand queue
+        self.brand_queue = JHSBrandQ()
 
         # 首页
         self.ju_home_url   = 'http://ju.taobao.com'
@@ -60,27 +64,39 @@ class JHSBrand():
         # 即将开团的最小时间
         self.min_hourslot = 1 # 最小时间段
 
+        # 分布式主机标志
+        self.m_type = m_type
+        # 活动队列标志
+        self.q_type = _q_type
+
     def antPage(self):
         try:
-            # 获取首页的品牌团
-            page = self.crawler.getData(self.ju_home_url, self.refers)
-            hb = JHSHomeBrand()
-            hb.antPage(page)
-            if not hb.home_brands:
-                page = self.crawler.getData(self.ju_home_today_url, self.refers)
-                hb.antPage(page)
-            self.home_brands = hb.home_brands
-            # 保存html文件
-            page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.begin_time))
-            Config.writefile(page_datepath,'home.htm',page)
-            #print self.home_brands
-
             # 更新即将开团活动的商品信息
-            self.update_items()
-            
-            # 获取品牌团列表页数据
-            page = self.crawler.getData(self.brand_url, self.ju_home_url)
-            self.activityList(page) 
+            # 主机器需要配置redis队列
+            if self.m_type == 'm':
+                self.update_items()
+            # 附加的信息
+            a_val = (self.begin_time,)
+            self.brand_queue.brandQ(self.q_type, a_val)
+
+            # 主机器需要抓取品牌团列表，更新活动信息
+            if self.m_type == 'm':
+                # 获取首页的品牌团
+                page = self.crawler.getData(self.ju_home_url, self.refers)
+                hb = JHSHomeBrand()
+                hb.antPage(page)
+                if not hb.home_brands:
+                    page = self.crawler.getData(self.ju_home_today_url, self.refers)
+                    hb.antPage(page)
+                self.home_brands = hb.home_brands
+                # 保存html文件
+                page_datepath = 'act/main/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.begin_time))
+                Config.writefile(page_datepath,'home.htm',page)
+                #print self.home_brands
+
+                # 获取品牌团列表页数据
+                page = self.crawler.getData(self.brand_url, self.ju_home_url)
+                self.activityList(page) 
             
         except Exception as e:
             print '# exception err in antPage info:',e
@@ -131,10 +147,15 @@ class JHSBrand():
                 print '# need update act id:%s name:%s not find items...'%(str(act_r[1]),str(act_r[7]))
 
         print '# need update all item nums:',all_item_num
+        # 清空即将开团活动redis队列
+        self.brand_queue.clearBrandQ(self.q_type)
+        # 保存即将开团活动redis队列
+        self.brand_queue.putBrandlistQ(self.q_type, update_val_list)
+        print '# brand queue end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
-        print '###### items update start ######'
-        self.run_updateItems(update_val_list)
-        print '###### items update end ######'
+        #print '###### items update start ######'
+        #self.run_updateItems(update_val_list)
+        #print '###### items update end ######'
 
     def run_updateItems(self, update_val_list):
         for update_val in update_val_list:
@@ -180,12 +201,16 @@ class JHSBrand():
 
 
 if __name__ == '__main__':
-    pass
-    """
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    b = JHSBrand()
+    args = sys.argv
+    #args = ['JHSBrand','m|s']
+    if len(args) < 2:
+        print '#err not enough args for JHSBrand...'
+        exit()
+    # 是否是分布式中主机
+    m_type = args[1]
+    b = JHSBrand(m_type)
     b.antPage()
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    """
 
 

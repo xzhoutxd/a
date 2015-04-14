@@ -224,7 +224,7 @@ class JHSItemM(MyThread):
                     #if lockSql:
                     #    _itemlocksql_list.append(lockSql)
                     #if self.updateItem(_itemlocksql_list): _itemlocksql_list = []
-                elif self.jhs_type == 4:
+                elif self.jhs_type == 's':
                     # 更新商品关注人数
                     item = JHSItem()
                     _val = _data[1]
