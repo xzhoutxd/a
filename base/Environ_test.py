@@ -19,7 +19,10 @@ redis_config = {
     4  : (redis_ip, redis_port, redis_passwd),    # vip   item db
     5  : (redis_ip, redis_port, redis_passwd),    # vip   sku  db
     9  : (redis_ip, redis_port, redis_passwd),    # cookie     db
-    10 : (redis_ip, redis_port, redis_passwd)     # queue      db
+    10 : (redis_ip, redis_port, redis_passwd),    # queue      db
+    20 : (redis_ip, redis_port, redis_passwd),    # jhs   act  db
+    21 : (redis_ip, redis_port, redis_passwd),    # jhs   item db
+    100: (redis_ip, redis_port, redis_passwd)     # jhs queue  db
 }
 
 ######################## Mysql配置  ######################

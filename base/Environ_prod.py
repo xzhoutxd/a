@@ -11,15 +11,18 @@ magic_num   = '%xiaoshu-dialing-9999%'
 ######################## Redis配置  #####################
 redis_ip, redis_port, redis_passwd = '192.168.7.211', 6379, 'bigdata1234'  # 919测试
 redis_config = {
-    0  : (redis_ip, redis_port, redis_passwd),    # default    db
-    1  : (redis_ip, redis_port, redis_passwd),    # tm/tb shop db
-    2  : (redis_ip, redis_port, redis_passwd),    # tm/tb item db
-    3  : (redis_ip, redis_port, redis_passwd),    # vip   act  db
-    4  : (redis_ip, redis_port, redis_passwd),    # vip   item db
-    5  : (redis_ip, redis_port, redis_passwd),    # vip   item db
+    0  : (redis_ip, redis_port, redis_passwd),    # default      db
+    1  : (redis_ip, redis_port, redis_passwd),    # tm/tb shop   db
+    2  : (redis_ip, redis_port, redis_passwd),    # tm/tb item   db
+    3  : (redis_ip, redis_port, redis_passwd),    # vip   act    db
+    4  : (redis_ip, redis_port, redis_passwd),    # vip   item   db
+    5  : (redis_ip, redis_port, redis_passwd),    # vip   item   db
     6  : (redis_ip, redis_port, redis_passwd),    # vip   actmap db    
-    9  : (redis_ip, redis_port, redis_passwd),    # cookie     db
-    10 : (redis_ip, redis_port, redis_passwd)     # queue      db
+    9  : (redis_ip, redis_port, redis_passwd),    # cookie       db
+    10 : (redis_ip, redis_port, redis_passwd),    # queue        db
+    20 : (redis_ip, redis_port, redis_passwd),    # jhs   act    db
+    21 : (redis_ip, redis_port, redis_passwd),    # jhs   item   db
+    100: (redis_ip, redis_port, redis_passwd)     # jhs   queue  db
 }
 
 redis_ip, redis_port, redis_passwd = '127.0.0.1', 6379, 'bigdata1234'  # 919测试
@@ -40,7 +43,8 @@ redis_config_dev = {
 mysql_config = {
     'web'   : {'host':'192.168.7.212', 'user':'bduser', 'passwd':'newword!@#', 'db':'bigdata'},
     'shopb' : {'host':'192.168.7.213', 'user':'shopb',  'passwd':'123456', 'db':'shopb'},
-    'vip'   : {'host':'192.168.7.214', 'user':'vip',    'passwd':'123456', 'db':'vip'  }
+    'vip'   : {'host':'192.168.7.214', 'user':'vip',    'passwd':'123456', 'db':'vip'  },
+    'jhs'   : {'host':'192.168.7.215', 'user':'jhs',    'passwd':'123456', 'db':'jhs'}
 }
 
 ######################## Mongodb配置  #####################
