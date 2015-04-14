@@ -105,6 +105,8 @@ class Jsonpage():
                     self.val_queue.task_done()
                     if str(e).find('Read timed out') != -1:
                         self.crawlRetry(_data)
+                    elif str(e).find('Name or service not known') != -1:
+                        self.crawlRetry(_data)
                     time.sleep(random.uniform(10,30))
         return bResult_list
 

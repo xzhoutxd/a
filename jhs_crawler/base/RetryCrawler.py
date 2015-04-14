@@ -67,7 +67,12 @@ class RetryCrawler():
                 time.sleep(5*retry)
             except Exception as e:
                 print '# exception err in retry crawler:',e
-                if e.find('Read timed out') != -1:
+                if str(e).find('Read timed out') != -1:
+                    if retry >= max_retry:
+                        break
+                    retry += 1
+                    time.sleep(5*retry)
+                elif str(e).find('Name or service not known') != -1:
                     if retry >= max_retry:
                         break
                     retry += 1

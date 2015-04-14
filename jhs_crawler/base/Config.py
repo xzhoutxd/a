@@ -115,8 +115,8 @@ g_crawledTime = Common.str2timestamp('2000-01-01 00:00:00')
 
 # 网页最大抓取次数
 crawl_retry = 100
-home_crawl_retry = 10
-json_crawl_retry = 10
+home_crawl_retry = 50
+json_crawl_retry = 50
 
 # 并发线程值
 act_max_th = 5
