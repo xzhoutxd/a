@@ -12,10 +12,10 @@ class Crawler:
     '''A class to crawl web pages'''
     def __init__(self):
         # Socket超时时间
-        socket.setdefaulttimeout(15)
+        socket.setdefaulttimeout(30)
 
         # http get超时时间
-        self.timeout     = (5, 10)
+        self.timeout     = (10, 25)
 
         # 网页编码
         self.f_coder     = 'gbk'
