@@ -82,6 +82,7 @@ class JHSBrandQ():
             if not _data:
                 i += 1
                 if i > M:
+                    print '# not get brandQ of key:',_key
                     break
                 time.sleep(1)
                 continue
