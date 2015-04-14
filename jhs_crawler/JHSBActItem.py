@@ -873,9 +873,25 @@ class JHSBActItem():
         page_datepath = 'act/parser/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
+    # 输出活动的网页
+    def outItemPage(self,crawl_type):
+        if self.crawling_begintime != '':
+            time_s = time.strftime("%Y%m%d%H", time.localtime(self.crawling_begintime))
+        else:
+            time_s = time.strftime("%Y%m%d%H", time.localtime(self.crawling_time))
+        # timeStr_jhstype_webtype_act_crawltype_actid
+        key = '%s_%s_%s_%s_%s_%s' % (time_s,Config.JHS_TYPE,'1','act',crawl_type,str(self.brandact_id))
+        pages = {}
+        for p_tag in self.brandact_pages.keys():
+            p_url, p_content = self.brandact_pages[p_tag]
+            f_content = '<!-- url=%s --> %s' %(p_url, p_content)
+            pages[p_tag] = f_content.strip()
+        return (key,pages)
+
     # 写html文件
     def writeLog(self, time_path):
         try:
+            return None
             pages = self.outItemLog()
             for page in pages:
                 filepath = Config.pagePath + time_path + page[2]
@@ -916,7 +932,6 @@ class JHSBActItem():
 
     # 更新活动
     def outSqlForUpdate(self):
-        #return (str(self.brandact_id),str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),Config.sep.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position))
         return (str(self.brandact_id),self.brandact_name,self.brandact_url,str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),Config.sep.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.brandact_other_ids,str(self.brandact_sign))
 
     # 每天抓取

@@ -430,6 +430,7 @@ class JHSItem():
     # 写html文件
     def writeLog(self,time_path):
         try:
+            return None
             pages = self.outItemLog()
             for page in pages:
                 filepath = Config.pagePath + time_path + page[2]

@@ -2,13 +2,13 @@
 #!/usr/bin/env python
 
 from sys import path
-path.append(r'../')
 
 import threading
 import redis
 import traceback
-import base.Environ as Environ
-import base.Config  as Config
+path.append(r'../base')
+import Environ as Environ
+import Config  as Config
 
 class RedisPool:
     '''A class of connect pool to Redis Database'''

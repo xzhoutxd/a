@@ -15,6 +15,8 @@ from base.MyThread  import MyThread
 from Queue import Empty
 from db.MysqlAccess import MysqlAccess
 from JHSBActItem import JHSBActItem
+sys.path.append('../db')
+from MongoAccess import MongoAccess
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -28,8 +30,9 @@ class JHSBActItemM(MyThread):
         # thread lock
         self.mutex      = threading.Lock()
 
-        # mysql
-        self.mysqlAccess = MysqlAccess()
+        # db
+        self.mysqlAccess = MysqlAccess() # mysql access
+        self.mongoAccess = MongoAccess() # mongodb access
 
         # appendix val
         self.a_val = a_val
@@ -131,15 +134,17 @@ class JHSBActItemM(MyThread):
                     _actcomingsql_list = []
                     break
 
+                item = None
+                crawl_type = ''
                 if self.jhs_type == 1:
                     # 品牌团实例 即将上线
-                    # _pageData, _catid, _catname, _position, _begin_date, _begin_hour = _val
                     item = JHSBActItem()
 
                     # 信息处理
                     _val  = _data[1]
                     item.antPageComing(_val)
                     print '# To crawl coming activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
+                    crawl_type = 'coming'
                     # 汇聚
                     #self.push_back(self.items, item.outSqlForComing())
                     #sql = item.outSqlForComing()
@@ -151,24 +156,24 @@ class JHSBActItemM(MyThread):
                     if self.insertActcoming(_actcomingsql_list): _actcomingsql_list = []
                 elif self.jhs_type == 2:
                     # 品牌团实例 检查活动新加商品
-                    # _catid, _catname, _caturl = _val
                     item = JHSBActItem()
 
                     # 信息处理
                     _val  = _data[1]
                     item.antPageHourcheck(_val)
                     #print '# To check activity val : ', Common.now_s(), _val[0], _val[1]
+                    crawl_type = 'hourcheck'
                     # 汇聚
                     self.push_back(self.items, item.outTupleForHourcheck())
                 elif self.jhs_type == 3:
                     # 品牌团实例
-                    # _pageData, _catid, _catname, _position, _begin_date, _begin_hour = _val
                     item = JHSBActItem()
 
                     # 信息处理
                     _val  = _data[1]
                     item.antPage(_val)
                     #print '# To crawl activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
+                    crawl_type = 'brand'
 
                     # 汇聚
                     self.push_back(self.items, item.outTuple())
@@ -181,6 +186,7 @@ class JHSBActItemM(MyThread):
                     _val  = _data[1]
                     item.antPageMain(_val)
                     #print '# To crawl activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
+                    crawl_type = 'main'
 
                     # 汇聚
                     self.push_back(self.items, item.outTuple())
@@ -193,9 +199,15 @@ class JHSBActItemM(MyThread):
                     _val  = _data[1]
                     item.antPageParser(_val)
                     #print '# To crawl activity val : ', Common.now_s(), _val[1], _val[2], _val[3]
+                    crawl_type = 'parser'
 
                     # 汇聚
                     self.push_back(self.items, item.outTupleBrand())
+
+                # 存网页
+                if item and crawl_type != '':
+                    _pages = item.outItemPage(crawl_type)
+                    self.mongoAccess.insertJHSPages(_pages)
 
                     
                 # 通知queue, task结束
@@ -239,11 +251,6 @@ class JHSBActItemM(MyThread):
                 except Exception as e:
                     print '# DailClient Exception err:', e
                     time.sleep(10)
-                #time.sleep(1)
-                #try:
-                #    time.sleep((_data[0]+1)*random.uniform(10,30))
-                #except Exception as e:
-                #    time.sleep(random.uniform(10,30))
                 time.sleep(random.uniform(10,30))
 
 if __name__ == '__main__':

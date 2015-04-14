@@ -2,10 +2,10 @@
 #!/usr/bin/env python
 
 from sys import path
-path.append(r'../')
+path.append(r'../base')
 
 import pymongo  # 只能用2.8版本
-import base.Environ as Environ
+import Environ as Environ
 
 class MongoPool():
     '''A class of mongodb connection pool'''
@@ -23,6 +23,9 @@ class MongoPool():
         # Vip网页库
         self.vip_db  = self.mongo["vip"]
 
+        # JHS网页库
+        self.jhs_db  = self.mongo["jhs"]
+
     def __del__(self):
          self.mongo.close()
 
@@ -33,10 +36,14 @@ class MongoPool():
     def crtVipIndex(self, c):
         self.vip_db[c].ensure_index('key', unique=True)
 
+    def crtJHSIndex(self, c):
+        self.jhs_db[c].ensure_index('key', unique=True)
+
     # 删除表格
     def dropTable(self, c):
         self.tb_db[c].drop()
         self.vip_db[c].drop()
+        self.jhs_db[c].drop()
 
     def insertTBPage(self, c, _data):
         self.tb_db[c].insert(_data)
@@ -44,11 +51,17 @@ class MongoPool():
     def insertVipPage(self, c, _data):
         self.vip_db[c].insert(_data)
 
+    def insertJHSPage(self, c, _data):
+        self.jhs_db[c].insert(_data)
+
     def removeTBPage(self, c, _key):
         self.tb_db[c].remove({"key":_key})
 
     def removeVipPage(self, c, _key):
         self.vip_db[c].remove({"key":_key})
+
+    def removeJHSPage(self, c, _key):
+        self.jhs_db[c].remove({"key":_key})
 
     def findTBPage(self, c, _key):
         return self.tb_db[c].find_one({"key":_key})
@@ -56,11 +69,17 @@ class MongoPool():
     def findVipPage(self, c, _key):
         return self.vip_db[c].find_one({"key":_key})
 
+    def findJHSPage(self, c, _key):
+        return self.jhs_db[c].find_one({"key":_key})
+
     def findTBPages(self, c):
         return self.tb_db[c].find()
 
     def findVipPages(self, c):
         return self.vip_db[c].find()
+
+    def findJHSPages(self, c):
+        return self.jhs_db[c].find()
 
 if __name__ == '__main__':
     mongo = MongoPool()

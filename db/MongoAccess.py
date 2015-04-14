@@ -2,10 +2,10 @@
 #!/usr/bin/env python
 
 from sys import path
-path.append(r'../')
+path.append(r'../base')
 
 import traceback
-import base.Common as Common
+import Common as Common
 from MongoPool import MongoPool
 
 @Common.singleton
@@ -38,6 +38,16 @@ class MongoAccess():
             print '# insertVipPages exception:', e
             traceback.print_exc()
 
+    def insertJHSPages(self, pages):
+        try:
+            _key, _pages_d = pages
+            data = {"key":_key, "pages":_pages_d}
+            c = _key[:8]
+            self.mongo_db.insertJHSPage(c, data)
+        except Exception, e:
+            print '# insertJHSPages exception:', e
+            traceback.print_exc()
+
     # 删除网页
     def removeTBPage(self, _key):
         c = _key[:8]
@@ -47,6 +57,10 @@ class MongoAccess():
         c = _key[:8]
         self.mongo_db.removeVipPage(c, _key)
 
+    def removeJHSPage(self, _key):
+        c = _key[:8]
+        self.mongo_db.removeJHSPage(c, _key)
+
     # 查询网页
     def findTBPage(self, _key):
         c = _key[:8]
@@ -55,6 +69,10 @@ class MongoAccess():
     def findVipPage(self, _key):
         c = _key[:8]
         return self.mongo_db.findVipPage(c, _key)
+
+    def findJHSPage(self, _key):
+        c = _key[:8]
+        return self.mongo_db.findJHSPage(c, _key)
 
     # 遍历网页
     def scanTBPage(self, c):
@@ -69,12 +87,21 @@ class MongoAccess():
             _pages = pg['pages']
             for k in _pages.keys(): print _key, k
 
+    def scanJHSPage(self, c):
+        for pg in self.mongo_db.findJHSPages(c):
+            _key   = pg['key']
+            _pages = pg['pages']
+            for k in _pages.keys(): print _key, k
+
     # 创建索引
     def crtTBIndex(self, c):
         self.mongo_db.crtTBIndex(c)
 
     def crtVipIndex(self, c):
         self.mongo_db.crtVipIndex(c)
+
+    def crtJHSIndex(self, c):
+        self.mongo_db.crtJHSIndex(c)
 
     # 删除表格
     def dropTable(self, c):

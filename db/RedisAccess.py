@@ -2,12 +2,12 @@
 #!/usr/bin/env python
 
 from sys import path
-path.append(r'../')
 
 import json
 import pickle
-import base.Common as Common
 from RedisPool import RedisPool
+path.append(r'../base')
+import Common as Common
 
 @Common.singleton
 class RedisAccess:
@@ -24,6 +24,10 @@ class RedisAccess:
         self.VIP_ACT_DB    = 3   # vip activity        
         self.VIP_ITEM_DB   = 4   # vip item
         self.VIP_SKU_DB    = 5   # vip sku
+
+        self.JHS_ACT_DB    = 6   # jhs activity        
+        self.JHS_ITEM_DB   = 7   # jhs item
+        self.JHS_SKU_DB    = 8   # jhs SKU
 
         self.COOKIE_DB     = 9   # taobao cookie
         self.QUEUE_DB      = 10  # queue db
@@ -303,6 +307,104 @@ class RedisAccess:
                 print "# scan_vipsku %s:" %key, act_platform, warehouse, act_id, act_name, item_id, item_name, item_sn
         except Exception as e:
              print '# Redis access scan vip sku exception:', e
+
+    ######################## JHS Activity ###################
+    # 判断是否存在JHS频道活动
+    def exist_jhsact(self, keys):
+        return self.redis_pool.exists(keys, self.JHS_ACT_DB)
+
+    # 删除jhs频道活动
+    def delete_jhsact(self, keys):
+        self.redis_pool.remove(keys, self.JHS_ACT_DB)
+
+    # 查询jhs频道活动
+    def read_jhsact(self, keys):
+        try:
+            val = self.redis_pool.read(keys, self.JHS_ACT_DB)
+            return json.loads(val) if val else None
+        except Exception, e:
+            print '# Redis access read jhs activity exception:', e
+            return None
+
+    # 写入jhs频道活动
+    def write_jhsact(self, keys, val):
+        try:
+            crawl_time, act_platform, act_category, act_id, act_name, act_url, start_time, end_time, item_ids = val
+            act_dict = {}
+            act_dict["crawl_time"]   = crawl_time
+            act_dict["platform"]     = act_platform
+            act_dict["act_category"] = act_category
+            act_dict["act_id"]       = act_id
+            act_dict["act_name"]     = act_name
+            act_dict["act_url"]      = act_url
+            act_dict["start_time"]   = start_time
+            act_dict["end_time"]     = end_time
+            act_dict["item_ids"]     = item_ids
+            act_json = json.dumps(act_dict)
+            self.redis_pool.write(keys, act_json, self.JHS_ACT_DB)
+        except Exception, e:
+            print '# Redis access write jhs activity exception:', e
+
+    # 扫描jhs频道活动 - 性能不好
+    def scan_jhsact(self):
+        try:
+            for act in self.redis_pool.scan_db(self.JHS_ACT_DB):
+                key, val = act
+                if not val: continue
+                act_dict       = json.loads(val)
+                print "# scan_jhsact %s:" %key, act_dict
+        except Exception, e:
+            print '# Redis access scan jhs activity exception:', e
+
+    ######################## JHS ITEM ###################
+
+    # 判断是否存在jhs item
+    def exist_jhsitem(self, keys):
+        return self.redis_pool.exists(keys, self.JHS_ITEM_DB)
+
+    # 删除jhs item
+    def delete_jhsitem(self, keys):
+        self.redis_pool.remove(keys, self.JHS_ITEM_DB)
+
+    # 查询jhs item
+    def read_jhsitem(self, keys):
+        try:
+            val = self.redis_pool.read(keys, self.JHS_ITEM_DB)
+            return json.loads(val) if val else None 
+        except Exception, e:
+            print '# Redis access read jhs item exception:', e
+            return None
+
+    # 写入jhs item
+    def write_jhsitem(self, keys, val):
+        try:
+            act_id, act_name, item_juid, item_id, item_juname, item_ju_url, item_start_time, item_end_time = val
+            item_dict = {}
+            item_dict["act_id"]          = act_id
+            item_dict["act_name"]        = act_name
+            item_dict["item_juid"]       = item_juid            
+            item_dict["item_id"]         = item_id            
+            item_dict["item_juname"]     = item_juname
+            item_dict["item_ju_url"]     = item_ju_url
+            item_dict["item_start_time"] = item_start_time
+            item_dict["item_end_time"]   = item_end_time
+
+            item_json = json.dumps(item_dict)
+            self.redis_pool.write(keys, item_json, self.JHS_ITEM_DB)
+        except Exception, e:
+            print '# Redis access write jhs item exception:', e
+
+    # 扫描jhs item - 性能不好
+    def scan_jhsitem(self):
+        try:
+            for item in self.redis_pool.scan_db(self.JHS_ITEM_DB):
+                key, val = item
+                if not val: continue
+                item_dict    = json.loads(val)
+                print "# scan_jhsitem %s:" %key, item_dict
+        except Exception as e:
+             print '# Redis access scan jhs item exception:', e
+
 
 if __name__ == '__main__1':
     r = RedisAccess()

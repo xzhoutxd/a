@@ -15,6 +15,8 @@ from base.MyThread  import MyThread
 from Queue import Empty
 from db.MysqlAccess import MysqlAccess
 from JHSItem import JHSItem
+sys.path.append('../db')
+from MongoAccess import MongoAccess
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -28,8 +30,9 @@ class JHSItemM(MyThread):
         # thread lock
         self.mutex = threading.Lock()
 
-        # mysql
-        self.mysqlAccess = MysqlAccess()
+        # db
+        self.mysqlAccess = MysqlAccess() # mysql access
+        self.mongoAccess = MongoAccess() # mongodb access
 
         # jhs queue type
         self.jhs_type = jhs_type # 1:新增商品, 2:每天一次的商品, 3:每小时一次的商品
@@ -168,12 +171,15 @@ class JHSItemM(MyThread):
                     _itemsql_list = []
                     break
 
+                item = None
+                crawl_type = ''
                 if self.jhs_type == 1:
                     # 商品实例
                     item = JHSItem()
                     _val = _data[1]
                     item.antPage(_val)
                     #print '# To crawl activity item val : ', Common.now_s(), _val[2], _val[4], _val[6]
+                    crawl_type = 'main'
 
                     # 汇聚
                     #sql, saleSql, stockSql, iteminfoSql = item.outTuple()
@@ -183,7 +189,7 @@ class JHSItemM(MyThread):
                     # 入库
                     _iteminfosql_list.append(iteminfoSql)
                     if self.insertIteminfo(_iteminfosql_list): _iteminfosql_list = []
-                elif self.jhs_type == 2:
+                elif self.jhs_type == 'd':
                     # 每天一次商品实例
                     item = JHSItem()
                     _val = _data[1]
@@ -191,13 +197,14 @@ class JHSItemM(MyThread):
 
                     item.antPageDay(_val)
                     #print '# Day To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
+                    crawl_type = 'day'
                     # 汇聚
                     #self.push_back(self.items, item.outTupleDay())
 
                     sql = item.outTupleDay()
                     _itemdaysql_list.append(sql)
                     if self.insertItemday(_itemdaysql_list): _itemdaysql_list = []
-                elif self.jhs_type == 3:
+                elif self.jhs_type == 'h':
                     # 每小时一次商品实例
                     item = JHSItem()
                     _val = _data[1]
@@ -205,6 +212,7 @@ class JHSItemM(MyThread):
 
                     item.antPageHour(_val)
                     #print '# Hour To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
+                    crawl_type = 'hour'
                     # 汇聚
                     #self.push_back(self.items, item.outTupleHour())
 
@@ -224,6 +232,7 @@ class JHSItemM(MyThread):
 
                     item.antPageUpdateRemind(_val)
                     #print '# Hour To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
+                    crawl_type = 'update'
                     # 汇聚
                     self.push_back(self.items, item.outTupleUpdateRemind())
 
@@ -231,7 +240,7 @@ class JHSItemM(MyThread):
 
                     _itemsql_list.append(updateSql)
                     if self.updateItemRemind(_itemsql_list): _itemsql_list = []
-                elif self.jhs_type == 5:
+                elif self.jhs_type == 'l':
                     # 商品islock标志
                     item = JHSItem()
                     _val = _data[1]
@@ -239,14 +248,18 @@ class JHSItemM(MyThread):
 
                     item.antPageLock(_val)
                     #print '# Hour To crawl activity item val : ', Common.now_s(), _val[0], _val[4], _val[5]
+                    crawl_type = 'itemlock'
                     # 汇聚
-                    #self.push_back(self.items, item.outTupleHour())
-
                     lockSql = item.outSqlForLock()
 
                     if lockSql:
                         _itemlocksql_list.append(lockSql)
                     if self.updateItem(_itemlocksql_list): _itemlocksql_list = []
+
+                # 存网页
+                if item and crawl_type != '':
+                    _pages = item.outItemPage(crawl_type)
+                    self.mongoAccess.insertJHSPages(_pages)
 
 
                 # 延时
@@ -290,12 +303,10 @@ class JHSItemM(MyThread):
                 except Exception as e:
                     print '# DailClient Exception err:', e 
                     time.sleep(10)
-                #time.sleep(1)
                 try:
                     time.sleep((_data[0]+1)*random.uniform(10,30))
                 except Exception as e:
                     time.sleep(random.uniform(10,30))
-                #time.sleep(random.uniform(10,30))
 
 if __name__ == '__main__':
     pass

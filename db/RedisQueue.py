@@ -1,12 +1,11 @@
 #-*- coding:utf-8 -*-
 #!/usr/bin/env python
-# 2014-10-08
 
 from sys import path
-path.append(r'../')
 
 from hotqueue import HotQueue
-import base.Environ as Environ
+path.append(r'../base')
+import Environ as Environ
 
 class RedisQueue:
     def __init__(self):
@@ -20,8 +19,8 @@ class RedisQueue:
         self.q_list = [
                 '1_shop', '1_shopitem', '1_item',    # 天猫shop, shopitem, item
                 '2_shop', '2_shopitem', '2_item',    # 淘宝shop, shopitem, item
-                '3_act',  '3_sku_h',    '3_sku_d'    # 唯品会activity, 每小时sku, 每日sku
-                '4_act_h','4_act_d', '4_item_h', '4_item_d' # 聚划算每日/每小时activity, 每日/每小时item
+                '3_act',  '3_sku_h',    '3_sku_d',    # 唯品会activity, 每小时sku, 每日sku
+                '4_act_h','4_act_l',    '4_act_d', '4_item_h', '4_item_d' # 聚划算每小时/lock字段/每小日activity, 每小时/每日item
             ]
 
         # 初始化队列
