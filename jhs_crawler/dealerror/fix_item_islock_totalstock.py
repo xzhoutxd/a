@@ -5,6 +5,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+sys.path.append('../')
 import traceback
 import time
 import datetime
@@ -51,7 +52,7 @@ class FixLockTotalstock():
             sql_list_updatetotalstock.append((int(ju_id),crawl_date, crawl_hour))
             sql_list = []
             sql_list.append((int(ju_id),crawl_date, crawl_hour))
-            self.mysqlAccess.update_item_totalstock(sql_list)
+            #self.mysqlAccess.update_item_totalstock(sql_list)
             if os.path.exists(filepath):
                 file_list = os.listdir(filepath)
                 for f in file_list:
@@ -72,9 +73,12 @@ class FixLockTotalstock():
                         if sql:
                             s_list = []
                             s_list.append((sql[0],time_s,sql[2]))
+                            print sql[0],time_s,sql[2]
                             self.mysqlAccess.updateJhsItem(s_list)
+                            self.mysqlAccess.update_item_totalstock(sql_list)
             else:
                 print '# file path not find: ',filepath
+            print filepath
         print '# num file:', len(need_fix_file_list)
 
         #i = 0
@@ -100,28 +104,30 @@ class FixLockTotalstock():
 
     def run_fix(self):
         try:
-            time_start = '2015-03-25'
-            time_end = '2015-03-26'
+            #time_start = '2015-03-25'
+            #time_end = '2015-03-26'
             #sql = 'select c.start_time, a.item_juid, c.act_id from nd_jhs_parser_activity_item a join nd_jhs_mid_item_info b on a.item_juid = b.item_juid join nd_jhs_parser_activity c on a.act_id = c.act_id where c.start_time > \'%s\' and c.start_time < \'%s\' order by c.start_time,c.act_id'%(time_start,time_end)
-            time_start = '2015-03-24 20:00:00'
-            sql = 'select c.start_time, a.item_juid, c.act_id from nd_jhs_parser_activity_item a join nd_jhs_mid_item_info b on a.item_juid = b.item_juid join nd_jhs_parser_activity c on a.act_id = c.act_id where c.start_time = \'%s\' order by c.start_time,c.act_id'%(time_start)
+            #time_start = '2015-03-24 20:00:00'
+            #sql = 'select c.start_time, a.item_juid, c.act_id from nd_jhs_parser_activity_item a join nd_jhs_mid_item_info b on a.item_juid = b.item_juid join nd_jhs_parser_activity c on a.act_id = c.act_id where c.start_time = \'%s\' order by c.start_time,c.act_id'%(time_start)
+            #sql = 'select c.start_time,a.item_juid,c.act_id from nd_jhs_rpt_item_info a join nd_jhs_mid_item_info b on a.item_juid = b.item_juid join nd_jhs_parser_activity c on b.activity_id = c.act_id where a.sell_through_rate > 100 and b.islock = 0 order by a.sell_through_rate desc;'
+            sql = 'select PA.start_time,RI.item_juid,RI.activity_id from nd_jhs_rpt_item_info RI join nd_jhs_parser_activity PA on RI.activity_id = PA.act_id left join nd_jhs_mid_item_info MI on RI.item_juid = MI.item_juid where RI.sell_through_rate is null and PA.act_id != 5652621 and MI.islock = 1 order by PA.start_time;'
             item_results = self.mysqlAccess.selectSQL(sql)
 
             print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             i_results = []
             for item in item_results:
                 i_results.append((str(item[0]),int(item[1]),int(item[2])))
-                #self.fix_stock((str(item[0]),int(item[1]),int(item[2])))
+                self.fix_stock((str(item[0]),int(item[1]),int(item[2])))
                 #print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             print '# item num:',len(i_results)
             #print i_results
             print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
                 
-            pool = ThreadPool(8)
-            pool.map(self.fix_stock,i_results)
-            pool.close()
-            pool.join()
+            #pool = ThreadPool(8)
+            #pool.map(self.fix_stock,i_results)
+            #pool.close()
+            #pool.join()
         except Exception as e:
             self.traceback_log()
 
