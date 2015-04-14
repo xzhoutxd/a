@@ -74,6 +74,7 @@ class JHSBrandQ():
 
     def brandQ(self, q_type, a_val):
         i, M = 0, 10
+        n = 0
         while True: 
             _key = '%s_act_%s' % (self.jhs_type,q_type)
             _data = self.redisQueue.get_q(_key)
@@ -82,10 +83,12 @@ class JHSBrandQ():
             if not _data:
                 i += 1
                 if i > M:
+                    print '# all get brandQ item num:',n
                     print '# not get brandQ of key:',_key
                     break
                 time.sleep(10)
                 continue
+            n += 1
             self.run_brandItems(_data, q_type, a_val)
 
 
