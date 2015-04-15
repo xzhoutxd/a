@@ -259,6 +259,7 @@ class JHSItem():
     # 商品锁定信息
     def itemLock(self, page):
         if page != '':
+            print page
             m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"isLock":\s*"(.+?)",.+?};', page, flags=re.S)
             if m:
                 isLock = m.group(1)
@@ -375,7 +376,7 @@ class JHSItem():
     # 商品锁定信息
     def outSqlForLock(self):
         try:
-            if not self.item_isLock_time:
+            if self.item_isLock_time:
                 return (self.item_juId,Common.time_s(self.item_isLock_time),self.item_isLock)
             else:
                 return None
