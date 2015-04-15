@@ -11,6 +11,7 @@ else
 fi
 DIR=`pwd`
 cd $DIR
-/bin/sh $DIR/k.sh python JHSBrandDay
+LOG=add_dayBrands
+/bin/sh $DIR/k.sh JHSBrandDay
 
-/usr/local/bin/python $DIR/JHSBrandDay.py $m_type > $DIR/log/brand_day/add_dayBrands_${DATESTR}.log
+/usr/local/bin/python $DIR/JHSBrandDay.py $m_type > $DIR/log/brand_day/${LOG}_${DATESTR}.log

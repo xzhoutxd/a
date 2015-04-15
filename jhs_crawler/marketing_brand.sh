@@ -4,7 +4,8 @@ DATESTR=`date +"%Y%m%d%H"`
 
 DIR=`pwd`
 cd $DIR
-/bin/sh $DIR/k.sh python JHSBrandMarketing
+LOG=brands_position
+/bin/sh $DIR/k.sh JHSBrandMarketing
 
-/usr/local/bin/python $DIR/JHSBrandMarketing.py > $DIR/log/brand_position/brands_position_${DATESTR}.log
+/usr/local/bin/python $DIR/JHSBrandMarketing.py > $DIR/log/brand_position/${LOG}_${DATESTR}.log
 
