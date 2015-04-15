@@ -14,4 +14,4 @@ cd $DIR
 LOG=add_dayBrands
 /bin/sh $DIR/k.sh JHSBrandDay
 
-/usr/local/bin/python $DIR/JHSBrandDay.py $m_type > $DIR/log/brand_day/${LOG}_${DATESTR}.log
+/usr/local/bin/python $DIR/JHSBrandDay.py $m_type > ../../logs/jhs/brand_day/${LOG}_${DATESTR}.log

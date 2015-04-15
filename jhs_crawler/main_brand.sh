@@ -7,4 +7,4 @@ cd $DIR
 LOG=add_mainBrands
 /bin/sh $DIR/k.sh JHSBrandMain
 
-/usr/local/bin/python $DIR/JHSBrandMain.py > $DIR/log/main/${LOG}_${DATESTR}.log
+/usr/local/bin/python $DIR/JHSBrandMain.py > ../../logs/jhs/main/${LOG}_${DATESTR}.log

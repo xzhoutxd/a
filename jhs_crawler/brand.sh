@@ -14,5 +14,5 @@ cd $DIR
 LOG=add_startBrands
 /bin/sh $DIR/k.sh JHSBrandStart
 
-/usr/local/bin/python $DIR/JHSBrandStart.py $m_type > $DIR/log/brand/${LOG}_${DATESTR}.log
+/usr/local/bin/python $DIR/JHSBrandStart.py $m_type > ../../logs/jhs/brand/${LOG}_${DATESTR}.log
 

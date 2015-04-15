@@ -13,4 +13,4 @@ DIR=`pwd`
 LOG=add_itemlock
 /bin/sh $DIR/k.sh JHSBrandItemLock
 
-/usr/local/bin/python $DIR/JHSBrandItemLock.py $m_type > $DIR/log/item_lock/${LOG}_${DATESTR}.log
+/usr/local/bin/python $DIR/JHSBrandItemLock.py $m_type > ../../logs/jhs/item_lock/${LOG}_${DATESTR}.log

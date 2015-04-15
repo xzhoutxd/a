@@ -14,4 +14,4 @@ cd $DIR
 LOG=add_hourBrands
 /bin/sh $DIR/k.sh JHSBrandHour
 
-/usr/local/bin/python $DIR/JHSBrandHour.py $m_type > $DIR/log/brand_hour/${LOG}_${DATESTR}.log
+/usr/local/bin/python $DIR/JHSBrandHour.py $m_type > ../../logs/jhs/brand_hour/${LOG}_${DATESTR}.log
