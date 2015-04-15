@@ -9,7 +9,7 @@ dial_port   = 9075
 magic_num   = '%xiaoshu-dialing-9999%'
 
 ######################## Redis配置  #####################
-redis_ip, redis_port, redis_passwd = '192.168.7.211', 6379, 'bigdata1234'  # 919测试
+redis_ip, redis_port, redis_passwd = '192.168.7.211', 6380, 'bigdata1234'  # 919测试
 redis_config = {
     0  : (redis_ip, redis_port, redis_passwd),    # default      db
     1  : (redis_ip, redis_port, redis_passwd),    # tm/tb shop   db
