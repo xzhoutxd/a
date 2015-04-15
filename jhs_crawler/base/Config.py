@@ -119,7 +119,7 @@ home_crawl_retry = 50
 json_crawl_retry = 50
 
 # 并发线程值
-act_max_th = 5
+act_max_th = 10
 item_max_th = 100
 item_mid_th = 50
 
