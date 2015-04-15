@@ -259,7 +259,6 @@ class JHSItem():
     # 商品锁定信息
     def itemLock(self, page):
         if page != '':
-            print page
             m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"isLock":\s*"(.+?)",.+?};', page, flags=re.S)
             if m:
                 isLock = m.group(1)
