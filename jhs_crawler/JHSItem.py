@@ -304,8 +304,7 @@ class JHSItem():
         self.crawling_beginHour = time.strftime("%H", time.localtime(self.crawling_begintime))
 
         # 商品关注人数, 商品销售数量, 商品库存
-        page = ''
-        self.itemDynamic(page)
+        self.itemDynamic(self.item_juPage)
         if self.item_soldCount == '' or self.item_stock == '':
             # 聚划算商品页信息
             self.itemPage()
@@ -335,12 +334,11 @@ class JHSItem():
     # item islock
     def antPageLock(self, val):
         self.item_juId,self.item_actId,self.item_ju_url,self.item_act_url,self.item_id,self.crawling_begintime,self.hour_index = val
-        page = ''
         # 聚划算商品页信息
         self.itemPage()
         self.item_pages['item-home-hour'] = (self.item_ju_url, self.item_juPage)
         # 商品锁定信息
-        self.itemLock(page)
+        self.itemLock(self.item_juPage)
         page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
@@ -348,8 +346,7 @@ class JHSItem():
     def antPageUpdateRemind(self, val):
         self.item_juId,self.item_actId,self.item_ju_url,self.item_act_url,self.item_id,self.crawling_begintime = val
         # 商品关注人数
-        page = ''
-        self.itemDynamic(page)
+        self.itemDynamic(self.item_juPage)
         if self.item_remindNum == '':
             # 聚划算商品页信息
             self.itemPage()
