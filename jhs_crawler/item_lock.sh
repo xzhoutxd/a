@@ -14,7 +14,7 @@ DIR=`pwd`
 
 cd $DIR/../..
 LOGDIR=`pwd`
-LOGFILE=$LOGDIR/logs/jhs/brand/add_itemlock_${DATESTR}.log
+LOGFILE=$LOGDIR/logs/jhs/item_lock/add_itemlock_${DATESTR}.log
 
 cd $DIR
 /usr/local/bin/python $DIR/JHSBrandItemLock.py $m_type > $LOGFILE
