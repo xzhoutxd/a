@@ -62,12 +62,12 @@ class JHSBrandQ():
 
         try:
             print '# item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
-            if m_itemsObj.empty_q():
-                # 重试次数太多没有抓下来的商品
-                giveup_item_list = m_itemsObj.giveup_items
-                print '# Give up items num:', len(giveup_item_list)
-                if len(giveup_item_list) > 0:
-                    print '###give up###','actId:%s,actName:%s,'%(brandact_id, brandact_name),giveup_item_list,'###give up###'
+            #if m_itemsObj.empty_q():
+            # 重试次数太多没有抓下来的商品
+            giveup_item_list = m_itemsObj.giveup_items
+            print '# Give up items num:', len(giveup_item_list)
+            if len(giveup_item_list) > 0:
+                print '###give up###','actId:%s,actName:%s,'%(brandact_id, brandact_name),giveup_item_list,'###give up###'
         except Exception as e:
             print 'Unknown exception item result :', e
         print '# activity Items end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),brandact_id, brandact_name
