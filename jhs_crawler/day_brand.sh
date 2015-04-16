@@ -11,7 +11,11 @@ else
 fi
 DIR=`pwd`
 cd $DIR
-LOG=add_dayBrands
 /bin/sh $DIR/k.sh JHSBrandDay
 
-/usr/local/bin/python $DIR/JHSBrandDay.py $m_type > ../../logs/jhs/brand_day/${LOG}_${DATESTR}.log
+cd $DIR/../..
+LOGDIR=`pwd`
+LOGFILE=$LOGDIR/logs/jhs/brand_day/add_dayBrands_${DATESTR}.log
+
+cd $DIR
+/usr/local/bin/python $DIR/JHSBrandDay.py $m_type > $LOGFILE
