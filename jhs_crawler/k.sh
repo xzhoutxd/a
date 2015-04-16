@@ -1,3 +1,7 @@
 #!/bin/bash
 
-kill -s 9 `ps -ef | grep $1 | grep python | grep -v grep | awk '{print $2}'`
+process_list=`ps -ef | grep $1 | grep python | grep -v grep | awk '{print $2}'`
+for p in $process_list; do
+        echo kill -s 9 $p
+        kill -s 9 $p
+done;
