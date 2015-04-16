@@ -18,5 +18,5 @@ LOGDIR=`pwd`
 LOGFILE=$LOGDIR/logs/jhs/brand/add_startBrands_${DATESTR}.log
 
 cd $DIR
-/usr/local/bin/python $DIR/jhs/jhs_crawler/JHSBrandStart.py $m_type > $LOGFILE
+/usr/local/bin/python $DIR/JHSBrandStart.py $m_type > $LOGFILE
 
