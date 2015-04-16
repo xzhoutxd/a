@@ -153,43 +153,6 @@ class JHSBrand():
         self.brand_queue.putBrandlistQ(self.q_type, update_val_list)
         print '# brand queue end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
-        #print '###### items update start ######'
-        #self.run_updateItems(update_val_list)
-        #print '###### items update end ######'
-
-    def run_updateItems(self, update_val_list):
-        for update_val in update_val_list:
-            brandact_id, brandact_name, item_valTuple = update_val
-            print '# activity Items crawler start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), brandact_id, brandact_name
-            # 附加的信息
-            a_val = (self.begin_time,)
-            # 多线程 控制并发的线程数
-            if len(item_valTuple) > Config.item_max_th:
-                m_itemsObj = JHSItemM(4, Config.item_max_th, a_val)
-            else: 
-                m_itemsObj = JHSItemM(4, len(item_valTuple), a_val)
-            m_itemsObj.createthread()
-            m_itemsObj.putItems(item_valTuple)
-            m_itemsObj.run()
-
-            while True:
-                try:
-                    print '# Update item: actId:%s, actName:%s'%(brandact_id, brandact_name)
-                    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    if m_itemsObj.empty_q():
-                        item_list = m_itemsObj.items
-                        print '# Activity find Items num:', len(item_valTuple)
-                        print '# Activity update Items num:', len(item_list)
-                        print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                        print '# Update activity Item List End: actId:%s, actName:%s'%(brandact_id, brandact_name)
-                        break
-                except Exception as e:
-                    print '# exception err crawl item: ', e
-                    print '# update_val:', update_val
-                    #traceback.print_exc()
-                    self.traceback_log()
-                    break
-
     def traceback_log(self):
         print '#####--Traceback Start--#####'
         tp,val,td = sys.exc_info()

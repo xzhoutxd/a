@@ -129,39 +129,39 @@ class JHSBrandMarketing():
         m_Obj.putItems(act_valList)
         m_Obj.createthread()
         m_Obj.run()
-        while True:
-            try:
-                if m_Obj.empty_q():
-                    item_list = m_Obj.items
-                    for b in item_list:
-                        act_num += 1
-                        brandact_id,brandact_name,brandact_url,val = b
-                        # 去重
-                        if brandact_id_dict.has_key(str(brandact_id)):
-                            repeatact_num += 1
-                            print '# repeat brand act. activity id:%s name:%s'%(brandact_id, brandact_name)
-                        else:
-                            brandact_id_dict[str(brandact_id)] = brandact_name
-                            if self.home_brands.has_key(str(brandact_id)):
-                                val = val + (self.home_brands[str(brandact_id)]["position"],self.home_brands[str(brandact_id)]["datatype"],self.home_brands[str(brandact_id)]["typename"])
-                            elif self.home_brands.has_key(brandact_url):
-                                val = val + (self.home_brands[brandact_url]["position"],self.home_brands[brandact_url]["datatype"],self.home_brands[str(brandact_id)]["typename"])
-                            else:
-                                val = val + (None,None,None)
+        #while True:
+        #    try:
+        #        if m_Obj.empty_q():
+        item_list = m_Obj.items
+        for b in item_list:
+            act_num += 1
+            brandact_id,brandact_name,brandact_url,val = b
+            # 去重
+            if brandact_id_dict.has_key(str(brandact_id)):
+                repeatact_num += 1
+                print '# repeat brand act. activity id:%s name:%s'%(brandact_id, brandact_name)
+            else:
+                brandact_id_dict[str(brandact_id)] = brandact_name
+                if self.home_brands.has_key(str(brandact_id)):
+                    val = val + (self.home_brands[str(brandact_id)]["position"],self.home_brands[str(brandact_id)]["datatype"],self.home_brands[str(brandact_id)]["typename"])
+                elif self.home_brands.has_key(brandact_url):
+                    val = val + (self.home_brands[brandact_url]["position"],self.home_brands[brandact_url]["datatype"],self.home_brands[str(brandact_id)]["typename"])
+                else:
+                    val = val + (None,None,None)
 
-                            if self.top_brands.has_key(str(brandact_id)):
-                                val = val + (self.top_brands[str(brandact_id)]["position"],self.top_brands[str(brandact_id)]["datatype"])
-                            elif self.top_brands.has_key(brandact_url):
-                                val = val + (self.top_brands[brandact_url]["position"],self.top_brands[brandact_url]["datatype"])
-                            else:
-                                val = val + (None,None)
-                            act_sql_list.append(val)
-                break
-            except Exception as e:
-                print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e
-                #traceback.print_exc()
-                self.traceback_log()
-                break
+                if self.top_brands.has_key(str(brandact_id)):
+                    val = val + (self.top_brands[str(brandact_id)]["position"],self.top_brands[str(brandact_id)]["datatype"])
+                elif self.top_brands.has_key(brandact_url):
+                    val = val + (self.top_brands[brandact_url]["position"],self.top_brands[brandact_url]["datatype"])
+                else:
+                    val = val + (None,None)
+                act_sql_list.append(val)
+        #        break
+        #    except Exception as e:
+        #        print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e
+        #        #traceback.print_exc()
+        #        self.traceback_log()
+        #        break
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
         # 品牌团活动位置信息入库

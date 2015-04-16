@@ -81,53 +81,56 @@ class JHSBrandObj():
         m_Obj.putItems(act_valList)
         m_Obj.createthread()
         m_Obj.run()
-        while True:
-            try:
-                if m_Obj.empty_q():
-                    item_list = m_Obj.items
-                    for b in item_list:
-                        print '#####A activity start#####'
-                        crawling_confirm, brandact_id, brandact_name, other_val = b
-                        # 去重
-                        if brandact_id_dict.has_key(str(brandact_id)):
-                            repeatact_num += 1
-                            print '# repeat brand act. activity id:%s name:%s'%(brandact_id, brandact_name)
-                        else:
-                            brandact_id_dict[str(brandact_id)] = brandact_name
-                            # 判断本活动是不是即将开团
-                            if crawling_confirm == 1:
-                                brandact_itemVal_list = []
-                                brandact_itemVal_list, sql, daySql, hourSql = other_val
-                                brandact_url, brandact_sign, brandact_cateId = sql[8], sql[13], sql[2]
-                                newact_num += 1
-                                act_sql_list.append((sql,daySql,hourSql))
-                                # 只抓取非俪人购商品
-                                if int(brandact_sign) != 3:
-                                    # Activity Items
-                                    # item init val list
-                                    if brandact_itemVal_list and len(brandact_itemVal_list) > 0:
-                                        crawler_val_list.append((brandact_id,brandact_name,brandact_itemVal_list))
-                                        allitem_num = allitem_num + len(brandact_itemVal_list)
-                                        print '# activity id:%s name:%s'%(brandact_id, brandact_name)
-                                        print '# activity items num:', len(brandact_itemVal_list)
-                                else:
-                                    print '# ladygo activity id:%s name:%s'%(brandact_id, brandact_name)
-                                    ladygo_num += 1
-                            # 需要更新的活动
-                            elif crawling_confirm == 0:
-                                updateSql = other_val
-                                updateact_sql_list.append(updateSql)
-                                updateact_num += 1
-                                print '# update activity, id:%s name:%s'%(brandact_id, brandact_name)
-                            else:
-                                print '# Not New activity, id:%s name:%s'%(brandact_id, brandact_name)
-                        print '#####A activity end#####'
-                    break
-            except Exception as e:
-                print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e 
-                #traceback.print_exc()
-                self.traceback_log()
-                break
+
+        
+        #while True:
+        #    try:
+        #        if m_Obj.empty_q():
+        #            item_list = m_Obj.items
+        item_list = m_Obj.items
+        for b in item_list:
+            print '#####A activity start#####'
+            crawling_confirm, brandact_id, brandact_name, other_val = b
+            # 去重
+            if brandact_id_dict.has_key(str(brandact_id)):
+                repeatact_num += 1
+                print '# repeat brand act. activity id:%s name:%s'%(brandact_id, brandact_name)
+            else:
+                brandact_id_dict[str(brandact_id)] = brandact_name
+                # 判断本活动是不是即将开团
+                if crawling_confirm == 1:
+                    brandact_itemVal_list = []
+                    brandact_itemVal_list, sql, daySql, hourSql = other_val
+                    brandact_url, brandact_sign, brandact_cateId = sql[8], sql[13], sql[2]
+                    newact_num += 1
+                    act_sql_list.append((sql,daySql,hourSql))
+                    # 只抓取非俪人购商品
+                    if int(brandact_sign) != 3:
+                        # Activity Items
+                        # item init val list
+                        if brandact_itemVal_list and len(brandact_itemVal_list) > 0:
+                            crawler_val_list.append((brandact_id,brandact_name,brandact_itemVal_list))
+                            allitem_num = allitem_num + len(brandact_itemVal_list)
+                            print '# activity id:%s name:%s'%(brandact_id, brandact_name)
+                            print '# activity items num:', len(brandact_itemVal_list)
+                    else:
+                        print '# ladygo activity id:%s name:%s'%(brandact_id, brandact_name)
+                        ladygo_num += 1
+                # 需要更新的活动
+                elif crawling_confirm == 0:
+                    updateSql = other_val
+                    updateact_sql_list.append(updateSql)
+                    updateact_num += 1
+                    print '# update activity, id:%s name:%s'%(brandact_id, brandact_name)
+                else:
+                    print '# Not New activity, id:%s name:%s'%(brandact_id, brandact_name)
+            print '#####A activity end#####'
+        #            break
+        #    except Exception as e:
+        #        print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e 
+        #        #traceback.print_exc()
+        #        self.traceback_log()
+        #        break
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# All brand activity num:', len(act_valList)
         print '# Repeat brand activity num:', repeatact_num
@@ -188,23 +191,23 @@ class JHSBrandObj():
             m_itemsObj.putItems(item_valTuple)
             m_itemsObj.run()
 
-            while True:
-                try:
-                    print '# Item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
-                    print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    if m_itemsObj.empty_q():
-                        item_list = m_itemsObj.items
-                        print '# Activity find Items num:', len(item_valTuple)
-                        print '# Activity insert Items num:', len(item_list)
-                        print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                        print '# Activity Item List End: actId:%s, actName:%s'%(brandact_id, brandact_name)
-                        break
-                except Exception as e:
-                    print '# exception err crawl item: ', e
-                    print '# crawler_val:', crawler_val
-                    #traceback.print_exc()
-                    self.traceback_log()
-                    break
+            #while True:
+            #    try:
+            #        print '# Item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
+            #        print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+            #        if m_itemsObj.empty_q():
+            item_list = m_itemsObj.items
+            print '# Activity find Items num:', len(item_valTuple)
+            print '# Activity insert Items num:', len(item_list)
+            print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+            print '# Activity Item List End: actId:%s, actName:%s'%(brandact_id, brandact_name)
+            #            break
+            #    except Exception as e:
+            #        print '# exception err crawl item: ', e
+            #        print '# crawler_val:', crawler_val
+            #        #traceback.print_exc()
+            #        self.traceback_log()
+            #        break
 
     def traceback_log(self):
         print '#####--Traceback Start--#####'
