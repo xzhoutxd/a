@@ -259,7 +259,6 @@ class JHSItemM(MyThread):
                     if remindSql:
                         _itemremindsql_list.append(remindSql)
                     if self.updateItemRemind(_itemremindsql_list): _itemremindsql_list = []
-                """
                 elif self.jhs_type == 'l':
                     # 商品islock标志
                     item = JHSItem()
@@ -275,7 +274,6 @@ class JHSItemM(MyThread):
                     if lockSql:
                         _itemlocksql_list.append(lockSql)
                     if self.updateItem(_itemlocksql_list): _itemlocksql_list = []
-                """
 
                 # 存网页
                 if item and crawl_type != '':
