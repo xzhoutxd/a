@@ -74,7 +74,6 @@ class JHSBrandHour():
             print '# hour act num:',len(act_results)
         else:
             print '# hour act not found..'
-            return None
         
         # 商品默认信息列表
         all_item_num = 0

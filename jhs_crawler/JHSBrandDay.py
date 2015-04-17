@@ -67,7 +67,6 @@ class JHSBrandDay():
             print '# day act num:',len(act_results)
         else:
             print '# day act not found..'
-            return None
         
         all_item_num = 0
         # 商品默认信息列表

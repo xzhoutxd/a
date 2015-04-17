@@ -302,31 +302,30 @@ class JHSItem():
         # 本次抓取开始小时
         self.crawling_beginHour = time.strftime("%H", time.localtime(self.crawling_begintime))
 
+        # 聚划算商品页信息
+        self.itemPage()
+        self.item_pages['item-home-day'] = (self.item_ju_url, self.item_juPage)
+        # 是否售卖
+        self.itemLock(self.item_juPage)
         # 商品关注人数, 商品销售数量, 商品库存
         self.itemDynamic(self.item_juPage)
         if self.item_soldCount == '' or self.item_stock == '':
-            # 聚划算商品页信息
-            self.itemPage()
-            self.item_pages['item-home-day'] = (self.item_ju_url, self.item_juPage)
-            self.itemDynamic(self.item_juPage)
-            if self.item_soldCount == '' or self.item_stock == '':
-                print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
+            print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
         page_datepath = 'item/day/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
     # Hour
     def antPageHour(self, val):
         self.item_juId,self.item_actId,self.item_ju_url,self.item_act_url,self.item_id,self.crawling_begintime,self.hour_index = val
+        # 聚划算商品页信息
+        self.itemPage()
+        self.item_pages['item-home-hour'] = (self.item_ju_url, self.item_juPage)
+        # 是否售卖
+        self.itemLock(self.item_juPage)
         # 商品关注人数, 商品销售数量, 商品库存
         self.itemDynamic(self.item_juPage)
         if self.item_soldCount == '' or self.item_stock == '':
-            # 聚划算商品页信息
-            self.itemPage()
-            self.item_pages['item-home-hour'] = (self.item_ju_url, self.item_juPage)
-            # 商品关注人数, 商品销售数量, 商品库存
-            self.itemDynamic(self.item_juPage)
-            if self.item_soldCount == '' or self.item_stock == '':
-                print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
+            print '# item not get soldcount or stock,item_juid:%s,item_id:%s,item_actid:%s'%(str(self.item_juId),str(self.item_id),str(self.item_actId))
         page_datepath = 'item/hour/' + time.strftime("%Y/%m/%d/%H/", time.localtime(self.crawling_begintime))
         self.writeLog(page_datepath)
 
@@ -382,21 +381,21 @@ class JHSItem():
 
     # 更新item remind SQL
     def outSqlForUpdateRemind(self):
-        return (str(self.item_juId),str(self.item_remindNum))
+        if str(self.item_remindNum) != '':
+            return (str(self.item_juId),str(self.item_remindNum))
+        else:
+            return None
 
     # 输出Tuple
     def outTuple(self):
-        #sql = self.outSql()
-        #saleSql = self.outSaleSqlForHour()
-        #stockSql = self.outStockSqlForHour()
         iteminfoSql = self.outIteminfoSql()
-        #return (sql, saleSql, stockSql, iteminfoSql)
         return iteminfoSql
 
     # 输出每天Tuple
     def outTupleDay(self):
         sql = self.outSqlForDay()
-        return sql
+        lockSql = self.outSqlForLock()
+        return (sql,lockSql)
 
     # 输出每小时Tuple
     def outTupleHour(self):

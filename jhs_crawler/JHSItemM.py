@@ -115,6 +115,11 @@ class JHSItemM(MyThread):
         return False
 
     # update item
+    def updateItem(self, itemsql):
+        if itemsql:
+            self.mysqlAccess.updateJhsItem(itemsql)
+            #print '# update data to database'
+    """
     def updateItem(self, itemsql_list, f=False):
         if f or len(itemsql_list) >= Config.item_max_arg:
             if len(itemsql_list) > 0:
@@ -122,6 +127,7 @@ class JHSItemM(MyThread):
                 #print '# update data to database'
             return True
         return False
+    """
 
     # update item remind
     def updateItemRemind(self, itemsql_list, f=False):
@@ -139,7 +145,7 @@ class JHSItemM(MyThread):
         _itemdaysql_list = []
         _itemhoursql_list = []
         _itemlocksql_list = []
-        _itemsql_list = []
+        _itemremindsql_list = []
         while True:
             _data = None
             try:
@@ -149,11 +155,9 @@ class JHSItemM(MyThread):
                 except Empty as e:
                     # 队列为空，退出
                     #print '# queue is empty', e
-                    #print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                     # info
                     self.insertIteminfo(_iteminfosql_list, True)
                     _iteminfosql_list = []
-                    #print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
                     # day
                     self.insertItemday(_itemdaysql_list, True)
@@ -163,12 +167,12 @@ class JHSItemM(MyThread):
                     self.insertItemhour(_itemhoursql_list, True)
                     _itemhoursql_list = []
 
-                    self.updateItem(_itemlocksql_list, True)
-                    _itemlocksql_list = []
+                    #self.updateItem(_itemlocksql_list, True)
+                    #_itemlocksql_list = []
 
                     # remind
-                    self.updateItemRemind(_itemsql_list, True)
-                    _itemsql_list = []
+                    self.updateItemRemind(_itemremindsql_list, True)
+                    _itemremindsql_list = []
                     break
 
                 item = None
@@ -182,7 +186,6 @@ class JHSItemM(MyThread):
                     crawl_type = 'main'
 
                     # 汇聚
-                    #sql, saleSql, stockSql, iteminfoSql = item.outTuple()
                     iteminfoSql = item.outTuple()
                     self.push_back(self.items, item.outTuple())
 
@@ -201,9 +204,17 @@ class JHSItemM(MyThread):
                     # 汇聚
                     #self.push_back(self.items, item.outTupleDay())
 
-                    sql = item.outTupleDay()
-                    _itemdaysql_list.append(sql)
+                    #daysql = item.outTupleDay()
+                    daySql,lockSql = item.outTupleDay()
+                    if lockSql:
+                        self.updateItem(lockSql)
+                    _itemdaysql_list.append(daySql)
                     if self.insertItemday(_itemdaysql_list): _itemdaysql_list = []
+
+                    remindSql = item.outTupleUpdateRemind()
+                    if remindSql:
+                        _itemremindsql_list.append(remindSql)
+                    if self.updateItemRemind(_itemremindsql_list): _itemremindsql_list = []
                 elif self.jhs_type == 'h':
                     # 每小时一次商品实例
                     item = JHSItem()
@@ -216,14 +227,21 @@ class JHSItemM(MyThread):
                     # 汇聚
                     #self.push_back(self.items, item.outTupleHour())
 
-                    #hourSql,lockSql = item.outTupleHour()
-                    hourSql = item.outSqlForHour()
+                    #hourSql = item.outSqlForHour()
+                    hourSql,lockSql = item.outTupleHour()
+                    if lockSql:
+                        self.updateItem(lockSql)
+                    #    _itemlocksql_list.append(lockSql)
+                    #if self.updateItem(_itemlocksql_list): _itemlocksql_list = []
+
                     _itemhoursql_list.append(hourSql)
                     if self.insertItemhour(_itemhoursql_list): _itemhoursql_list = []
 
-                    #if lockSql:
-                    #    _itemlocksql_list.append(lockSql)
-                    #if self.updateItem(_itemlocksql_list): _itemlocksql_list = []
+                    remindSql = item.outTupleUpdateRemind()
+                    if remindSql:
+                        _itemremindsql_list.append(remindSql)
+                    if self.updateItemRemind(_itemremindsql_list): _itemremindsql_list = []
+
                 elif self.jhs_type == 's':
                     # 更新商品关注人数
                     item = JHSItem()
@@ -236,10 +254,12 @@ class JHSItemM(MyThread):
                     # 汇聚
                     self.push_back(self.items, item.outTupleUpdateRemind())
 
-                    updateSql = item.outTupleUpdateRemind()
+                    remindSql = item.outTupleUpdateRemind()
 
-                    _itemsql_list.append(updateSql)
-                    if self.updateItemRemind(_itemsql_list): _itemsql_list = []
+                    if remindSql:
+                        _itemremindsql_list.append(remindSql)
+                    if self.updateItemRemind(_itemremindsql_list): _itemremindsql_list = []
+                """
                 elif self.jhs_type == 'l':
                     # 商品islock标志
                     item = JHSItem()
@@ -255,6 +275,7 @@ class JHSItemM(MyThread):
                     if lockSql:
                         _itemlocksql_list.append(lockSql)
                     if self.updateItem(_itemlocksql_list): _itemlocksql_list = []
+                """
 
                 # 存网页
                 if item and crawl_type != '':
@@ -297,6 +318,8 @@ class JHSItemM(MyThread):
                 print "exception traceback err:%s,%s,%s"%(tp,val,td)
                 print '#####--Traceback End--#####'
                 self.crawlRetry(_data)
+                if str(e).find('Name or service not known') != -1 or str(e).find('Temporary failure in name resolution'):
+                    print _data
                 # 重新拨号
                 try:
                     self.dialRouter(4, 'item')
