@@ -49,9 +49,6 @@ class TBCrawler(Crawler):
         else:
             r = self.session.get(url, headers=_header, cookies=_cookie, timeout=self.timeout)
 
-        # check http code
-        if not r.ok: r.close(); raise Common.InvalidPageException("Invalid crawl page occurs, url=%s" %url)
-
         # 网页返回码
         self.status_code = r.status_code
         self.history = r.history
