@@ -96,5 +96,9 @@ class TBCrawler(Crawler):
             m = re.search(r'<title>【聚划算】聚划算 - 系统繁忙</title>', data)
             if m: raise Common.SystemBusyException("System busy occurs!")
 
+            # 当前的存取控制设定禁止您的请求被接受
+            m = re.search(r'<H2>您所请求的网址（URL）无法获取</H2>', data)
+            if m: raise Common.DenypageException("Deny page occurs! Access Denied.")
+
         # 返回抓取结果
         return data
