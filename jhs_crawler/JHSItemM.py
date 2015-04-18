@@ -316,7 +316,7 @@ class JHSItemM(MyThread):
                 print "exception traceback err:%s,%s,%s"%(tp,val,td)
                 print '#####--Traceback End--#####'
                 self.crawlRetry(_data)
-                if str(e).find('Name or service not known') != -1 or str(e).find('Temporary failure in name resolution'):
+                if str(e).find('Name or service not known') != -1 or str(e).find('Temporary failure in name resolution') != -1:
                     print _data
                 # 重新拨号
                 try:
