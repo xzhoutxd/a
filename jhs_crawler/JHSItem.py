@@ -202,12 +202,13 @@ class JHSItem():
     def itemPage(self):
         if self.item_ju_url != '':
             page = self.crawler.getData(self.item_ju_url, self.item_act_url)
-            if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
 
             if re.search(r'<title>【聚划算】无所不能聚</title>', page, flags=re.S):
                 raise Common.NoPageException("# itemConfig: not find ju item page, redirecting to juhuasuan home,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
             elif type(self.crawler.history) is list and len(self.crawler.history) != 0 and re.search(r'302',str(self.crawler.history[0])):
                 raise Common.NoPageException("# itemConfig: not find ju item page, redirecting to other page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
+
+            if not page or page == '': raise Common.InvalidPageException("# antPageDay: not find ju item page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
             self.item_juPage = page
         else:
             raise Common.NoPageException("# itemConfig: not find ju item page, url is null,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
