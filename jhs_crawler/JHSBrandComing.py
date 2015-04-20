@@ -89,6 +89,7 @@ class JHSBrandComing():
 
     # 多线程抓去品牌团活动
     def run_brandAct(self, act_valList):
+        addact_num = 0
         try:
             # 多线程爬取即将上线活动
             if len(act_valList) > Config.act_max_th:
@@ -99,7 +100,6 @@ class JHSBrandComing():
             m_Obj.createthread()
             m_Obj.run()
 
-            addact_num = 0
             item_list = m_Obj.items
             for item in item_list:
                 crawling_confirm,sql = item
