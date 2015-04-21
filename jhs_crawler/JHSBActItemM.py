@@ -132,6 +132,7 @@ class JHSBActItemM(MyThread):
                     #print '# queue is empty', e
                     self.insertActcoming(_actcomingsql_list, True)
                     _actcomingsql_list = []
+
                     break
 
                 item = None
@@ -214,26 +215,22 @@ class JHSBActItemM(MyThread):
                 self.queue.task_done()
 
             except Common.NoActivityException as e:
+                print 'Not activity exception :', e
                 # 通知queue, task结束
                 self.queue.task_done()
-                print 'Not activity exception :', e
 
             except Common.NoPageException as e:
+                print 'Not page exception :', e
                 # 通知queue, task结束
                 self.queue.task_done()
-                print 'Not page exception :', e
 
             except Common.InvalidPageException as e:
-                # 通知queue, task结束
-                self.queue.task_done()
-
                 self.crawlRetry(_data)
                 print 'Invalid page exception :', e
-
-            except Exception as e:
                 # 通知queue, task结束
                 self.queue.task_done()
 
+            except Exception as e:
                 print 'Unknown exception crawl item :', e
                 #traceback.print_exc()
                 print '#####--Traceback Start--#####'
@@ -245,6 +242,8 @@ class JHSBActItemM(MyThread):
                 print '#####--Traceback End--#####'
 
                 self.crawlRetry(_data)
+                # 通知queue, task结束
+                self.queue.task_done()
                 # 重新拨号
                 try:
                     self.dialRouter(4, 'chn')

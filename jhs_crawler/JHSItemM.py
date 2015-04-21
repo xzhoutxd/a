@@ -173,6 +173,7 @@ class JHSItemM(MyThread):
                     # remind
                     self.updateItemRemind(_itemremindsql_list, True)
                     _itemremindsql_list = []
+
                     break
 
                 item = None
@@ -287,25 +288,22 @@ class JHSItemM(MyThread):
                 self.queue.task_done()
 
             except Common.NoItemException as e:
+                print 'Not item exception :', e
                 # 通知queue, task结束
                 self.queue.task_done()
-                print 'Not item exception :', e
 
             except Common.NoPageException as e:
+                print 'Not page exception :', e
                 # 通知queue, task结束
                 self.queue.task_done()
-                print 'Not page exception :', e
 
             except Common.InvalidPageException as e:
-                # 通知queue, task结束
-                self.queue.task_done()
-
                 self.crawlRetry(_data)
                 print 'Invalid page exception :', e
-
-            except Exception as e:
                 # 通知queue, task结束
                 self.queue.task_done()
+
+            except Exception as e:
                 print 'Unknown exception crawl item :', e
                 #traceback.print_exc()
                 print '#####--Traceback Start--#####'
@@ -316,6 +314,8 @@ class JHSItemM(MyThread):
                 print "exception traceback err:%s,%s,%s"%(tp,val,td)
                 print '#####--Traceback End--#####'
                 self.crawlRetry(_data)
+                # 通知queue, task结束
+                self.queue.task_done()
                 if str(e).find('Name or service not known') != -1 or str(e).find('Temporary failure in name resolution') != -1:
                     print _data
                 # 重新拨号
