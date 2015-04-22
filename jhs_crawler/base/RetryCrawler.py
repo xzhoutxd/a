@@ -26,7 +26,7 @@ class RetryCrawler():
         self._tag = 'ikuai'
 
         # wait time
-        self.w_time = 3
+        self.w_time = 1
 
     # To dial router
     def dialRouter(self, _type, _obj):
@@ -59,8 +59,7 @@ class RetryCrawler():
                     self.dialRouter(4, 'chn')
                 except Exception as e:
                     print '# DailClient Exception err:', e
-                    time.sleep(random.uniform(10,30))
-                time.sleep(retry*random.uniform(10,30))
+                time.sleep(random.uniform(10,30))
 
             except Common.SystemBusyException as e:
                 if retry >= max_retry:
@@ -79,7 +78,13 @@ class RetryCrawler():
                     if retry >= max_retry:
                         break
                     retry += 1
-                    time.sleep(self.w_time*retry)
+                    
+                    # 重新拨号
+                    try:
+                        self.dialRouter(4, 'chn')
+                    except Exception as e:
+                        print '# DailClient Exception err:', e
+                    time.sleep(random.uniform(10,30))
                 else:
                     break
 
