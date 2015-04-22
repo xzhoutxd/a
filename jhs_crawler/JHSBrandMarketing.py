@@ -63,7 +63,7 @@ class JHSBrandMarketing():
             page = self.crawler.getData(self.ju_home_url, self.refers)
             hb = JHSHomeBrand()
             hb.antPage(page)
-            if not hb.home_brands:
+            if hb.home_brands == {} or not hb.home_brands:
                 page = self.crawler.getData(self.ju_home_today_url, self.refers)
                 hb.antPage(page)
             self.home_brands = hb.home_brands
