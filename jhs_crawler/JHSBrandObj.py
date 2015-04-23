@@ -72,6 +72,8 @@ class JHSBrandObj():
         act_sql_list = []
         # 需要更新活动sql列表
         updateact_sql_list = []
+        # day hour活动sql列表
+        day_hour_act_sql_list = []
         print '# brand activities start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         # 多线程 控制并发的线程数
         if len(act_valList) > Config.act_max_th:
@@ -83,54 +85,52 @@ class JHSBrandObj():
         m_Obj.run()
 
         
-        #while True:
-        #    try:
-        #        if m_Obj.empty_q():
-        #            item_list = m_Obj.items
         item_list = m_Obj.items
         for b in item_list:
-            print '#####A activity start#####'
-            crawling_confirm, brandact_id, brandact_name, other_val = b
-            # 去重
-            if brandact_id_dict.has_key(str(brandact_id)):
-                repeatact_num += 1
-                print '# repeat brand act. activity id:%s name:%s'%(brandact_id, brandact_name)
-            else:
-                brandact_id_dict[str(brandact_id)] = brandact_name
-                # 判断本活动是不是即将开团
-                if crawling_confirm == 1:
-                    brandact_itemVal_list = []
-                    brandact_itemVal_list, sql, daySql, hourSql = other_val
-                    brandact_url, brandact_sign, brandact_cateId = sql[8], sql[13], sql[2]
-                    newact_num += 1
-                    act_sql_list.append((sql,daySql,hourSql))
-                    # 只抓取非俪人购商品
-                    if int(brandact_sign) != 3:
-                        # Activity Items
-                        # item init val list
-                        if brandact_itemVal_list and len(brandact_itemVal_list) > 0:
-                            crawler_val_list.append((brandact_id,brandact_name,brandact_itemVal_list))
-                            allitem_num = allitem_num + len(brandact_itemVal_list)
-                            print '# activity id:%s name:%s'%(brandact_id, brandact_name)
-                            print '# activity items num:', len(brandact_itemVal_list)
-                    else:
-                        print '# ladygo activity id:%s name:%s'%(brandact_id, brandact_name)
-                        ladygo_num += 1
-                # 需要更新的活动
-                elif crawling_confirm == 0:
-                    updateSql = other_val
-                    updateact_sql_list.append(updateSql)
-                    updateact_num += 1
-                    print '# update activity, id:%s name:%s'%(brandact_id, brandact_name)
+            try:
+                print '#####A activity start#####'
+                crawling_confirm, brandact_id, brandact_name, other_val = b
+                # 去重
+                if brandact_id_dict.has_key(str(brandact_id)):
+                    repeatact_num += 1
+                    print '# repeat brand act. activity id:%s name:%s'%(brandact_id, brandact_name)
                 else:
-                    print '# Not New activity, id:%s name:%s'%(brandact_id, brandact_name)
-            print '#####A activity end#####'
-        #            break
-        #    except Exception as e:
-        #        print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e 
-        #        #traceback.print_exc()
-        #        self.traceback_log()
-        #        break
+                    brandact_id_dict[str(brandact_id)] = brandact_name
+                    # 判断本活动是不是即将开团
+                    if crawling_confirm == 1:
+                        brandact_itemVal_list = []
+                        brandact_itemVal_list, sql, daySql, hourSql = other_val
+                        brandact_url, brandact_sign, brandact_cateId = sql[8], sql[13], sql[2]
+                        newact_num += 1
+                        act_sql_list.append(sql)
+                        day_hour_act_sql_list.append((daySql,hourSql))
+                        # 只抓取非俪人购商品
+                        if int(brandact_sign) != 3:
+                            # Activity Items
+                            # item init val list
+                            if brandact_itemVal_list and len(brandact_itemVal_list) > 0:
+                                crawler_val_list.append((brandact_id,brandact_name,brandact_itemVal_list))
+                                allitem_num = allitem_num + len(brandact_itemVal_list)
+                                print '# activity id:%s name:%s'%(brandact_id, brandact_name)
+                                print '# activity items num:', len(brandact_itemVal_list)
+                        else:
+                            print '# ladygo activity id:%s name:%s'%(brandact_id, brandact_name)
+                            ladygo_num += 1
+                    # 需要更新的活动
+                    elif crawling_confirm == 0:
+                        updateSql = other_val
+                        updateact_sql_list.append(updateSql)
+                        updateact_num += 1
+                        print '# update activity, id:%s name:%s'%(brandact_id, brandact_name)
+                    else:
+                        daySql, hourSql = other_val
+                        day_hour_act_sql_list.append((daySql,hourSql))
+                        print '# Not New activity, id:%s name:%s'%(brandact_id, brandact_name)
+                print '#####A activity end#####'
+            except Exception as e:
+                print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e 
+                self.traceback_log()
+                
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# All brand activity num:', len(act_valList)
         print '# Repeat brand activity num:', repeatact_num
@@ -140,24 +140,27 @@ class JHSBrandObj():
         print '# Update brand activity num:', updateact_num
 
         # 品牌团活动入库
-        # 保存
-        actsql_list, actdaysql_list, acthoursql_list = [], [], []
+        # 新加活动
+        actsql_list = []
         for act_sql in act_sql_list:
-            sql,daySql,hourSql = act_sql
-            actsql_list.append(sql)
-            actdaysql_list.append(daySql)
-            acthoursql_list.append(hourSql)
+            actsql_list.append(act_sql)
             if len(actsql_list) >= Config.act_max_arg:
                 self.mysqlAccess.insertJhsAct(actsql_list)
                 actsql_list = []
+        if len(actsql_list) > 0:
+            self.mysqlAccess.insertJhsAct(actsql_list)
+        # 需要day,hour抓取的活动
+        actdaysql_list, acthoursql_list = [], []
+        for act_sql in day_hour_act_sql_list:
+            daySql,hourSql = act_sql
+            actdaysql_list.append(daySql)
+            acthoursql_list.append(hourSql)
             if len(actdaysql_list) >= Config.act_max_arg:
                 self.mysqlAccess.insertJhsActDayalive(actdaysql_list)
                 actdaysql_list = []
             if len(acthoursql_list) >= Config.act_max_arg:
                 self.mysqlAccess.insertJhsActHouralive(acthoursql_list)
                 acthoursql_list = []
-        if len(actsql_list) > 0:
-            self.mysqlAccess.insertJhsAct(actsql_list)
         if len(actdaysql_list) > 0:
             self.mysqlAccess.insertJhsActDayalive(actdaysql_list)
         if len(acthoursql_list) > 0:

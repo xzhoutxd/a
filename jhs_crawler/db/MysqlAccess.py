@@ -151,7 +151,7 @@ class MysqlAccess():
     # 需要每天抓取的活动
     def insertJhsActDayalive(self, args_list):
         try:
-            sql = 'replace into nd_jhs_parser_activity_alive_d(act_id,category_id,category_name,act_name,act_url,_start_time,_end_time,c_begindate,c_beginhour) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            sql = 'insert ignore into nd_jhs_parser_activity_alive_d(act_id,category_id,category_name,act_name,act_url,_start_time,_end_time,c_begindate,c_beginhour) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
             #self.jhs_db.execute(sql, args)
             self.jhs_db.executemany(sql, args_list)
         except Exception, e:
@@ -196,7 +196,7 @@ class MysqlAccess():
     # 需要小时抓取的活动
     def insertJhsActHouralive(self, args_list):
         try:
-            sql = 'replace into nd_jhs_parser_activity_alive_h(act_id,category_id,category_name,act_name,act_url,_start_time,_end_time,c_begindate,c_beginhour) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            sql = 'insert ignore into nd_jhs_parser_activity_alive_h(act_id,category_id,category_name,act_name,act_url,_start_time,_end_time,c_begindate,c_beginhour) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
             #self.jhs_db.execute(sql, args)
             self.jhs_db.executemany(sql, args_list)
         except Exception, e:

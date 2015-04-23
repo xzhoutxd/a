@@ -954,7 +954,9 @@ class JHSBActItem():
             update_sql = self.outSqlForUpdate()
             return (self.crawling_confirm,self.brandact_id,self.brandact_name,(update_sql))
         else:
-            return (self.crawling_confirm,self.brandact_id,self.brandact_name,())
+            day_sql = self.outSqlForDay()
+            hour_sql = self.outSqlForHour()
+            return (self.crawling_confirm,self.brandact_id,self.brandact_name,(day_sql, hour_sql))
 
     # 输出每小时检查活动的元组
     def outTupleForHourcheck(self):
