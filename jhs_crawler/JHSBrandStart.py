@@ -103,7 +103,7 @@ class JHSBrand():
             self.traceback_log()
 
     def activityList(self, page):
-        if not page or page == '': raise Common.InvalidPageException("# activityListForComing: not get JHS brand home.")
+        if not page or page == '': raise Common.InvalidPageException("# activityList: not get JHS brand home.")
         self.ju_brand_page = page
         #print page
         # 保存html文件

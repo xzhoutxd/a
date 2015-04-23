@@ -102,9 +102,13 @@ class JHSBrandComing():
 
             item_list = m_Obj.items
             for item in item_list:
-                crawling_confirm,sql = item
-                if crawling_confirm == 1:
-                    addact_num += 1
+                try:
+                    crawling_confirm,sql = item
+                    if crawling_confirm == 1:
+                        addact_num += 1
+                except Exception as e:
+                    print '# exception err crawl item :', e
+                    self.traceback_log()
             """
             addact_num = 0
             while True:
