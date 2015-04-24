@@ -129,7 +129,12 @@ class Jsonpage():
         if totalPage > 1:
             for page_i in range(2, totalPage+1):
                 ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-                p_url = re.sub('page=\d+&', 'page=%d&'%page_i, p_url)
+                #p_url = re.sub('page=\d+&', 'page=%d&'%page_i, p_url)
+                m = re.search(r'page=\d+&',p_url)
+                if m:
+                    p_url = re.sub('page=\d+&', 'page=%d&'%page_i, p_url)
+                else:
+                    p_url = p_url + '&page=%d'%page_i
                 p_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, p_url)
                 #print p_url
                 result = self.get_jsonData(p_url, refers)
