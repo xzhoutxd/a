@@ -35,5 +35,6 @@ if __name__ == '__main__':
     m = args[1]
     b = JHSBrandItemLock(m)
     b.antPageForItemlock()
+    time.sleep(1)
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 

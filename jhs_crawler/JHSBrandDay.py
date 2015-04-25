@@ -109,5 +109,6 @@ if __name__ == '__main__':
     m_type = args[1]
     b = JHSBrandDay(m_type)
     b.antPage()
+    time.sleep(1)
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 

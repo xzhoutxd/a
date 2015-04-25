@@ -144,6 +144,7 @@ if __name__ == '__main__':
     # 即将上线品牌团
     brand_obj = JHSBrandComing()
     brand_obj.antPage()
+    time.sleep(1)
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
 

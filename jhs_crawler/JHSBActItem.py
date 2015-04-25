@@ -854,10 +854,14 @@ class JHSBActItem():
         self.itemConfig()
         time_gap = Common.subTS_hours(int(float(self.brandact_starttime)/1000), self.crawling_time)
         if 0 <= time_gap:
-            # 品牌团页面html
-            self.brandPage()
-            # 活动优惠
-            self.brandActConpons()
+            try:
+                # 品牌团页面html
+                self.brandPage()
+                # 活动优惠
+                self.brandActConpons()
+            except Exception as e:
+                print '# exception err brand coming get brand page:', e
+                Common.traceback_log()
         else:
             self.crawling_confirm = 2
         # 保存html文件
