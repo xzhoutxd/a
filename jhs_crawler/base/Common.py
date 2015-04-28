@@ -275,8 +275,14 @@ def fix_url(url):
         m = re.search(r'^/+',str(url))
         if m:
             url = re.sub(r'^/+','',url)
-    if url and type(url) is str and url != '' and url.find('http://') == -1:
-        url = 'http://' + url
+
+        if type(url) is str and url != '':
+            if url.find('http://') == -1:
+                url = 'http://' + url
+        else:
+            if str(url).find('http://') == -1:
+                url = 'http://' + url
+        
     return url
 
    
