@@ -164,7 +164,7 @@ class JHSBActItem():
                 self.brandact_id = b_baseInfo['activityId']
             if b_baseInfo.has_key('activityUrl') and b_baseInfo['activityUrl']:
                 # 品牌团链接
-                self.brandact_url = b_baseInfo['activityUrl']
+                self.brandact_url = Common.fix_url(b_baseInfo['activityUrl'])
                 if self.brandact_url.find('ladygo.tmall.com') != -1:
                     # 品牌团标识
                     self.brandact_sign = 3
@@ -201,7 +201,7 @@ class JHSBActItem():
         if b_materials:
             if b_materials.has_key('brandLogoUrl') and b_materials['brandLogoUrl']:
                 # 品牌团Logo图片链接
-                self.brandact_logopic_url = b_materials['brandLogoUrl']
+                self.brandact_logopic_url = Common.fix_url(b_materials['brandLogoUrl'])
             if b_materials.has_key('logoText') and b_materials['logoText']:
                 # 品牌团Name
                 self.brandact_name = b_materials['logoText']
@@ -210,10 +210,10 @@ class JHSBActItem():
                 self.brandact_desc = b_materials['brandDesc']
             if b_materials.has_key('newBrandEnterImgUrl') and b_materials['newBrandEnterImgUrl']:
                 # 品牌团展示图片链接
-                self.brandact_enterpic_url = b_materials['newBrandEnterImgUrl']
+                self.brandact_enterpic_url = Common.fix_url(b_materials['newBrandEnterImgUrl'])
             elif b_materials.has_key('brandEnterImgUrl') and b_materials['brandEnterImgUrl']:
                 # 品牌团展示图片链接
-                self.brandact_enterpic_url = b_materials['brandEnterImgUrl']
+                self.brandact_enterpic_url = Common.fix_url(b_materials['brandEnterImgUrl'])
 
     # Json dict remind
     def item_remindDict(self, b_remind):
@@ -291,7 +291,7 @@ class JHSBActItem():
             m = re.search(r'"activityUrl":"(.+?)",', b_baseInfo, flags=re.S)
             if m:
                 # 品牌团链接
-                self.brandact_url = m.group(1)
+                self.brandact_url = Common.fix_url(m.group(1))
                 if self.brandact_url.find('ladygo.tmall.com') != -1:
                     # 品牌团标识
                     self.brandact_sign = 3
@@ -336,7 +336,7 @@ class JHSBActItem():
             m = re.search(r'"brandLogoUrl":"(.+?)"', b_materials, flags=re.S)
             if m:
                 # 品牌团Logo图片链接
-                self.brandact_logopic_url = m.group(1)
+                self.brandact_logopic_url = Common.fix_url(m.group(1))
             m = re.search(r'"logoText":"(.+?)"', b_materials, flags=re.S)
             if m:
                 # 品牌团Name
@@ -348,12 +348,12 @@ class JHSBActItem():
             m = re.search(r'"newBrandEnterImgUrl":"(.+?)"', b_materials, flags=re.S)
             if m:
                 # 品牌团展示图片链接
-                self.brandact_enterpic_url = m.group(1)
+                self.brandact_enterpic_url = Common.fix_url(m.group(1))
             else:
                 m = re.search(r'"brandEnterImgUrl":"(.+?)"', b_materials, flags=re.S)
                 if m:
                     # 品牌团展示图片链接
-                    self.brandact_enterpic_url = m.group(1)
+                    self.brandact_enterpic_url = Common.fix_url(m.group(1))
 
     # Json string remind
     def item_remindString(self, b_remind):

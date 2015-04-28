@@ -269,6 +269,15 @@ def cookieJar2Dict(cj):
         cj_d[c.name] = c.value
     return cj_d
 
+# fix ju url 
+def fix_url(url):
+    m = re.search(r'^/+',url)
+    if m:
+        url = re.sub(r'^/+','',url)
+    if url.find('http://') == -1:
+        url = 'http://' + url
+    return url
+
    
 # local ip
 import socket
