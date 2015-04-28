@@ -21,6 +21,9 @@ class TBCrawler(Crawler):
         self.history = ''
 
     def getData(self, url, refers='', decode=True, terminal='1'):
+        url = Common.fix_url(url)
+        if refers and refers != '':
+            refers = Common.fix_url(refers)
         # when null url, exit function
         if not url or not re.search(r'http://', url):
             return None
