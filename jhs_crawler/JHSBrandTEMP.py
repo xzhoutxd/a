@@ -72,7 +72,7 @@ class JHSBrandTEMP():
                 f_activitySignId = m.group(1)
 
             if f_activitySignId == '':
-                f_url = self.brand_page_url + '&page=1&frontCatIds=%s'%f_catid
+                f_url = Common.fix_url(self.brand_page_url + '&page=1&frontCatIds=%s'%f_catid)
                 print '# brand activity floor:', f_name, f_catid, f_url
                 url_valList.append((f_url, f_name, f_catid))
         return url_valList
@@ -84,7 +84,7 @@ class JHSBrandTEMP():
         p = re.compile(r'<div id="(\d+)" class="l-floor J_Floor placeholder ju-wrapper" data-ajax="(.+?)">\s+<div class="l-f-title">\s+<div class="l-f-tbox">(.+?)</div>', flags=re.S)
         for floor in p.finditer(page):
             f_name, f_catid, f_url, f_activitySignId = '', '', '', ''
-            f_catid, f_url, f_name = floor.group(1), floor.group(2), floor.group(3)
+            f_catid, f_url, f_name = floor.group(1), Common.fix_url(floor.group(2)), floor.group(3)
             if f_url != '':
                 print '# brand activity floor:', f_name, f_catid, f_url
                 url_valList.append((f_url, f_name, f_catid))
@@ -106,7 +106,7 @@ class JHSBrandTEMP():
         f_preurl = ''
         m = re.search(r'lazy.destroy\(\);\s+S\.IO\({\s+url: "(.+?)",\s+"data": {(.+?)},.+?\)}', page, flags=re.S)
         if m:
-            url, data_s = m.group(1), ''.join(m.group(2).split())
+            url, data_s = Common.fix_url(m.group(1)), ''.join(m.group(2).split())
             data_list = data_s.split(',"')
             add_data = ''
             for data in data_list:
@@ -150,13 +150,13 @@ class JHSBrandTEMP():
                     if floor.has_key("subFloorList"):
                         for f in floor["subFloorList"]:
                             if f.has_key("dataUrl") and f.has_key("floorName"):
-                                url_valList.append((f["dataUrl"],f["floorName"],-1))
+                                url_valList.append((Common.fix_url(f["dataUrl"]),f["floorName"],-1))
                             elif f.has_key("dataUrl") and floor.has_key("floorName"):
-                                url_valList.append((f["dataUrl"],floor["floorName"],-1))
+                                url_valList.append((Common.fix_url(f["dataUrl"]),floor["floorName"],-1))
                                 
                     else:
                         if floor.has_key("dataUrl") and floor.has_key("floorName"):
-                            url_valList.append((floor["dataUrl"],floor["floorName"],-1))
+                            url_valList.append((Common.fix_url(floor["dataUrl"]),floor["floorName"],-1))
                             
 
         return url_valList
@@ -172,14 +172,14 @@ class JHSBrandTEMP():
             f_catid = -1
             s_p = re.compile(r'"dataUrl":"(.+?)".+?"floorName":"(.+?)"', flags=re.S)
             for s_floor in s_p.finditer(sub_floor):
-                f_url, sub_f_catname = s_floor.group(1), s_floor.group(2)
+                f_url, sub_f_catname = Common.fix_url(s_floor.group(1)), s_floor.group(2)
                 url_valList.append((f_url,sub_f_catname,f_catid))                
                 print f_url,sub_f_catname,f_catid
                 url_list.append(f_url)
                 
         p = re.compile(r'{"dataType":1,"dataUrl":"(.+?)","elemNum":\d+,"floorName":"(.+?)","hasSubFloor":false,"kengType":0.+?}', flags=re.S)
         for floor in p.finditer(page):
-            f_url, f_catname = floor.group(1), floor.group(2)
+            f_url, f_catname = Common.fix_url(floor.group(1)), floor.group(2)
             if f_url in url_list: continue
             if f_catname.find('即将上线') != -1: continue
             f_catid = -1
@@ -237,7 +237,7 @@ class JHSBrandTEMP():
         p = re.compile(r'<div.+?id="(subfloor\d+)" data-ajax="(.+?)">\s+<div class="f-sub-floor">\s+<span>(.+?)</span>\s+</div>', flags=re.S)
         for sub_floor in p.finditer(page):
             f_url, f_name, f_catid = '', '', ''
-            f_url, f_name = sub_floor.group(2), sub_floor.group(3)
+            f_url, f_name = Common.fix_url(sub_floor.group(2)), sub_floor.group(3)
 
             if f_url:
                 m = re.search(r'frontCatIds=(\d+)', f_url)
@@ -330,7 +330,7 @@ class JHSBrandTEMP():
             today_i = 1
             p = re.compile(r'<li class="brand.+?".+?>.+?<a.+?href="(.+?)".+?>.+?</a>.+?</li>', flags=re.S)
             for act in p.finditer(brand_list):
-                act_url = act.group(1)
+                act_url = Common.fix_url(act.group(1))
                 act_id = -1
                 m = re.search(r'act_sign_id=(\d+)', act_url, flags=re.S)
                 if m:

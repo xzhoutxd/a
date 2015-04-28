@@ -467,7 +467,7 @@ class JHSBActItem():
         i = 0
         for floor_url in p.finditer(page):
             i += 1
-            f_url = (floor_url.group(1)).replace('&amp;','&')
+            f_url = Common.fix_url((floor_url.group(1)).replace('&amp;','&'))
             #print f_url
             position = self.getItemDataFromInterface(f_url, position, i)
 
@@ -523,73 +523,24 @@ class JHSBActItem():
         i = 0
         for floor_url in p.finditer(page):
             i += 1
-            f_url = (floor_url.group(1)).replace('&amp;','&')
-            #ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-            #f_url = (floor_url.group(1)).replace('&amp;','&') + '&_ksTS=%s'%ts
-            #print f_url
-            #f_page = self.crawler.getData(f_url, self.brandact_url)
-            #pageKey = 'act-home-floor-%d'%i
-            #self.brandact_pages[pageKey] = (f_url, f_page)
+            f_url = Common.fix_url((floor_url.group(1)).replace('&amp;','&'))
             position = self.getItemDataFromInterface(f_url, position, i)
-            """
-            m = re.search(r'^{.+?\"itemList\":\[.+?\].+?}$', f_page, flags=re.S)
-            if m:
-                result = json.loads(f_page)
-                if result.has_key('code') and int(result['code']) == 200 and result.has_key('itemList') and result['itemList'] != []:
-                    for itemdata in result['itemList']:
-                        position += 1
-                        self.itemByBrandPageType2(itemdata, position)
-                        #val = self.itemByBrandPageType2(itemdata, position)
-                        #self.brandact_itemVal_list.append(val)
-            """
 
     # 品牌团页面格式
     def brandActTypeOther(self, page):
         position = 0
         items = {}
         # 聚划算详情页
-        p = re.compile(r'<.+? href="http://detail.ju.taobao.com/home.htm?(.+?)".+?>', flags=re.S)
+        p = re.compile(r'<.+? href="\S*?detail.ju.taobao.com/home.htm?(.+?)".+?>', flags=re.S)
         for ids_str in p.finditer(page):
             ids = ids_str.group(1)
             items,position = self.get_ids_from_url(ids,1,items,position)
         # 天猫详情页
-        p = re.compile(r'<.+? href="http://detail.tmall.com/item.htm?(.+?)".+?>', flags=re.S)
+        p = re.compile(r'<.+? href="\S*?detail.tmall.com/item.htm?(.+?)".+?>', flags=re.S)
         for ids_str in p.finditer(page):
             ids = ids_str.group(1)
             items,position = self.get_ids_from_url(ids,2,items,position)
 
-            """
-            ids = ids_str.group(1)
-            item_id, item_juId = '', ''
-            m = re.search(r'itemId=(\d+)', ids, flags=re.S)
-            if m:
-                item_id = m.group(1)
-            m = re.search(r'item_id=(\d+)', ids, flags=re.S)
-            if m:
-                item_id = m.group(1)
-            m = re.search(r'&id=(\d+)', ids, flags=re.S)
-            if m:
-                item_juId = m.group(1)
-             
-            key = '-%s-%s'%(item_id, item_juId)
-            if not items.has_key(key):
-                position += 1
-                item_ju_url = ''
-                if item_juId != '' and item_id != '':
-                    item_ju_url = 'http://detail.ju.taobao.com/home.htm?item_id=%s&id=%s'%(item_id, item_juId)
-                elif item_juId != '':
-                    item_ju_url = 'http://detail.ju.taobao.com/home.htm?id=%s'%item_juId
-                elif item_id != '':
-                    item_ju_url = 'http://detail.ju.taobao.com/home.htm?item_id=%s'%item_id
-                    
-                if item_ju_url != '':
-                    val = (item_ju_url, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, '')
-                    self.return_val(val)
-                    #r_val = self.return_val(val)
-                    #self.brandact_itemVal_list.append(r_val)
-                    items[key] = {'itemid':item_id,'itemjuid':item_juId}
-            """
-        
         # other floor
         # 接口数据
         getdata_url = "http://ju.taobao.com/json/tg/ajaxGetItems.htm?stype=ids&styleType=small&includeForecast=true"
@@ -611,7 +562,7 @@ class JHSBActItem():
         i = 0
         for floor_url in p.finditer(page):
             i += 1
-            f_url = (floor_url.group(1)).replace('&amp;','&')
+            f_url = Common.fix_url((floor_url.group(1)).replace('&amp;','&'))
             position = self.getItemDataFromInterface(f_url, position, i)
 
     # 从url中获取id
@@ -663,7 +614,7 @@ class JHSBActItem():
                     for act_floor in act_info["floorList"]:
                         i += 1
                         if act_floor.has_key("dataUrl"):
-                            position = self.getItemDataFromInterface(act_floor["dataUrl"], position, i)
+                            position = self.getItemDataFromInterface(Common.fix_url(act_floor["dataUrl"]), position, i)
                             
         except Exception as e:
             print "# err act items data json load error:",self.brandact_id,self.brandact_url,page
@@ -672,7 +623,7 @@ class JHSBActItem():
     # 从接口获取商品数据列表
     def getItemDataFromInterface(self, url, position, floor_num=0):
         ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
-        f_url = url + '&_ksTS=%s'%ts
+        f_url = Common.fix_url(url) + '&_ksTS=%s'%ts
         f_page = self.crawler.getData(f_url, self.brandact_url)
         if f_page and f_page != '':
             pageKey = 'act-home-floor-%d'%floor_num
@@ -707,7 +658,7 @@ class JHSBActItem():
         m = re.search(r'<a.+?href="(.+?)".+?>', itemdata, flags=re.S)
         if m:
             # 商品聚划算链接
-            item_ju_url = m.group(1).replace('amp;','')
+            item_ju_url = Common.fix_url(m.group(1).replace('amp;',''))
             if item_ju_url:
                 ids_list = item_ju_url.split('&')
                 for ids in ids_list:
@@ -722,18 +673,17 @@ class JHSBActItem():
         item_juPic_url = ''
         m = re.search(r'<img class="item-pic" src="(.+?)"', itemdata, flags=re.S)
         if m:
-            item_juPic_url = m.group(1)
+            item_juPic_url = Common.fix_url(m.group(1))
         else:
             m = re.search(r'<img class="item-pic" data-ks-lazyload="(.+?)"', itemdata, flags=re.S)
             if m:
-                item_juPic_url = m.group(1)
+                item_juPic_url = Common.fix_url(m.group(1))
             else:
                 m = re.search(r'<img.+?data-ks-lazyload="(.+?)"', itemdata, flags=re.S)
                 if m:
-                    item_juPic_url = m.group(1)
+                    item_juPic_url = Common.fix_url(m.group(1))
 
         # 解析聚划算商品
-        #return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url, self.crawling_begintime)
         return self.return_val((itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url))
 
     # 获取商品信息类型2
@@ -752,12 +702,12 @@ class JHSBActItem():
 
             # 商品聚划算展示图片链接
             if item_baseinfo.has_key('picUrl') and item_baseinfo['picUrl'] != '':
-                item_juPic_url = item_baseinfo['picUrl']
+                item_juPic_url = Common.fix_url(item_baseinfo['picUrl'])
             elif item_baseinfo.has_key('picUrlM') and item_baseinfo['picUrlM'] != '':
-                item_juPic_url = item_baseinfo['picUrlM']
+                item_juPic_url = Common.fix_url(item_baseinfo['picUrlM'])
             # 商品聚划算链接
             if item_baseinfo.has_key('itemUrl') and item_baseinfo['itemUrl'] != '':
-                item_ju_url = item_baseinfo['itemUrl']
+                item_ju_url = Common.fix_url(item_baseinfo['itemUrl'])
                 ids_list = item_ju_url.split('&')
                 for ids in ids_list:
                     if ids.find('item_id=') != -1:
@@ -770,7 +720,6 @@ class JHSBActItem():
                             item_juId = ids.split('=')[1]
 
         # 解析聚划算商品
-        #return (itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url, self.crawling_begintime)
         return self.return_val((itemdata, self.brandact_id, self.brandact_name, self.brandact_url, position, item_ju_url, item_id, item_juId, item_juPic_url))
 
     def return_val(self, val):
@@ -928,19 +877,19 @@ class JHSBActItem():
 
     # 正点开团
     def outSql(self):
-        return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,self.brandact_url,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),Config.sep.join(self.brandact_coupons),str(self.brandact_brandId),self.brandact_brand,str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
+        return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,Common.fix_url(self.brandact_url),self.brandact_desc,Common.fix_url(self.brandact_logopic_url),Common.fix_url(self.brandact_enterpic_url),self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),Config.sep.join(self.brandact_coupons),str(self.brandact_brandId),self.brandact_brand,str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
 
     # 即将上线
     def outSqlForComing(self):
-        return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,self.brandact_url,self.brandact_desc,self.brandact_logopic_url,self.brandact_enterpic_url,self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),Config.sep.join(self.brandact_coupons),str(self.brandact_brandId),self.brandact_brand,str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
+        return (Common.time_s(self.crawling_time),str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,str(self.brandact_position),self.brandact_platform,self.brandact_channel,self.brandact_name,Common.fix_url(self.brandact_url),self.brandact_desc,Common.fix_url(self.brandact_logopic_url),Common.fix_url(self.brandact_enterpic_url),self.brandact_status,str(self.brandact_sign),self.brandact_other_ids,str(self.brandact_sellerId),self.brandact_sellerName,str(self.brandact_shopId),self.brandact_shopName,self.brandact_discount,str(self.brandact_soldCount),str(self.brandact_remindNum),str(self.brandact_coupon),Config.sep.join(self.brandact_coupons),str(self.brandact_brandId),self.brandact_brand,str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
 
     # 更新活动
     def outSqlForUpdate(self):
-        return (str(self.brandact_id),self.brandact_name,self.brandact_url,str(self.brandact_position),self.brandact_enterpic_url,str(self.brandact_remindNum),str(self.brandact_coupon),Config.sep.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.brandact_other_ids,str(self.brandact_sign))
+        return (str(self.brandact_id),self.brandact_name,Common.fix_url(self.brandact_url),str(self.brandact_position),Common.fix_url(self.brandact_enterpic_url),str(self.brandact_remindNum),str(self.brandact_coupon),Config.sep.join(self.brandact_coupons),str(self.brandact_inJuHome),str(self.brandact_juHome_position),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.brandact_other_ids,str(self.brandact_sign))
 
     # 每天抓取
     def outSqlForDay(self):
-        return (str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,self.brandact_name,self.brandact_url,Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
+        return (str(self.brandact_id),str(self.brandact_catgoryId),self.brandact_catgoryName,self.brandact_name,Common.fix_url(self.brandact_url),Common.time_s(float(self.brandact_starttime)/1000),Common.time_s(float(self.brandact_endtime)/1000),self.crawling_beginDate,self.crawling_beginHour)
 
     # 每小时抓取
     def outSqlForHour(self):
@@ -964,13 +913,13 @@ class JHSBActItem():
 
     # 输出每小时检查活动的元组
     def outTupleForHourcheck(self):
-        return (self.brandact_id, self.brandact_name, self.brandact_url, self.brandact_itemVal_list, Common.time_s(self.crawling_time))
+        return (self.brandact_id, self.brandact_name, Common.fix_url(self.brandact_url), self.brandact_itemVal_list, Common.time_s(self.crawling_time))
 
     def outTupleForComing(self):
         return (self.crawling_confirm,self.outSqlForComing())
 
     def outTupleBrand(self):
-        return (str(self.brandact_id),self.brandact_name,self.brandact_url,(Common.time_s(self.crawling_time),str(self.brandact_id),self.brandact_name,str(self.brandact_position),str(self.brandact_catgoryId),self.brandact_catgoryName,self.brandact_enterpic_url,self.crawling_beginDate))
+        return (str(self.brandact_id),self.brandact_name,Common.fix_url(self.brandact_url),(Common.time_s(self.crawling_time),str(self.brandact_id),self.brandact_name,str(self.brandact_position),str(self.brandact_catgoryId),self.brandact_catgoryName,Common.fix_url(self.brandact_enterpic_url),self.crawling_beginDate))
 
 
 def test():

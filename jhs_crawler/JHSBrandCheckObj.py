@@ -50,9 +50,6 @@ class JHSBrandCheckObj():
         m_Obj.createthread()
         m_Obj.run()
 
-        #while True:
-        #    try:
-        #        if m_Obj.empty_q():
         item_list = m_Obj.items
         for b in item_list:
             print '#####A activity start#####'
@@ -98,12 +95,7 @@ class JHSBrandCheckObj():
                     
             print '# A activity end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             print '#####A activity end#####'
-        #            break
-        #    except Exception as e:
-        #        print '# exception err crawl activity item, %s err:'%(sys._getframe().f_back.f_code.co_name),e 
-        #        #traceback.print_exc()
-        #        self.traceback_log()
-        #        break
+
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         print '# All brand activity num:', len(act_valList)
         print '# Check brand activity num:', act_num
@@ -138,19 +130,9 @@ class JHSBrandCheckObj():
             m_itemsObj.putItems(item_valTuple)
             m_itemsObj.run()
 
-            #while True:
-            #    try:
-            #        print '# Item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
-            #        if m_itemsObj.empty_q():
             item_list = m_itemsObj.items
             print '# Activity Items num:', len(item_list)
             print '# Activity Item List End: actId:%s, actName:%s'%(brandact_id, brandact_name)
-            #           break
-            #    except Exception as e:
-            #        print '# exception err crawl item: ', e
-            #        print '# crawler_val:', crawler_val
-            #        self.traceback_log()
-            #        break
 
     def traceback_log(self):
         print '#####--Traceback Start--#####'

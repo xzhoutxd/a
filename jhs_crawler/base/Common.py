@@ -271,10 +271,11 @@ def cookieJar2Dict(cj):
 
 # fix ju url 
 def fix_url(url):
-    m = re.search(r'^/+',url)
-    if m:
-        url = re.sub(r'^/+','',url)
-    if url.find('http://') == -1:
+    if url:
+        m = re.search(r'^/+',str(url))
+        if m:
+            url = re.sub(r'^/+','',url)
+    if url and type(url) is str and url != '' and url.find('http://') == -1:
         url = 'http://' + url
     return url
 

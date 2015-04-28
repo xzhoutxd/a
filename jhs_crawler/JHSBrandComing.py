@@ -109,22 +109,6 @@ class JHSBrandComing():
                 except Exception as e:
                     print '# exception err crawl item :', e
                     self.traceback_log()
-            """
-            addact_num = 0
-            while True:
-                try:
-                    if m_Obj.empty_q():
-                        item_list = m_Obj.items
-                        for item in item_list:
-                            crawling_confirm,sql = item
-                            if crawling_confirm == 1:
-                                addact_num += 1
-                        break
-                except Exception as e:
-                    print '# exception err crawl item :', e
-                    self.traceback_log()
-                    break
-            """
         except Exception as e:
             print '# exception err brand coming :', e
         print '# brand activities end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))

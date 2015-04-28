@@ -85,17 +85,17 @@ class JHSItem():
         # 商品所属活动Name
         self.item_actName = actName
         # 商品所属活动Url
-        self.item_act_url = actUrl
+        self.item_act_url = Common.fix_url(actUrl)
         # 商品所在活动位置
         self.item_position = position
         # 商品聚划算链接
-        self.item_ju_url = item_ju_url
+        self.item_ju_url = Common.fix_url(item_ju_url)
         # 商品Id
         self.item_id = item_id
         # 商品聚划算Id
         self.item_juId = item_juId
         # 商品活动展示图片Url
-        self.item_juPic_url = item_juPic_url
+        self.item_juPic_url = Common.fix_url(item_juPic_url)
         # 本次抓取开始时间
         self.crawling_begintime = begin_time
         # 商品所在活动的开团时间
@@ -126,20 +126,20 @@ class JHSItem():
         if self.item_juPic_url == '':
             m = re.search(r'<div class="item-pic-wrap">.+?<img.+?src="(.+?)".+?/>', i_page, flags=re.S)
             if m:
-                self.item_juPic_url = m.group(1)
+                self.item_juPic_url = Common.fix_url(m.group(1))
             else:
                 m = re.search(r'<div class="normal-pic.+?<img.+?data-ks-imagezoom="(.+?)".+?/>', i_page, flags=re.S)
                 if m:
-                    self.item_juPic_url = m.group(1)
+                    self.item_juPic_url = Common.fix_url(m.group(1))
 
         # 商品链接
         m = re.search(r'<div class="normal-pic.+?<a href="(.+?)".+?>', i_page, flags=re.S)
         if m:
-            self.item_url = m.group(1)
+            self.item_url = Common.fix_url(m.group(1))
         else:
             m = re.search(r'<div class="pic-box soldout".+?<a href="(.+?)".+?>', i_page, flags=re.S)
             if m:
-                self.item_url = m.group(1)
+                self.item_url = Common.fix_url(m.group(1))
 
         # 商品卖家Id, 商品卖家Name
         m = re.search(r'<a class="sellername" href=".+?user_number_id=(.+?)".+?>(.+?)</a>', i_page, flags=re.S)
@@ -203,7 +203,7 @@ class JHSItem():
         if self.item_ju_url != '':
             page = self.crawler.getData(self.item_ju_url, self.item_act_url)
 
-            if page and re.search(r'<title>【聚划算】无所不能聚</title>', page, flags=re.S):
+            if page and re.search(r'<title>【聚划算】无所不能聚</title>', str(page), flags=re.S):
                 raise Common.NoPageException("# itemConfig: not find ju item page, redirecting to juhuasuan home,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
             elif type(self.crawler.history) is list and len(self.crawler.history) != 0 and re.search(r'302',str(self.crawler.history[0])):
                 raise Common.NoPageException("# itemConfig: not find ju item page, redirecting to other page,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
@@ -221,8 +221,8 @@ class JHSItem():
         ts = str(int(time.time()*1000)) + '_' + str(random.randint(0,9999))
         m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"apiItemDynamicInfo": "(.+?)",.+?};', page, flags=re.S)
         if m:
-            i_url = re.sub(r'^/+','',m.group(1))
-            i_getdata_url = 'http://' + i_url + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
+            i_url = Common.fix_url(m.group(1))
+            i_getdata_url = i_url + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
         else:
             i_getdata_url = 'http://dskip.ju.taobao.com/detail/json/item_dynamic.htm' + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
 
@@ -235,7 +235,6 @@ class JHSItem():
                 if m:
                     m = re.search(r'"data":\s*"NULL_ITEM.+?', json_str, flags=re.S)
                     if m:
-                        print json_str
                         raise Common.NoItemException("# itemDynamic: find dynamic page null,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
                     else:
                         raise Common.InvalidPageException("# itemDynamic: find dynamic page false,juid:%s,item_ju_url:%s"%(str(self.item_juId), self.item_ju_url))
@@ -362,11 +361,11 @@ class JHSItem():
 
     # 输出item info SQL
     def outIteminfoSql(self):
-        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,str(self.item_position),self.item_ju_url,self.item_juName,self.item_juDesc,self.item_juPic_url,self.item_id,self.item_url,str(self.item_sellerId),self.item_sellerName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),';'.join(self.item_promotions),self.item_act_starttime,self.item_act_endtime)
+        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,Common.fix_url(self.item_act_url),str(self.item_position),Common.fix_url(self.item_ju_url),self.item_juName,self.item_juDesc,Common.fix_url(self.item_juPic_url),self.item_id,Common.fix_url(self.item_url),str(self.item_sellerId),self.item_sellerName,str(self.item_shopType),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_discount),str(self.item_remindNum),';'.join(self.item_promotions),self.item_act_starttime,self.item_act_endtime)
 
     # 每天的SQL
     def outSqlForDay(self):
-        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,self.item_act_url,self.item_juName,self.item_ju_url,self.item_id,self.item_url,str(self.item_oriPrice),str(self.item_actPrice),str(self.item_soldCount),str(self.item_stock),self.crawling_beginDate,self.crawling_beginHour)
+        return (Common.time_s(self.crawling_time),str(self.item_juId),str(self.item_actId),self.item_actName,Common.fix_url(self.item_act_url),self.item_juName,Common.fix_url(self.item_ju_url),self.item_id,Common.fix_url(self.item_url),str(self.item_oriPrice),str(self.item_actPrice),str(self.item_soldCount),str(self.item_stock),self.crawling_beginDate,self.crawling_beginHour)
 
     # 每小时的SQL
     def outSqlForHour(self):

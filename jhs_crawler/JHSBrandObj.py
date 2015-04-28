@@ -42,7 +42,7 @@ class JHSBrandObj():
             json_valList = []
             for b_url_val in b_url_valList:
                 b_url, f_name, f_catid = b_url_val
-                json_valList.append((b_url,Config.ju_brand_home,(f_name,f_catid)))
+                json_valList.append((Common.fix_url(b_url),Config.ju_brand_home,(f_name,f_catid)))
             bResult_list = self.jsonpage.get_json(json_valList)
 
             act_valList = []
@@ -194,23 +194,11 @@ class JHSBrandObj():
             m_itemsObj.putItems(item_valTuple)
             m_itemsObj.run()
 
-            #while True:
-            #    try:
-            #        print '# Item Check: actId:%s, actName:%s'%(brandact_id, brandact_name)
-            #        print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-            #        if m_itemsObj.empty_q():
             item_list = m_itemsObj.items
             print '# Activity find Items num:', len(item_valTuple)
             print '# Activity insert Items num:', len(item_list)
             print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             print '# Activity Item List End: actId:%s, actName:%s'%(brandact_id, brandact_name)
-            #            break
-            #    except Exception as e:
-            #        print '# exception err crawl item: ', e
-            #        print '# crawler_val:', crawler_val
-            #        #traceback.print_exc()
-            #        self.traceback_log()
-            #        break
 
     def traceback_log(self):
         print '#####--Traceback Start--#####'
