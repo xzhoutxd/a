@@ -16,6 +16,10 @@ class MyThread():
         self.threadNum = thread_num
         self.queue = Queue.Queue()
 
+    def __del_(self):
+        self.queue.clear()
+        self.queue = None
+
     def createthread(self, args=()):
         for i in xrange(self.threadNum):
             thread = th.Thread(target=self.crawl, args=args)

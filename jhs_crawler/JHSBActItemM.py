@@ -204,6 +204,9 @@ class JHSBActItemM(MyThread):
 
                     # 汇聚
                     self.push_back(self.items, item.outTupleBrand())
+                else:
+                    self.queue.task_done()
+                    continue
 
                 # 存网页
                 if item and crawl_type != '':

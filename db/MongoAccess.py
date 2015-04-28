@@ -15,7 +15,7 @@ class MongoAccess():
         self.mongo_db = MongoPool()
 
     def __del__(self):
-        pass
+        self.mongo_db = None
 
     # 插入网页列表
     def insertTBPages(self, pages):
