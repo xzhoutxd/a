@@ -8,6 +8,7 @@ import re
 import random
 import json
 import time
+import base.Common as Common
 
 class JHSBrandTEMP():
     '''A class of brand'''
