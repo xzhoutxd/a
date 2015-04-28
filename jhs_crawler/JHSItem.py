@@ -222,7 +222,7 @@ class JHSItem():
         m = re.search(r'JU_DETAIL_DYNAMIC = {.+?"apiItemDynamicInfo": "(.+?)",.+?};', page, flags=re.S)
         if m:
             i_url = re.sub(r'^/+','',m.group(1))
-            i_getdata_url = i_url + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
+            i_getdata_url = 'http://' + i_url + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
         else:
             i_getdata_url = 'http://dskip.ju.taobao.com/detail/json/item_dynamic.htm' + '?item_id=%s'%self.item_id + '&id=%s'%self.item_juId + '&_ksTS=%s'%ts
 
