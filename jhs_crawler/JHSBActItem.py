@@ -239,11 +239,11 @@ class JHSBActItem():
     # Json string
     def itemString(self):
         baseInfo = ''
-        m = re.search(r'("baseInfo":{.+?}),"debugStr"', self.brandact_pagedata, flags=re.S)
+        m = re.search(r'"baseInfo":({.+?}),"debugStr"', self.brandact_pagedata, flags=re.S)
         if m:
             baseInfo = m.group(1)
         else:
-            m = re.search(r'("baseInfo":{.+?})', self.brandact_pagedata, flags=re.S)
+            m = re.search(r'"baseInfo":({.+?})', self.brandact_pagedata, flags=re.S)
             if m:
                 baseInfo = m.group(1)
 
@@ -254,7 +254,7 @@ class JHSBActItem():
             except Exception as e:
                 self.item_baseInfoString(baseInfo)
 
-        m = re.search(r'("materials":{.+?}),"price":', self.brandact_pagedata, flags=re.S)
+        m = re.search(r'"materials":({.+?}),"price":', self.brandact_pagedata, flags=re.S)
         if m:
             materials = m.group(1)
             try:
@@ -263,7 +263,7 @@ class JHSBActItem():
             except Exception as e:
                 self.item_materialsString(materials)
 
-        m = re.search(r'("remind":{.+?})', self.brandact_pagedata, flags=re.S)
+        m = re.search(r'"remind":({.+?})', self.brandact_pagedata, flags=re.S)
         if m:
             remind = m.group(1)
             try:
@@ -272,7 +272,7 @@ class JHSBActItem():
             except Exception as e:
                 self.item_remindString(remind)
 
-        m = re.search(r'("price":{.+?}),"remind":', self.brandact_pagedata, flags=re.S)
+        m = re.search(r'"price":({.+?}),"remind":', self.brandact_pagedata, flags=re.S)
         if m:
             price = m.group(1)
             try:
