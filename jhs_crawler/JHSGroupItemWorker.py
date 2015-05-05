@@ -49,7 +49,7 @@ class JHSGroupItemWorker():
                 end_time = item["end_time"]
                 now_time = Common.time_s(self.begin_time)
                 # 删除过期的商品
-                if self.now_time > end_time: self.redisAccess.delete_jhsitem(keys)
+                if now_time > end_time: self.redisAccess.delete_jhsitem(keys)
 
     # 把商品信息存入redis数据库中
     def putItemDB(self, _items):
