@@ -77,7 +77,11 @@ class JHSGroupItem():
             page_val = (page,c_name,c_id)
             ajax_url_list = self.getAjaxurlList(page_val,c_url)
 
+        if len(ajax_url_list) > 0:
+            self.get_jsonitems(ajax_url_list)
 
+    # get item json list in category page from ajax url
+    def get_jsonitems(self, ajax_url_list):
         all_item_val = []
         other_item_val = []
         coming_item_val = []
@@ -124,38 +128,42 @@ class JHSGroupItem():
                     for item_val in item_result_valList:
                         item_info, a_val = item_val
                         item_list.append((item_info,) + a_val)
-        print '# all items num:',len(all_item_val)
+        print '# today first page items num:',len(all_item_val)
+        print '# other subNav items num:',len(item_list)
+        if len(item_list) > 0:
+            self.process_items(item_list)
 
-        # parser group item data json list
+    # parse item list and crawl new items
+    def process_items(self, item_list):
+        # 解析商品列表
         itemparse_type = 'm'
         # 附加信息
         a_val = (self.begin_time,)
         items = self.parseItems(item_list,itemparse_type,a_val)
 
-        # crawl new item data info
+        # 查找新上商品,并抓取新上商品详情
         result_items = []
         for item in items:
             item_status, item_val, o_val = item
             item_juid = item_val[1]
-            result_items.append({"item_juId":str(item_juid),"val":o_val})
-
+            result_items.append({"item_juId":str(item_juid),"val":o_val,"r_val":item_val})
         new_item_list = self.worker.selectNewItems(result_items)
         print '# new items num:',len(new_item_list)
+        # 抓取新上商品
         itemcrawl_type = 'i'
         # 附加信息
         a_val = (self.begin_time,)
         items = self.crawlNewItems(new_item_list,itemcrawl_type,a_val)
 
-        # 保存item信息到Redis
+        # 保存新上商品信息到Redis
         new_items = []
         for item in items:
             iteminfoSql = item
-            crawling_time,item_juid,item_groupCatId,item_groupCatName,item_ju_url,item_juName,item_id,start_time,end_time = iteminfoSql[0],iteminfoSql[1],iteminfoSql[2],iteminfoSql[3],iteminfoSql[6],iteminfoSql[8],iteminfoSql[10],iteminfoSql[23],iteminfoSql[24]
-            item_val = {"item_juId":item_juid,"crawling_time":crawling_time,"item_groupCatId":item_groupCatId,"item_groupCatName":item_groupCatName,"item_ju_url":item_ju_url,"item_juName":item_juName,"item_id":item_id,"start_time":start_time,"end_time":end_time}
-            new_items.append({"item_juId":item_juid,"val":item_val})
+            item_juid = iteminfoSql[1]
+            new_items.append({"item_juId":item_juid,"r_val":iteminfoSql})
         self.worker.putItemDB(new_items)
 
-        # 删除结束商品
+        # 删除Redis中结束商品
         self.worker.scanEndItems()
 
     # 解析从接口中获取的商品数据

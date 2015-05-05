@@ -7,6 +7,7 @@ import random
 import traceback
 import base.Common as Common
 import base.Config as Config
+from Message import Message
 from db.MysqlAccess import MysqlAccess
 #from JHSGroupItemM import JHSGroupItemParserM
 #from JHSGroupItemM import JHSGroupItemCrawlerM
@@ -23,6 +24,9 @@ class JHSGroupItemWorker():
     def __init__(self):
         # jhs group item type
         self.worker_type  = Config.JHS_GroupItem
+
+        # message
+        self.message = Message()
 
         # 抓取时间设定
         self.crawling_time = Common.now() # 当前爬取时间
@@ -59,27 +63,47 @@ class JHSGroupItemWorker():
             if self.redisAccess.exist_jhsitem(keys): continue
 
             # 将商品基础数据写入redis
-            val  = _item["val"]
+            item_val = self.message.itemInfo(_item["r_val"])
+            val = self.message.itemMsg(item_val)
             self.redisAccess.write_jhsitem(keys, val)
+
+    # 更新商品信息
+    def updateItem(self, _item):
+        keys = [self.worker_type, _item["item_juId"]]
+
+        item = self.redisAccess.read_jhsitem(keys)
+        if item:
+            item_val = self.message.itemParseInfo(_item["r_val"])
+            c = False
+            if item["start_time"] != item_val["start_time"]:
+                item["start_time"] = item_val["start_time"]
+                c = True
+            if item["end_time"] != item_val["end_time"]:
+                item["end_time"] = item_val["end_time"]
+                c = True
+            if c:
+                self.redisAccess.write_jhsitem(keys, item)
 
     # 查找新商品
     def selectNewItems(self, _items):
         new_items = []
         for _item in _items:
             keys = [self.worker_type, _item["item_juId"]]
-            if self.redisAccess.exist_jhsitem(keys): continue
+            if self.redisAccess.exist_jhsitem(keys): 
+                self.updateItem(_item)
+                continue
             new_items.append(_item["val"])
         return new_items
 
     def scanEndItems(self):
         val = (Common.time_s(self.crawling_time),)
-        # 删除已经结束的商品
         _items = self.mysqlAccess.selectJhsGroupItemEnd(val)
         end_items = []
         # 遍历商品
         for _item in _items:
             item_juid = _item[0]
             end_items.append({"item_juId":str(item_juid)})
+        # 删除已经结束的商品
         self.delItem(end_items)
             
     def scanAliveItems(self):
@@ -89,3 +113,23 @@ class JHSGroupItemWorker():
         print "# hour all item nums:",len(_items)
         return _items
 
+    def scanAliveItems(self):
+        val = (Common.time_s(self.crawling_time),)
+        # 查找没有结束的商品
+        _items = self.mysqlAccess.selectJhsGroupItemNotEnd(val)
+        i = 1
+        for _item in _items:
+            print i
+            item_juid = str(_item[1])
+            keys = [self.worker_type, item_juid]
+
+            item = self.redisAccess.read_jhsitem(keys)
+            print item
+            #_new_item = {"crawling_time":item["crawling_time"],"item_juid":item["item_juId"],"groupcat_id":item["item_groupCatId"],"groupcat_name":item["item_groupCatName"],"item_ju_url":item["item_ju_url"],"item_juname":item["item_juName"],"item_id":item["item_id"],"start_time":item["start_time"],"end_time":item["end_time"]}
+            #self.redisAccess.write_jhsitem(keys, _new_item)
+            i += 1
+if __name__ == '__main__':
+    pass
+    #w = JHSGroupItemWorker()
+    #w.scanAliveItems()
+        

@@ -288,6 +288,14 @@ class MysqlAccess():
         except Exception, e:
             print '# select Jhs itemgroup item end exception:', e
 
+    # 查找没有结束的商品
+    def selectJhsGroupItemNotEnd(self, args):
+        try:
+            sql = 'select b.category_url,a.item_juid,a.item_id,a.item_ju_url from nd_jhsitemgroup_parser_item_info a left join nd_jhsitemgroup_parser_category b on a.category_id = b.category_id where a.end_time >= %s'
+            return self.jhs_db.select(sql, args)
+        except Exception, e:
+            print '# select Jhs itemgroup not end item exception:', e
+
     # 查找已经开团但是没有结束的商品
     def selectJhsGroupItemAlive(self, args):
         try:
