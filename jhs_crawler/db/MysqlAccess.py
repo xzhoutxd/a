@@ -279,5 +279,55 @@ class MysqlAccess():
         except Exception, e:
             print '# select SQL exception:', e
 
+    # JHS 商品团
+    # 查找已经结束的商品
+    def selectJhsGroupItemEnd(self, args):
+        try:
+            sql = 'select item_juid,item_id from nd_jhsitemgroup_parser_item_info where end_time < %s'
+            return self.jhs_db.select(sql, args)
+        except Exception, e:
+            print '# select Jhs itemgroup item end exception:', e
+
+    # 查找已经开团但是没有结束的商品
+    def selectJhsGroupItemAlive(self, args):
+        try:
+            sql = 'select b.category_url,a.item_juid,a.item_id,a.item_ju_url from nd_jhsitemgroup_parser_item_info a left join nd_jhsitemgroup_parser_category b on a.category_id = b.category_id where a.start_time <= %s and a.end_time >= %s'
+            return self.jhs_db.select(sql, args)
+        except Exception, e:
+            print '# select Jhs itemgroup alive item exception:', e
+
+    # 新加商品信息
+    def insertJhsGroupItemInfo(self, args_list):
+        try:
+            sql = 'call sp_jhsitemgroup_parser_item_info(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            self.jhs_db.executemany(sql, args_list)
+        except Exception, e:
+            print '# itemgroup insert Jhs Item info exception:', e
+
+    # 每小时抓取商品
+    def insertJhsGroupItemForHour(self, args_list):
+        try:
+            sql = 'call sp_jhsitemgroup_parser_item_h(%s,%s,%s,%s,%s)'
+            self.jhs_db.executemany(sql, args_list)
+        except Exception, e:
+            print '# itemgroup insert Jhs Item for hour exception:', e
+
+    # 商品位置信息
+    def insertJhsGroupItemPosition(self, args_list):
+        try:
+            sql = 'call sp_jhsitemgroup_parser_item_position(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            self.jhs_db.executemany(sql, args_list)
+        except Exception, e:
+            print '# itemgroup insert Jhs item position exception:', e
+
+    # 商品预热信息
+    def insertJhsGroupItemComing(self, args_list):
+        try:
+            sql = 'call sp_jhsitemgroup_parser_item_coming(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            self.jhs_db.executemany(sql, args_list)
+        except Exception, e:
+            print '# itemgroup insert Jhs item position exception:', e
+    
+
 if __name__ == '__main__':
     my = MysqlAccess()

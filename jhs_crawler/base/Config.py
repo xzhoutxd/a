@@ -36,6 +36,12 @@ TAOBAO_TYPE = '2'
 VIP_TYPE    = '3'
 JHS_TYPE    = '4'
 
+# jhs类型
+# 品牌团
+JHS_Brand = '1'
+# 商品团
+JHS_GroupItem = '2'
+
 # 通用http报文头
 g_httpHeader  = {
         'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',

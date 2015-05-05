@@ -25,9 +25,9 @@ class RedisAccess:
         self.VIP_ITEM_DB   = 4   # vip item
         self.VIP_SKU_DB    = 5   # vip sku
 
-        self.JHS_ACT_DB    = 6   # jhs activity        
-        self.JHS_ITEM_DB   = 7   # jhs item
-        self.JHS_SKU_DB    = 8   # jhs SKU
+        self.JHS_ACT_DB    = 20  # jhs activity        
+        self.JHS_ITEM_DB   = 21  # jhs item
+        self.JHS_SKU_DB    = 22  # jhs SKU
 
         self.COOKIE_DB     = 9   # taobao cookie
         self.QUEUE_DB      = 10  # queue db
@@ -378,18 +378,7 @@ class RedisAccess:
     # 写入jhs item
     def write_jhsitem(self, keys, val):
         try:
-            act_id, act_name, item_juid, item_id, item_juname, item_ju_url, item_start_time, item_end_time = val
-            item_dict = {}
-            item_dict["act_id"]          = act_id
-            item_dict["act_name"]        = act_name
-            item_dict["item_juid"]       = item_juid            
-            item_dict["item_id"]         = item_id            
-            item_dict["item_juname"]     = item_juname
-            item_dict["item_ju_url"]     = item_ju_url
-            item_dict["item_start_time"] = item_start_time
-            item_dict["item_end_time"]   = item_end_time
-
-            item_json = json.dumps(item_dict)
+            item_json = json.dumps(val)
             self.redis_pool.write(keys, item_json, self.JHS_ITEM_DB)
         except Exception, e:
             print '# Redis access write jhs item exception:', e

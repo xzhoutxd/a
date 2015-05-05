@@ -70,8 +70,8 @@ class Jsonpage():
                     except Empty as e:
                         break
                     _val = _data[1]
-                    b_url, refers, a_val = _val
-                    bResult_list += self.get_jsonPage(b_url,refers,a_val)
+                    a_url, refers, a_val = _val
+                    bResult_list += self.get_jsonPage(a_url,refers,a_val)
                     # 通知queue, task结束
                     self.val_queue.task_done()
                 except Common.InvalidPageException as e:
@@ -136,7 +136,6 @@ class Jsonpage():
                 else:
                     p_url = p_url + '&page=%d'%page_i
                 p_url = re.sub('&_ksTS=\d+_\d+', '&_ksTS=%s'%ts, p_url)
-                #print p_url
                 result = self.get_jsonData(p_url, refers)
                 if result:
                     bResult_list.append((result,)+a_val)
@@ -201,6 +200,53 @@ class Jsonpage():
                 act_valList.append(val)
         print '# brand activities parse json end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         return act_valList
+
+
+    # 解析每一页的商品数据
+    def parser_itemjson(self, iResult_list):
+        print '# items parse json start:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        # 获取多线程需要的字段val
+        item_valList = []
+        # 前一页的数据量,用于计算商品所在的位置
+        prepage_count = 0
+        for page in iResult_list:
+            page_info, a_val = page
+            items = []
+            currentPage = 1
+            if type(page_info) is dict and page_info.has_key('itemList') and page_info['itemList'] != []:
+                items = page_info['itemList']
+                if page_info.has_key('currentPage'):
+                    currentPage = int(page_info['currentPage'])
+            elif type(page_info) is str:
+                m = re.search(r'"itemList":\[(.+?}})\]', page_info, flags=re.S)
+                if m:
+                    itemlist_info = m.group(1)
+                    p = re.compile(r'({"baseinfo":.+?}})',re.I)
+                    for item_info in p.finditer(itemlist_info):
+                        item = item_info.group(1)
+                        items.append(item)
+                m = re.search(r'"currentPage":(\d+),', page_info, flags=re.S)
+                if m:
+                    currentPage = int(m.group(1))
+            print '# item every page num:',len(items)
+
+            i_position_start = 0
+            if currentPage > 1:
+                i_position_start = (currentPage - 1) * prepage_count
+            else:
+                # 保存前一页的数据条数
+                prepage_count = len(items)
+
+            for i in range(0,len(items)):
+                item = items[i]
+                if a_val:
+                    item_val = (item, (a_val + ((i_position_start+i+1),)))
+                else:
+                    item_val = (item, ((i_position_start+i+1),))
+                item_valList.append(item_val)
+        print '# items parse json end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        return item_valList
+
     
     def traceback_log(self):
         print '#####--Traceback Start--#####'

@@ -17,8 +17,9 @@ class MyThread():
         self.queue = Queue.Queue()
 
     def __del_(self):
-        self.queue.clear()
-        self.queue = None
+        pass
+        #self.queue.clear()
+        #self.queue = None
 
     def createthread(self, args=()):
         for i in xrange(self.threadNum):
