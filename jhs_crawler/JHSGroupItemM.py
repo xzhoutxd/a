@@ -17,7 +17,7 @@ from db.MysqlAccess import MysqlAccess
 from JHSItem import JHSItem
 sys.path.append('../db')
 from RedisAccess import RedisAccess
-from MongoAccess import MongoAccess
+from MongofsAccess import MongofsAccess
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -33,7 +33,7 @@ class JHSGroupItemCrawlerM(MyThread):
 
         # db
         self.mysqlAccess = MysqlAccess() # mysql access
-        self.mongoAccess = MongoAccess() # mongodb access
+        self.mongofsAccess = MongofsAccess() # mongodb fs access
 
         # jhs queue type
         self.jhs_type = jhs_type # h:每小时, i:商品信息详情
@@ -197,9 +197,9 @@ class JHSGroupItemCrawlerM(MyThread):
                     continue
 
                 # 存网页
-                #if item and crawl_type != '':
-                #    _pages = item.outItemPage(crawl_type)
-                #    self.mongoAccess.insertJHSPages(_pages)
+                if item and crawl_type != '':
+                    _pages = item.outItemPage(crawl_type)
+                    self.mongofsAccess.insertJHSPages(_pages)
 
 
                 # 延时
@@ -257,7 +257,7 @@ class JHSGroupItemParserM(MyThread):
 
         # db
         self.mysqlAccess = MysqlAccess() # mysql access
-        self.mongoAccess = MongoAccess() # mongodb access
+        self.mongofsAccess = MongofsAccess() # mongodb access
 
         # jhs queue type
         self.jhs_type = jhs_type # m:解析json数据
@@ -371,9 +371,9 @@ class JHSGroupItemParserM(MyThread):
                     continue
 
                 # 存网页
-                #if item and crawl_type != '':
-                #    _pages = item.outItemPage(crawl_type)
-                #    self.mongoAccess.insertJHSPages(_pages)
+                if item and crawl_type != '':
+                    _pages = item.outItemPage(crawl_type)
+                    self.mongofsAccess.insertJHSPages(_pages)
 
 
                 # 延时

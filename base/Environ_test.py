@@ -38,6 +38,9 @@ mysql_config = {
 ######################## Mongodb配置  #####################
 mongodb_config = {'host':'192.168.1.113', 'port':9073}
 
+# mongodb gridfs collection名
+mongodb_fs = 'fs'
+
 # mongodb bson字段的最大长度16MB = 16777216，预留50%用作bson结构
 mongodb_maxsize= int(16777216*0.5)
 
