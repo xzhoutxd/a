@@ -125,8 +125,9 @@ class MongofsAccess():
 #     m.crtVipIndex(c)
 
 if __name__ == '__main__':
-    m = MongofsAccess()
-    m.removeJHSPage("2015050618_4_1_item_groupposition_10000006759307")
+    pass
+    #m = MongofsAccess()
+    #m.removeJHSPage("2015050618_4_1_item_groupposition_10000006759307")
     #vals = m.findJHSPage("2015050618_4_1_item_groupposition_10000006759307")
     #print vals
 
