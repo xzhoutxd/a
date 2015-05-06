@@ -113,7 +113,7 @@ class JHSGroupItemWorker():
         print "# hour all item nums:",len(_items)
         return _items
 
-    def scanAliveItems(self):
+    def scanNotEndItems(self):
         val = (Common.time_s(self.crawling_time),)
         # 查找没有结束的商品
         _items = self.mysqlAccess.selectJhsGroupItemNotEnd(val)
@@ -131,5 +131,5 @@ class JHSGroupItemWorker():
 if __name__ == '__main__':
     pass
     #w = JHSGroupItemWorker()
-    #w.scanAliveItems()
+    #w.scanNotEndItems()
         
