@@ -280,6 +280,14 @@ class MysqlAccess():
             print '# select SQL exception:', e
 
     # JHS 商品团
+    # 查找商品团分类
+    def selectJhsGroupItemCategory(self):
+        try:
+            sql = 'select category_url,category_name,category_id from nd_jhsitemgroup_parser_category'
+            return self.jhs_db.select(sql)
+        except Exception, e:
+            print '# select Jhs itemgroup category end exception:', e
+
     # 查找已经结束的商品
     def selectJhsGroupItemEnd(self, args):
         try:

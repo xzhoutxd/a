@@ -19,8 +19,9 @@ class RedisQueue:
         self.q_list = [
                 #'1_shop', '1_shopitem', '1_item',    # 天猫shop, shopitem, item
                 #'2_shop', '2_shopitem', '2_item',    # 淘宝shop, shopitem, item
-                #'3_act',  '3_sku_h',    '3_sku_d',    # 唯品会activity, 每小时sku, 每日sku
-                '4_act_h','4_act_l',    '4_act_d',  '4_act_s', '4_item_h', '4_item_d', '4_groupitem_h' # 聚划算每小时/lock字段/每日/即将开团activity, 每小时/每日item, 商品团每小时
+                #'3_act',  '3_sku_h',    '3_sku_d',   # 唯品会activity, 每小时sku, 每日sku
+                '4_act_h','4_act_l',    '4_act_d',  '4_act_c', '4_item_h', '4_item_d', # 聚划算品牌团 活动每小时/lock字段/每日/即将开团, 商品每小时/每日
+                '4_groupitem_h', '4_groupitemcat_h' # 聚划算商品团 商品每小时销售, 类别每小时商品
             ]
 
         # 初始化队列

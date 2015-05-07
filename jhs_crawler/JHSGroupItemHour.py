@@ -42,16 +42,18 @@ class JHSGroupItemHour():
 
     def antPage(self):
         try:
-            # 获取已经开团的商品
-            hour_items = self.worker.scanAliveItems()
-            if hour_items and len(hour_items) > 0:
-                # 清空每小时商品redis队列
-                self.item_queue.clearItemQ(self.q_type)
-                # 保存每小时商品redis队列
-                self.item_queue.putItemlistQ(self.q_type,hour_items)
-                print '# groupitem hour queue end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-            else:
-                print '# groupitem not find hour items...'
+            # 主机器需要配置redis队列
+            if self.m_type == 'm':
+                # 获取已经开团的商品
+                hour_items = self.worker.scanAliveItems()
+                if hour_items and len(hour_items) > 0:
+                    # 清空每小时商品redis队列
+                    self.item_queue.clearItemQ(self.q_type)
+                    # 保存每小时商品redis队列
+                    self.item_queue.putItemlistQ(self.q_type,hour_items)
+                    print '# groupitem hour queue end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                else:
+                    print '# groupitem not find hour items...'
 
             # 附加信息
             a_val = (self.begin_time, self.begin_hour)
@@ -60,17 +62,20 @@ class JHSGroupItemHour():
             """
             m_itemQ = JHSItemQM(self.item_type, self.q_type, 10, a_val)
             m_itemQ.createthread()
-            if hour_items and len(hour_items) > 0:
-                # 清空每小时商品redis队列
-                m_itemQ.clearItemQ()
-                # 保存每小时商品redis队列
-                m_itemQ.putItemlistQ(hour_items)
-                print '# groupitem hour queue end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-            else:
-                print '# groupitem not find hour items...'
+            # 主机器需要配置redis队列
+            if self.m_type == 'm':
+                if hour_items and len(hour_items) > 0:
+                    # 清空每小时商品redis队列
+                    m_itemQ.clearItemQ()
+                    # 保存每小时商品redis队列
+                    m_itemQ.putItemlistQ(hour_items)
+                    print '# groupitem hour queue end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                else:
+                    print '# groupitem not find hour items...'
             m_itemQ.run()
             """
         except Exception as e:
+            print '# antpage error :',e
             Common.traceback_log()
 
 if __name__ == '__main__':

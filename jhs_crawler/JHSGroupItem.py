@@ -13,20 +13,24 @@ import base.Config as Config
 from base.RetryCrawler import RetryCrawler
 from Jsonpage import Jsonpage
 from JHSGroupItemWorker import JHSGroupItemWorker
+from JHSGroupItemCatQ import JHSGroupItemCatQ
 from JHSGroupItemM import JHSGroupItemParserM
 from JHSGroupItemM import JHSGroupItemCrawlerM
 
 class JHSGroupItem():
     '''A class of JHS group item channel'''
-    def __init__(self):
+    def __init__(self, m_type):
         # 抓取设置
         self.crawler = RetryCrawler()
 
         # 获取Json数据
         self.jsonpage = Jsonpage()
-
-        # 
+ 
         self.worker = JHSGroupItemWorker()
+        self.cat_queue = JHSGroupItemCatQ()
+
+        # 分布式主机标志
+        self.m_type = m_type
 
         # 首页
         self.home_url   = 'http://ju.taobao.com'
@@ -36,8 +40,7 @@ class JHSGroupItem():
         self.today_url  = 'http://ju.taobao.com/tg/today_items.htm?type=0' # 商品团
 
         # 默认类别
-        self.category_list = [("http://ju.taobao.com/jusp/nvzhuangpindao/tp.htm#J_FixedNav","女装","1000")]
-        """
+        #self.category_list = [("http://ju.taobao.com/jusp/nvzhuangpindao/tp.htm#J_FixedNav","女装","1000")]
         self.category_list = [
                 ("http://ju.taobao.com/jusp/nvzhuangpindao/tp.htm#J_FixedNav","女装","1000"),
                 ("http://ju.taobao.com/jusp/nanzhuangpindao/tp.htm#J_FixedNav","男装","7000"),
@@ -56,7 +59,6 @@ class JHSGroupItem():
                 ("http://ju.taobao.com/jusp/jiajunewpindao/tp.htm#J_FixedNav","家装","225000"),
                 ("http://ju.taobao.com/jusp/jiajupindao/tp.htm#J_FixedNav","家纺","35000")
                 ]
-        """
 
         # 页面
         self.site_page  = None
@@ -67,18 +69,56 @@ class JHSGroupItem():
         self.begin_date = Common.today_s()
         self.begin_hour = Common.nowhour_s()
 
-    #
-    def antPage(self):
-        category_list = self.category_list
-        ajax_url_list = []
-        for category_val in category_list:
-            c_url,c_name,c_id = category_val
-            page = self.crawler.getData(c_url, self.today_url)
-            page_val = (page,c_name,c_id)
-            ajax_url_list = self.getAjaxurlList(page_val,c_url)
+    def antPageOld(self):
+        try:
+            category_list = self.worker.scanCategories()
+            if not category_list or len(category_list) == 0:
+                category_list = self.category_list
+            ajax_url_list = []
+            # 获取每个类别的ajax json url
+            for category_val in category_list:
+                c_url,c_name,c_id = category_val
+                page = self.crawler.getData(c_url, self.today_url)
+                page_val = (page,c_name,c_id)
+                ajax_url_list = self.getAjaxurlList(page_val,c_url)
 
-        if len(ajax_url_list) > 0:
-            self.get_jsonitems(ajax_url_list)
+            if len(ajax_url_list) > 0:
+                self.get_jsonitems(ajax_url_list)
+
+            # 删除Redis中结束商品
+            self.worker.scanEndItems()
+        except Exception as e:
+            print '# antpage error :',e
+            Common.traceback_log()
+
+    def antPage(self):
+        try:
+            # 主机器需要配置redis队列
+            if self.m_type == 'm':
+                category_list = self.worker.scanCategories()
+                if not category_list or len(category_list) == 0:
+                    category_list = self.category_list
+                if category_list and len(category_list) > 0:
+                    # 清空category redis队列
+                    self.cat_queue.clearItemQ()
+                    # 保存category redis队列
+                    self.cat_queue.putItemlistQ(category_list)
+                    print '# groupitem category queue end:',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                else:
+                    print '# groupitem not find category...'
+
+            self.cat_queue.catQ(self.today_url)
+            items = self.cat_queue.items
+            print '# all parser items num:',len(items)
+            # 查找新上商品
+            self.get_newitems(items)
+
+            if self.m_type == 'm':
+                # 删除Redis中结束商品
+                self.worker.scanEndItems()
+        except Exception as e:
+            print '# antpage error :',e
+            Common.traceback_log()
 
     # get item json list in category page from ajax url
     def get_jsonitems(self, ajax_url_list):
@@ -140,8 +180,10 @@ class JHSGroupItem():
         # 附加信息
         a_val = (self.begin_time,)
         items = self.parseItems(item_list,itemparse_type,a_val)
+        self.get_newitems(items)
 
-        # 查找新上商品,并抓取新上商品详情
+    # 查找新上商品,并抓取新上商品详情
+    def get_newitems(self, items):
         result_items = []
         for item in items:
             item_status, item_val, o_val = item
@@ -162,9 +204,6 @@ class JHSGroupItem():
             item_juid = iteminfoSql[1]
             new_items.append({"item_juId":item_juid,"r_val":iteminfoSql})
         self.worker.putItemDB(new_items)
-
-        # 删除Redis中结束商品
-        self.worker.scanEndItems()
 
     # 解析从接口中获取的商品数据
     def parseItems(self, item_list, itemparse_type, a_val):
@@ -255,7 +294,15 @@ class JHSGroupItem():
 
 
 if __name__ == '__main__':
-    j = JHSGroupItem()
+    args = sys.argv
+    #args = ['JHSGroupItem','m']
+    if len(args) < 2:
+        print '#err not enough args for JHSGroupItem...'
+        exit()
+    # 是否是分布式中主机
+    m_type = args[1]
+    j = JHSGroupItem(m_type)
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     j.antPage()
+    time.sleep(1)
     print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))

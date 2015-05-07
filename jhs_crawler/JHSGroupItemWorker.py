@@ -128,6 +128,10 @@ class JHSGroupItemWorker():
             #_new_item = {"crawling_time":item["crawling_time"],"item_juid":item["item_juId"],"groupcat_id":item["item_groupCatId"],"groupcat_name":item["item_groupCatName"],"item_ju_url":item["item_ju_url"],"item_juname":item["item_juName"],"item_id":item["item_id"],"start_time":item["start_time"],"end_time":item["end_time"]}
             #self.redisAccess.write_jhsitem(keys, _new_item)
             i += 1
+
+    def scanCategories(self):
+        category_list = self.mysqlAccess.selectJhsGroupItemCategory()
+        return category_list
 if __name__ == '__main__':
     pass
     #w = JHSGroupItemWorker()

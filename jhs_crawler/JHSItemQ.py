@@ -83,10 +83,9 @@ class JHSItemQ():
 
             # 队列为空
             if not _data:
-                print '# all get itemQ item num:',n
-                print '# not get itemQ of key:',_key
-                break
-                """
+                #print '# all get itemQ item num:',n
+                #print '# not get itemQ of key:',_key
+                #break
                 i += 1
                 if i > M:
                     print '# all get itemQ item num:',n
@@ -94,7 +93,6 @@ class JHSItemQ():
                     break
                 time.sleep(10)
                 continue
-                """
             n += 1
             item_list = []
             if self.item_type == 'item':
@@ -233,11 +231,10 @@ class JHSItemQM(MyThread):
                     self.insertItemhour(_itemhoursql_list, True)
                     _itemhoursql_list = []
 
-                    print '# all get itemQ item num:',n
-                    print '# not get itemQ of key:',self._key
-                    break
+                    #print '# all get itemQ item num:',n
+                    #print '# not get itemQ of key:',self._key
+                    #break
 
-                    """
                     i += 1
                     if i > M:
                         print '# all get itemQ item num:',n
@@ -245,7 +242,6 @@ class JHSItemQM(MyThread):
                         break
                     time.sleep(10)
                     continue
-                    """
 
                 n += 1
                 item = None
