@@ -42,6 +42,7 @@ class JHSGroupItemHour():
 
     def antPage(self):
         try:
+	    """
             # 主机器需要配置redis队列
             if self.m_type == 'm':
                 # 获取已经开团的商品
@@ -58,12 +59,16 @@ class JHSGroupItemHour():
             # 附加信息
             a_val = (self.begin_time, self.begin_hour)
             self.item_queue.itemQ(self.q_type, a_val)
+	    """
 
-            """
-            m_itemQ = JHSItemQM(self.item_type, self.q_type, 10, a_val)
+	    # 附加信息
+            a_val = (self.begin_time, self.begin_hour)
+            m_itemQ = JHSItemQM(self.item_type, self.q_type, 20, a_val)
             m_itemQ.createthread()
             # 主机器需要配置redis队列
             if self.m_type == 'm':
+		# 获取已经开团的商品
+                hour_items = self.worker.scanAliveItems()
                 if hour_items and len(hour_items) > 0:
                     # 清空每小时商品redis队列
                     m_itemQ.clearItemQ()
@@ -73,7 +78,6 @@ class JHSGroupItemHour():
                 else:
                     print '# groupitem not find hour items...'
             m_itemQ.run()
-            """
         except Exception as e:
             print '# antpage error :',e
             Common.traceback_log()
