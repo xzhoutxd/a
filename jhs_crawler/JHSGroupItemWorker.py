@@ -107,7 +107,8 @@ class JHSGroupItemWorker():
         self.delItem(end_items)
             
     def scanAliveItems(self):
-        val = (Common.time_s(self.crawling_time), Common.time_s(self.crawling_time))
+        # 到结束时间后的一个小时
+        val = (Common.time_s(self.crawling_time), Common.add_hours(self.crawling_time, -1))
         # 查找已经开团但是没有结束的商品
         _items = self.mysqlAccess.selectJhsGroupItemAlive(val)
         print "# hour all item nums:",len(_items)

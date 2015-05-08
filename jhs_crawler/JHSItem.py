@@ -298,7 +298,7 @@ class JHSItem():
     def itemPromotiton(self):
         promot_url = 'http://dskip.ju.taobao.com/promotion/json/get_shop_promotion.do?ju_id=%s'%str(self.item_juId)
         promot_page = self.crawler.getData(promot_url, self.item_ju_url)
-        if not promot_page and promot_page == '': raise Common.InvalidPageException("# itemPromotion: not find promotion page")
+        if not promot_page or promot_page == '': raise Common.InvalidPageException("# itemPromotion: not find promotion page")
         if promot_page and promot_page != '':
             self.item_pages['item-shoppromotion'] = (promot_url,promot_page)
             result = json.loads(promot_page)
