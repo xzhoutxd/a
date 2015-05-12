@@ -1,11 +1,11 @@
 #!/bin/bash
-yesterday=`date -d -1days +"%Y-%m-%d"`
+today=`date +"%Y-%m-%d"`
 
 #运行统计脚本
 now_time=$(date +%Y-%m-%d-%H:%M:%S)
 echo "-- run start...time:$now_time"
 if [ $# = 0 ]; then
-        p_date=$yesterday
+        p_date=$today
 else
         p_date=$1
 fi
