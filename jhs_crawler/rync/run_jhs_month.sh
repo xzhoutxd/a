@@ -5,7 +5,7 @@ yesterday=`date -d -1days +"%Y-%m-%d"`
 now_time=$(date +%Y-%m-%d-%H:%M:%S)
 echo "-- run start...time:$now_time"
 if [ $# = 0 ]; then
-        p_date=$today
+        p_date=$yesterday
 else
         p_date=$1
 fi
