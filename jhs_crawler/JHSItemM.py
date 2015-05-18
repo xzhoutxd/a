@@ -17,6 +17,7 @@ from db.MysqlAccess import MysqlAccess
 from JHSItem import JHSItem
 sys.path.append('../db')
 from MongoAccess import MongoAccess
+from MongofsAccess import MongofsAccess
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -32,7 +33,8 @@ class JHSItemM(MyThread):
 
         # db
         self.mysqlAccess = MysqlAccess() # mysql access
-        self.mongoAccess = MongoAccess() # mongodb access
+        #self.mongoAccess = MongoAccess() # mongodb access
+        self.mongofsAccess = MongofsAccess() # mongodb fs access
 
         # jhs queue type
         self.jhs_type = jhs_type # 1:新增商品, 2:每天一次的商品, 3:每小时一次的商品
@@ -279,7 +281,8 @@ class JHSItemM(MyThread):
                 # 存网页
                 if item and crawl_type != '':
                     _pages = item.outItemPage(crawl_type)
-                    self.mongoAccess.insertJHSPages(_pages)
+                #    self.mongoAccess.insertJHSPages(_pages)
+                    self.mongofsAccess.insertJHSPages(_pages)
 
 
                 # 延时

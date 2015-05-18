@@ -108,6 +108,7 @@ from base.MyThread  import MyThread
 from db.MysqlAccess import MysqlAccess
 from JHSItem import JHSItem
 from MongoAccess import MongoAccess
+from MongofsAccess import MongofsAccess
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -125,7 +126,8 @@ class JHSItemQM(MyThread):
         # db
         self.mysqlAccess = MysqlAccess() # mysql access
         self.redisQueue  = RedisQueue()  # redis queue
-        self.mongoAccess = MongoAccess() # mongodb access
+        #self.mongoAccess = MongoAccess() # mongodb access
+        self.mongofsAccess = MongofsAccess() # mongodb fs access
 
         # jhs queue type
         self.jhs_queue_type = q_type     # h:每小时
@@ -281,9 +283,10 @@ class JHSItemQM(MyThread):
                     continue
 
                 # 存网页
-                #if item and crawl_type != '':
-                #    _pages = item.outItemPage(crawl_type)
+                if item and crawl_type != '':
+                    _pages = item.outItemPage(crawl_type)
                 #    self.mongoAccess.insertJHSPages(_pages)
+                    self.mongofsAccess.insertJHSPages(_pages)
 
                 # 延时
                 time.sleep(1)

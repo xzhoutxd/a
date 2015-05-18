@@ -17,6 +17,7 @@ from db.MysqlAccess import MysqlAccess
 from JHSBActItem import JHSBActItem
 sys.path.append('../db')
 from MongoAccess import MongoAccess
+from MongofsAccess import MongofsAccess
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -32,7 +33,8 @@ class JHSBActItemM(MyThread):
 
         # db
         self.mysqlAccess = MysqlAccess() # mysql access
-        self.mongoAccess = MongoAccess() # mongodb access
+        #self.mongoAccess = MongoAccess() # mongodb access
+        self.mongofsAccess = MongofsAccess() # mongodb fs access
 
         # appendix val
         self.a_val = a_val
@@ -211,7 +213,8 @@ class JHSBActItemM(MyThread):
                 # 存网页
                 if item and crawl_type != '':
                     _pages = item.outItemPage(crawl_type)
-                    self.mongoAccess.insertJHSPages(_pages)
+                #    self.mongoAccess.insertJHSPages(_pages)
+                    self.mongofsAccess.insertJHSPages(_pages)
 
                     
                 # 通知queue, task结束
