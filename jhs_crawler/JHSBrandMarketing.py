@@ -145,7 +145,7 @@ class JHSBrandMarketing():
                 if self.home_brands.has_key(str(brandact_id)):
                     val = val + (self.home_brands[str(brandact_id)]["position"],self.home_brands[str(brandact_id)]["datatype"],self.home_brands[str(brandact_id)]["typename"])
                 elif self.home_brands.has_key(brandact_url):
-                    val = val + (self.home_brands[brandact_url]["position"],self.home_brands[brandact_url]["datatype"],self.home_brands[str(brandact_id)]["typename"])
+                    val = val + (self.home_brands[brandact_url]["position"],self.home_brands[brandact_url]["datatype"],self.home_brands[brandact_url]["typename"])
                 else:
                     val = val + (None,None,None)
 
