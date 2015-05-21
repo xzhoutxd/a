@@ -11,6 +11,7 @@ import time
 import traceback
 import base.Common as Common
 import base.Config as Config
+from base.TBCrawler import TBCrawler
 from base.RetryCrawler import RetryCrawler
 from Jsonpage import Jsonpage
 from JHSGroupItemM import JHSGroupItemParserM
@@ -37,7 +38,8 @@ class JHSGroupItemCatQ():
         self.giveup_items = []
 
         # 抓取设置
-        self.crawler = RetryCrawler()
+        #self.crawler = RetryCrawler()
+        self.crawler = TBCrawler()
 
         # 获取Json数据
         self.jsonpage = Jsonpage()
