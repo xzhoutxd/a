@@ -401,7 +401,7 @@ class JHSItem():
             m = re.search(r'"itemUrl":"(.+?)",', i_baseInfo, flags=re.S)
             if m:
                 # 商品聚划算链接
-                self.item_ju_url = m.group(1)
+                self.item_ju_url = Common.fix_url(m.group(1))
             m = re.search(r'"ostime":(.+?),', i_baseInfo, flags=re.S)
             if m:
                 # 商品开团时间
@@ -418,15 +418,15 @@ class JHSItem():
             # 商品聚划算展示图片链接
             m = re.search(r'"picUrl":"(.+?)",', i_baseInfo, flags=re.S)
             if m:
-                self.item_juPic_url = m.group(1)
+                self.item_juPic_url = Common.fix_url(m.group(1))
             else:
                 m = re.search(r'"picUrlM":"(.+?)",', i_baseInfo, flags=re.S)
                 if m:
-                    self.item_juPic_url = m.group(1)
+                    self.item_juPic_url = Common.fix_url(m.group(1))
                 else:
                     m = re.search(r'"picUrlW":"(.+?)",', i_baseInfo, flags=re.S)
                     if m:
-                        self.item_juPic_url = m.group(1)
+                        self.item_juPic_url = Common.fix_url(m.group(1))
 
     # Json string name
     def item_nameString(self, i_name):
@@ -522,7 +522,7 @@ class JHSItem():
                 self.item_juId = i_baseInfo['juId']
             if i_baseInfo.has_key('itemUrl') and i_baseInfo['itemUrl']:
                 # 商品聚划算链接
-                self.item_ju_url = i_baseInfo['itemUrl']
+                self.item_ju_url = Common.fix_url(i_baseInfo['itemUrl'])
             if i_baseInfo.has_key('ostime') and i_baseInfo['ostime']:
                 # 商品开团时间
                 self.item_starttime = i_baseInfo['ostime']
@@ -535,11 +535,11 @@ class JHSItem():
                 self.item_status = i_baseInfo['itemStatus']
             # 商品聚划算展示图片链接
             if i_baseInfo.has_key('picUrl') and i_baseInfo['picUrl']:
-                self.item_juPic_url = i_baseInfo['picUrl']
+                self.item_juPic_url = Common.fix_url(i_baseInfo['picUrl'])
             elif i_baseInfo.has_key('picUrlM') and i_baseInfo['picUrlM']:
-                self.item_juPic_url = i_baseInfo['picUrlM']
+                self.item_juPic_url = Common.fix_url(i_baseInfo['picUrlM'])
             elif i_baseInfo.has_key('picUrlW') and i_baseInfo['picUrlW']:
-                self.item_juPic_url = i_baseInfo['picUrlW']
+                self.item_juPic_url = Common.fix_url(i_baseInfo['picUrlW'])
 
     # Json dict name
     def item_nameDict(self, i_name):
